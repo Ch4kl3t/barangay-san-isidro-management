@@ -1,0 +1,75 @@
+/* Directory-only presentation. Report workspaces and surrounding application are excluded. */
+.modern-directory.page-container{margin-top:24px;margin-bottom:32px}
+.modern-directory>.info-grid{display:flex;flex-direction:row;gap:0;background:#fff;border:1px solid #dfe6ed;border-radius:12px;margin:0 0 24px;box-shadow:none;overflow:hidden}
+.modern-directory>.info-grid>.info-item{flex:1;min-width:0;padding:17px 24px;border:0;border-right:1px solid #e5eaf0;border-radius:0;background:none;box-shadow:none}
+.modern-directory>.info-grid>.info-item:last-child{border-right:0}
+.modern-directory>.info-grid>.info-item label{display:block;color:#64748b;font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin:0 0 7px}
+.modern-directory>.info-grid>.info-item p{font-size:18px;line-height:1.45;font-weight:650;color:#1b3a57;margin:0;overflow-wrap:anywhere}
+.modern-directory .table-card.registry-card{border:1px solid #dce4ed;border-radius:12px;box-shadow:0 4px 20px #1b3a5706;overflow:visible;background:white}
+.modern-directory .registry-card>.registry-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border-bottom:1px solid #e5eaf0;border-radius:12px 12px 0 0;background:#fff}
+.modern-directory .registry-card>.registry-toolbar:has(.search-panel){display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.8fr)}
+.modern-directory .registry-heading{display:flex;align-items:center;gap:16px;min-width:0;padding-top:3px}
+.modern-directory .registry-heading h2{font-size:17px;line-height:1.4;letter-spacing:-.2px;font-weight:700;color:#1b3a57;margin:0 0 5px}
+.modern-directory .registry-heading p{font-size:12px;color:#64748b;line-height:1.5;margin:0}
+.modern-directory .registry-count{font-size:11px;font-weight:600;color:#415a73;background:#f0f4f8;border:1px solid #e0e7ef;padding:5px 8px;border-radius:6px;white-space:nowrap}
+.modern-directory .registry-toolbar>.search-panel{padding:0;border:0;background:none;flex:0 1 520px;min-width:0;width:100%}
+.modern-directory .registry-toolbar .search-wrapper{display:grid;grid-template-columns:minmax(140px,1fr) auto;gap:8px 10px;max-width:none;width:100%;position:relative}
+.modern-directory .registry-toolbar .search-wrapper>input[type=text]{grid-column:1;grid-row:1;min-width:0;width:100%;height:40px;box-sizing:border-box;padding:10px 12px;border:1px solid #ccd7e2;border-radius:7px;background:#fff;color:#1b3a57;font:inherit;font-size:13px;box-shadow:none}
+.modern-directory .registry-toolbar .directory-search-actions{grid-column:2;grid-row:1;display:flex;gap:10px;align-items:center;margin:0}
+.modern-directory .registry-toolbar .directory-search-actions button{font:inherit;font-size:12px;font-weight:600;border:1px solid #1b3a57;border-radius:7px;min-height:40px;padding:8px 13px;background:#1b3a57;color:#fff;cursor:pointer;white-space:nowrap}
+.modern-directory .registry-toolbar .directory-search-actions a{font-size:12px;color:#52677c;white-space:nowrap;text-decoration:underline;text-underline-offset:3px}
+.modern-directory .registry-toolbar #directorySearchStatus{grid-column:1/-1;grid-row:2;font-size:11px;line-height:1.5;color:#64748b;margin:0}
+.modern-directory .registry-toolbar .record-options{position:absolute;left:0;right:0;top:44px;z-index:30;border-radius:8px;box-shadow:0 12px 24px #1b3a571a}
+.modern-directory .registry-scroll-note{margin:0;padding:9px 24px;font-size:11px;color:#64748b;background:#fbfcfe;border-bottom:1px solid #e5eaf0}
+.modern-directory .registry-card>.table-responsive{margin:0;max-width:100%;height:auto;max-height:none;overflow-x:auto;overflow-y:visible;scrollbar-gutter:auto}
+.modern-directory .registry-card table.registry-table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;margin:0;min-width:1920px;overflow:visible}
+.modern-directory.households-directory .registry-card table.registry-table{min-width:1040px;table-layout:auto}
+.modern-directory .registry-card table.registry-table :is(th,td){padding:17px 16px;border:0;border-bottom:1px solid #e7edf3;font-size:13px;line-height:1.55;color:#405166;vertical-align:middle;overflow-wrap:break-word}
+.modern-directory .registry-card table.registry-table th{font-size:11px;font-weight:650;letter-spacing:.35px;text-transform:none;color:#53677d;background:#f4f7fa;padding-top:13px;padding-bottom:13px;white-space:normal}
+.modern-directory .registry-card table.registry-table td:first-child{color:#8492a2;font-size:11px;font-variant-numeric:tabular-nums}
+.modern-directory .registry-card table.registry-table tbody>tr:not(.row-details)>td{background:white}
+.modern-directory .registry-card table.registry-table tbody>tr:not(.row-details):hover>td{background:#f7faff}
+.modern-directory .registry-card table.registry-table :is(.resident-name,.name-cell){box-shadow:1px 0 #e7edf3}
+.modern-directory .registry-person{display:flex;align-items:center;gap:11px;min-width:0;text-align:left}
+.modern-directory .registry-initials{display:flex;align-items:center;justify-content:center;flex:0 0 34px;height:34px;border-radius:10px;border:1px solid #dce5ef;background:#edf3f9;color:#315574;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.modern-directory .registry-initials::before{content:attr(data-initials)}
+.modern-directory .registry-person .name-container{display:block;min-width:0}
+.modern-directory .registry-card .primary-name{display:block;color:#1b3a57;font-size:13px;font-weight:650;line-height:1.5;letter-spacing:0}
+.modern-directory .registry-card .record-secondary{display:block;color:#7b8898;font-size:11px;font-weight:400;line-height:1.4;margin-top:4px}
+.modern-directory .registry-card .middle-initial{display:block;font-style:normal}
+.modern-directory .registry-card .household-link{display:block;color:#2b628c;font-weight:500;text-decoration:none}
+.modern-directory .registry-card :is(.age-badge,.house-number-badge,.member-badge){display:inline-block;background:#f1f5f9;color:#36536d;border:1px solid #e0e7ee;border-radius:6px;padding:4px 8px;font-size:12px;line-height:1.4;font-weight:600;box-shadow:none;font-variant-numeric:tabular-nums}
+.modern-directory .registry-card .house-number-badge{white-space:normal;overflow-wrap:anywhere}
+.modern-directory .registry-card .status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;font-size:11px;line-height:1.4;font-weight:500;letter-spacing:0;border:1px solid #dbe9e2;background:#f0f8f4;color:#347352}
+.modern-directory .registry-card .status-badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.modern-directory .registry-card .status-badge.deceased{background:#f7f3f4;color:#86616b;border-color:#e9dfe2}
+.modern-directory .registry-card .admin-health-cell{font-size:12px;color:#52677c;line-height:1.6}
+.modern-directory .registry-card .admin-health-cell summary{cursor:pointer;color:#365d7d;text-underline-offset:3px}
+.modern-directory .registry-card table.registry-table td.actions{display:table-cell;min-width:0;white-space:normal;text-align:center}
+.modern-directory .registry-card table.registry-table td.actions :is(a,button){display:inline-flex;align-items:center;justify-content:center;min-height:32px;margin:3px 2px;padding:5px 9px;font-size:11px;font-weight:600;line-height:1.4;white-space:nowrap;border-radius:6px;border:1px solid #d9e3ed;background:#fff;color:#315574;box-shadow:none;text-decoration:none;transition:background .15s,border-color .15s}
+.modern-directory .registry-card table.registry-table td.actions :is(.delete-btn,.delete){color:#a04453;border-color:#eedee2;background:#fffafb}
+.modern-directory .registry-card table.registry-table td.actions a:hover{background:#edf3fa;border-color:#a9bdd0}
+.modern-directory .registry-card table.registry-table td.actions :is(.delete-btn,.delete):hover{background:#fceef1;border-color:#d9aab4}
+.modern-directory .registry-card table.registry-table td.actions .mobile-row-details{display:none}
+.modern-directory.households-directory .registry-card table.registry-table td.actions{width:260px;min-width:260px}
+.modern-directory .registry-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;border-top:1px solid #e3eaf2;border-radius:0 0 12px 12px;background:#fcfdfe}
+.modern-directory .registry-footer-count{font-size:12px;color:#64748b;margin-right:auto}
+.modern-directory .registry-footer :is(nav,.page-size-control){display:flex;align-items:center;gap:12px;margin:0;padding:0;border:0;background:none;font-size:12px;color:#52677c}
+.modern-directory .registry-footer nav a{display:inline-block;border:1px solid #d9e3ed;background:white;color:#315574;border-radius:6px;padding:7px 11px;text-decoration:none;font-size:12px}
+.modern-directory .registry-footer .page-size-control label{display:flex;align-items:center;gap:8px;margin:0;font:inherit}
+.modern-directory .registry-footer select{font:inherit;color:#315574;background:white;padding:6px 8px;border:1px solid #d3dfea;border-radius:6px}
+.modern-directory .registry-card :focus-visible{outline:3px solid #3981b5;outline-offset:2px}
+@media(min-width:601px){.modern-directory.admin-resident-table .registry-card table.registry-table thead th:nth-child(2){left:0;z-index:4}}
+@media(max-width:1000px){.modern-directory .registry-card>.registry-toolbar{flex-direction:column;gap:12px}.modern-directory .registry-card>.registry-toolbar:has(.search-panel){grid-template-columns:minmax(0,1fr)}.modern-directory .registry-toolbar>.search-panel{flex-basis:auto}.modern-directory .registry-heading{width:100%;justify-content:space-between}.modern-directory>.info-grid>.info-item{padding:16px}.modern-directory>.info-grid>.info-item p{font-size:16px}}
+@media(max-width:600px){
+ .modern-directory>.info-grid{flex-direction:column;margin-bottom:18px}.modern-directory>.info-grid>.info-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px;border-right:0;border-bottom:1px solid #e5eaf0}.modern-directory>.info-grid>.info-item:last-child{border-bottom:0}.modern-directory>.info-grid>.info-item label{margin:0;font-size:10px}.modern-directory>.info-grid>.info-item p{font-size:14px;text-align:right}
+ .modern-directory .registry-card>.registry-toolbar{padding:18px 14px;gap:16px}.modern-directory .registry-heading h2{font-size:16px}.modern-directory .registry-heading{gap:8px}.modern-directory .registry-count{font-size:10px;padding:4px 6px}
+ .modern-directory .registry-toolbar .search-wrapper{grid-template-columns:1fr}.modern-directory .registry-toolbar .directory-search-actions{grid-column:1;grid-row:2;justify-content:space-between}.modern-directory .registry-toolbar #directorySearchStatus{grid-row:3}.modern-directory .registry-scroll-note{padding:9px 14px}
+ .modern-directory .registry-card table.registry-table{min-width:900px;table-layout:auto}.modern-directory .registry-card table.registry-table colgroup{display:none}.modern-directory.households-directory .registry-card table.registry-table{min-width:960px}.modern-directory .registry-card table.registry-table :is(th,td){padding:14px 12px}.modern-directory .registry-card table.registry-table :is(.resident-name,.name-cell){box-shadow:none;min-width:220px!important}
+ .modern-directory .registry-card table.registry-table td.actions{min-width:210px}.modern-directory .registry-card table.registry-table td.actions :is(a,button){min-height:40px;min-width:44px}.modern-directory .registry-card table.registry-table td.actions .mobile-row-details{display:inline-flex;background:#edf3f9}
+ .modern-directory .registry-card table.registry-table .row-details>td{padding:20px;background:#f5f8fc}.modern-directory .registry-card .row-details dl{gap:7px;position:sticky;left:16px;width:min(300px,calc(100vw - 90px));max-width:100%;box-sizing:border-box}.modern-directory .registry-card .row-details dd{margin-bottom:8px}
+ .modern-directory .registry-card .row-details dt{font-size:12px;font-weight:600;color:#52677c;text-align:left}.modern-directory .registry-card .row-details dd{font-size:13px;color:#405166;line-height:1.6;text-align:left}
+ .modern-directory .registry-footer{padding:16px 14px;gap:14px}.modern-directory .registry-footer-count{flex-basis:100%}.modern-directory .registry-footer nav{flex-wrap:wrap}
+}
+/* Shared search toolbar, independent of the table layout. */
+.automatic-directory-search{position:relative}.automatic-directory-search .directory-search-icon{position:absolute;left:14px;top:14px;pointer-events:none;color:var(--office-muted,#52677c)}.automatic-directory-search :is(#member-search,#searchBox){padding-left:44px!important;min-height:48px;border-radius:10px!important}.automatic-directory-search input:focus-visible{outline:3px solid var(--office-focus,#2e86c1);outline-offset:2px}.automatic-directory-search .directory-search-actions{display:flex;gap:16px;flex-wrap:wrap}.automatic-directory-search .report-note{margin:8px 0;font-size:12px}.automatic-directory-search .record-options{z-index:30}

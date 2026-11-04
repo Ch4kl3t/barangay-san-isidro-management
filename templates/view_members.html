@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="page-container">
-    <div class="header">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/directory-tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/search-analytics-refinement.css') }}">
+<script src="{{ url_for('static',filename='js/directory-report-links.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
+<div class="page-container admin-resident-table modern-directory admin-ui-consistency admin-page-shell">
+    <div class="header admin-page-header">
         <div class="title-group">
             <span class="breadcrumb">Records / Overview</span>
             <h1>Residents</h1>
         </div>
         <div class="header-actions">
-            <button class="btn-print-all" onclick="openPrintModal({{ members|length }})">
+            <a class="btn-print-all" href="{{ report_url('residents') }}">
                 <i data-lucide="printer" style="width:16px;height:16px;"></i>
                 Print Options
-            </button>
+            </a>
             <a href="{{ url_for('add_member') }}" class="btn-add-member">
                 <span class="icon">+</span> Add Resident
             </a>
@@ -20,7 +25,7 @@
 
     <div class="info-grid">
         <div class="info-item accent-primary">
-            <label>Total Population</label>
+            <label>Active Residents</label>
             <p>{{ active_residents }} Residents</p>
         </div>
         <div class="info-item accent-danger">
@@ -28,24 +33,27 @@
             <p>{{ deceased_residents }} Residents</p>
         </div>
         <div class="info-item accent-success">
-            <label>Database Status</label>
-            <p>Live / Active</p>
+            <label>All matching residents</label>
+            <p>{{ total }} Active + Deceased</p>
         </div>
     </div>
 
-    <div class="table-card">
+    <div class="table-card registry-card">
+        <div class="registry-toolbar"><div class="registry-heading"><div><h2>Resident directory</h2><p>Official resident records</p></div><span class="registry-count">{{ total }} matching</span></div>
         <div class="search-panel">
             <div class="search-wrapper">
                 <input type="text" 
-                       id="member-search" 
-                       placeholder="Search by resident's name..." 
+                       id="member-search" aria-label="Search residents by name or resident ID"
+                       placeholder="Name or resident ID; Enter to apply"
                        autocomplete="off">
                 <div id="member-suggestions" class="suggestions-panel"></div>
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table>
+        </div>
+        <p class="registry-scroll-note">All resident fields and actions are available below. On narrow screens, scroll horizontally or use Details.</p>
+        <div class="table-responsive" tabindex="0" role="region" aria-label="Resident directory table">
+            <table class="registry-table"><colgroup><col style="width:48px"><col style="width:280px"><col style="width:116px"><col style="width:64px"><col style="width:90px"><col style="width:116px"><col style="width:170px"><col style="width:210px"><col style="width:100px"><col style="width:220px"><col style="width:220px"><col style="width:210px"></colgroup>
                 <thead>
                     <tr>
                         <th style="width: 50px;">#</th>
@@ -57,6 +65,7 @@
                         <th>Occupation</th>
                         <th>Household</th>
                         <th>Status</th>
+                        <th>Mental Health Status</th><th>Current Health Status</th>
                         <th style="text-align: center; width: 160px;">Actions</th>
                     </tr>
                 </thead>
@@ -64,12 +73,7 @@
                     {% for member in members %}
                     <tr class="resident-row">
                         <td class="id-cell">{{ loop.index }}</td>
-                        <td class="resident-name">
-                            <div class="name-container">
-                                <span class="primary-name">{{ member['surname'] }}, {{ member['firstname'] }}</span>
-                                <span class="middle-initial">{{ member['middlename'] }}</span>
-                            </div>
-                        </td>
+                        <td class="resident-name"><div class="registry-person"><span class="registry-initials" aria-hidden="true" data-initials="{{ (member.firstname or '')[:1] }}{{ (member.surname or '')[:1] }}"></span><div class="name-container"><span class="primary-name">{{ member['surname'] }}, {{ member['firstname'] }} {{ member['middlename'] or '' }}</span> <small class="record-secondary">Resident #{{ member.id }}</small></div></div></td>
                         <td><span class="birth-text">{{ member['birthdate'] }}</span></td>
                         <td><span class="age-badge">{{ member['age'] }}</span></td>
                         <td><span class="gender-text">{{ member['gender'] }}</span></td>
@@ -78,7 +82,7 @@
                         <td>
                             {% if member.household_id %}
                                 <a href="{{ url_for('view_household', household_id=member.household_id) }}" class="household-link">
-                                    {{ member.household_name if member.household_name else 'View' }}
+                                    {{ member.household_name if member.household_name else 'View' }}<small class="record-secondary">House {{ member.household_number or 'Not recorded' }}</small>
                                 </a>
                             {% else %}
                                 <span class="no-household">Unassigned</span>
@@ -89,87 +93,21 @@
                                 {{ member.status or 'Active' }}
                             </span>
                         </td>
+                        {% include 'health_cells.html' %}
                         <td class="actions">
-                            <a class="btn edit-btn" href="{{ url_for('edit_member', id=member['id']) }}">Edit</a>
-                            <a class="btn delete-btn" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member['id']) }}')">Delete</a>
+                            <a class="btn edit-btn" href="{{ resident_url(member.id) }}">View Details</a><a class="btn edit-btn" href="{{ url_for('edit_member', id=member['id']) }}">Edit</a><a class="btn edit-btn" href="{{ report_url('residents',scope='resident',resident_id=member.id) }}">Print</a>
+                            <a class="btn delete-btn" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member['id']) }}', this)">Delete</a>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="10" style="text-align: center; padding: 40px; color: #64748b;">No records found.</td>
+                        <td colspan="12" style="text-align: center; padding: 40px; color: #64748b;">No records found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </div>
-</div>
-
-<div id="printModal" class="modal-overlay">
-    <div class="modal-content print-filter-modal">
-        <div class="modal-icon print-icon" style="color: #10b981;"><i data-lucide="printer"></i></div>
-        <h3>Print Options</h3>
-        <p>Choose exactly which resident records should be included in the printable report.</p>
-
-        <form id="printFilterForm" class="print-filter-form" method="GET" action="{{ url_for('print_all_members') }}">
-            <div class="filter-field">
-                <label for="report_type">Report Type</label>
-                <select id="report_type" name="report_type">
-                    <option value="all">All residents</option>
-                    <option value="registered">Residents registered by date</option>
-                    <option value="deceased">Deceased residents by date</option>
-                </select>
-            </div>
-
-            <div class="filter-grid">
-                <div class="filter-field">
-                    <label for="print_gender">Gender</label>
-                    <select id="print_gender" name="gender">
-                        <option value="">All genders</option>
-                        <option value="Male">Male residents only</option>
-                        <option value="Female">Female residents only</option>
-                    </select>
-                </div>
-
-                <div class="filter-field date-filter">
-                    <label for="print_month">Month</label>
-                    <select id="print_month" name="month">
-                        <option value="">Any month</option>
-                        <option value="1">January</option>
-                        <option value="2">February</option>
-                        <option value="3">March</option>
-                        <option value="4">April</option>
-                        <option value="5">May</option>
-                        <option value="6">June</option>
-                        <option value="7">July</option>
-                        <option value="8">August</option>
-                        <option value="9">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="filter-grid date-filter">
-                <div class="filter-field">
-                    <label for="date_from">From Date</label>
-                    <input id="date_from" type="date" name="date_from">
-                </div>
-
-                <div class="filter-field">
-                    <label for="date_to">To Date</label>
-                    <input id="date_to" type="date" name="date_to">
-                </div>
-            </div>
-
-            <p id="printFilterHint" class="filter-hint">All residents will be printed. Use Gender to print only male or female residents.</p>
-
-            <div class="modal-footer">
-                <button type="button" class="modal-btn secondary" onclick="closePrintModal()">Cancel</button>
-                <button type="submit" class="modal-btn success-btn">Generate</button>
-            </div>
-        </form>
+        <footer class="registry-footer"><span class="registry-footer-count">{{ total }} matching records</span>{% include 'original_pagination.html' %}</footer>
     </div>
 </div>
 
@@ -177,7 +115,7 @@
     <div class="modal-content">
         <div class="modal-icon"><i data-lucide="alert-circle"></i></div>
         <h3>Confirm Deletion</h3>
-        <p>Are you sure you want to delete this resident record? This action cannot be undone.</p>
+        <p>Permanently delete <strong id="deleteTarget">this resident record</strong>? This action cannot be undone.</p>
         <div class="modal-footer">
             <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
             <a id="confirmDeleteBtn" href="#" class="modal-btn confirm">Delete Record</a>
@@ -185,15 +123,6 @@
     </div>
 </div>
 
-<div id="noMembersModal" class="modal-overlay">
-    <div class="modal-content">
-        <h3>No Records Found</h3>
-        <p>There are no residents in the database to export.</p>
-        <div class="modal-footer">
-            <button class="modal-btn cancel" onclick="closeNoMembersModal()">Close</button>
-        </div>
-    </div>
-</div>
 
 <style>
     :root {
@@ -329,170 +258,19 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const searchBox = document.getElementById('member-search');
-    const suggestions = document.getElementById('member-suggestions');
-    const rows = document.querySelectorAll('.resident-row');
-    let lastSuggestions = [];
-    let searchRequestSeq = 0;
-    let searchAbort = null;
 
-    function filterTable(val, exactMatch = false) {
-        const query = val.toLowerCase().trim();
-        suggestions.style.display = 'none';
-
-        rows.forEach(row => {
-            const nameElement = row.querySelector('.primary-name');
-            const middleElement = row.querySelector('.middle-initial');
-            const nameText = nameElement ? nameElement.innerText.toLowerCase() : "";
-            const fullNameText = `${nameText} ${middleElement ? middleElement.innerText.toLowerCase() : ""}`.trim();
-            
-            if (query === "" || (exactMatch ? (nameText === query || fullNameText === query) : fullNameText.includes(query))) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
-
-    function renderSuggestions(data, query) {
-        suggestions.innerHTML = "";
-
-        if (!data || data.length === 0) {
-            suggestions.style.display = "none";
-            return;
-        }
-
-        suggestions.style.display = "block";
-
-        data.forEach(item => {
-            let div = document.createElement("div");
-            div.className = "search-item";
-            
-            const fullName = item.name ? item.name : `${item.surname}, ${item.firstname}`;
-            const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${escapedQuery})`, 'gi');
-            const highlightedName = fullName.replace(regex, `<mark>$1</mark>`);
-            
-            div.innerHTML = `
-                <span class="si-name">${highlightedName}</span>
-                <span class="si-sub">HH: ${item.household_name || 'Unassigned'} | ${item.occupation || 'N/A'}</span>
-            `;
-
-            div.onmousedown = (e) => {
-                e.preventDefault(); 
-                searchBox.value = fullName; 
-                filterTable(fullName, true);
-            };
-            suggestions.appendChild(div);
-        });
-    }
-
-    searchBox.addEventListener("input", async function () {
-        const query = this.value.trim();
-        const requestSeq = ++searchRequestSeq;
-        
-        if (query.length === 0) { 
-            lastSuggestions = [];
-            rows.forEach(row => row.style.display = '');
-            suggestions.style.display = "none"; 
-            return; 
-        }
-
-        try {
-            if (searchAbort) searchAbort.abort();
-            searchAbort = new AbortController();
-            let res = await fetch(`/search_members?q=${encodeURIComponent(query)}`, { signal: searchAbort.signal });
-            let data = await res.json();
-            if (requestSeq !== searchRequestSeq) return;
-            lastSuggestions = data;
-            renderSuggestions(data, query);
-        } catch (err) { 
-            if (err.name === 'AbortError') return;
-            console.error("Search failed:", err); 
-        }
-    });
-
-    searchBox.addEventListener('keydown', async (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const query = searchBox.value.trim();
-            if (query.length === 0) {
-                filterTable("");
-                return;
-            }
-
-            const exactMatch = Array.from(rows).some(row => {
-                const nameElement = row.querySelector('.primary-name');
-                const middleElement = row.querySelector('.middle-initial');
-                const nameText = nameElement ? nameElement.innerText.toLowerCase().trim() : "";
-                const fullNameText = `${nameText} ${middleElement ? middleElement.innerText.toLowerCase().trim() : ""}`.trim();
-                return nameText === query.toLowerCase() || fullNameText === query.toLowerCase();
-            });
-
-            if (exactMatch) {
-                filterTable(query, true);
-                return;
-            }
-
-            if (lastSuggestions.length > 0) {
-                renderSuggestions(lastSuggestions, query);
-                return;
-            }
-
-            try {
-                let res = await fetch(`/search_members?q=${encodeURIComponent(query)}`);
-                lastSuggestions = await res.json();
-                renderSuggestions(lastSuggestions, query);
-            } catch (err) {
-                console.error("Search failed:", err);
-            }
-        }
-    });
-
-    document.addEventListener("mousedown", (e) => {
-        if (!searchBox.contains(e.target) && !suggestions.contains(e.target)) {
-            suggestions.style.display = "none";
-        }
-    });
-});
-
-function openDeleteModal(deleteUrl) {
+function openDeleteModal(deleteUrl, source) {
+    const record = source?.closest('tr')?.querySelector('.primary-name,.name-cell')?.textContent.trim() || 'Selected resident';
+    const identifier = new URL(deleteUrl, location.href).pathname.split('/').pop();
+    const target = document.getElementById('deleteTarget');
+    if(target)target.textContent = 'Resident #' + identifier + ' / ' + record;
     document.getElementById('confirmDeleteBtn').href = deleteUrl;
     document.getElementById('deleteModal').style.display = 'flex';
 }
 function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
-function openPrintModal(memberCount) {
-    if (memberCount === 0) {
-        document.getElementById('noMembersModal').style.display = 'flex';
-    } else {
-        document.getElementById('printModal').style.display = 'flex';
-        updatePrintFilterHint();
-    }
-}
-function closePrintModal() { document.getElementById('printModal').style.display = 'none'; }
-function closeNoMembersModal() { document.getElementById('noMembersModal').style.display = 'none'; }
+function closePrintModal() {}
+function closeNoMembersModal() {}
 
-function updatePrintFilterHint() {
-    const reportType = document.getElementById('report_type');
-    const hint = document.getElementById('printFilterHint');
-    const dateFilters = document.querySelectorAll('.date-filter');
-    if (!reportType || !hint) return;
-
-    const showDateFilters = reportType.value === 'registered' || reportType.value === 'deceased';
-    dateFilters.forEach(field => field.style.display = showDateFilters ? '' : 'none');
-
-    if (reportType.value === 'deceased') {
-        hint.textContent = 'This prints residents marked Deceased. Month and dates use the audit log date when status was edited to Deceased.';
-    } else if (reportType.value === 'registered') {
-        hint.textContent = 'This prints residents by registration date. Month and dates use the audit log date when the resident was added.';
-    } else {
-        hint.textContent = 'All residents will be printed. Use Gender to print only male or female residents.';
-    }
-}
-
-document.getElementById('report_type')?.addEventListener('change', updatePrintFilterHint);
-updatePrintFilterHint();
 
 window.onclick = function(event) {
     if (event.target.className === 'modal-overlay') {
@@ -500,4 +278,5 @@ window.onclick = function(event) {
     }
 }
 </script>
+
 {% endblock %}

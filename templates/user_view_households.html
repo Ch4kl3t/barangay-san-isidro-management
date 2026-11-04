@@ -12,7 +12,7 @@
     <div class="info-grid">
         <div class="info-item accent-primary">
             <label>Total Registered</label>
-            <p>{{ households|length }} Households</p>
+            <p>{{ total }} Households</p>
         </div>
         <div class="info-item accent-info">
             <label>Information</label>
@@ -509,8 +509,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const div = document.createElement('div');
                     div.className = 'search-item';
                     div.innerHTML = `
-                        <strong class="hs-name">Family: ${item.name}</strong>
-                        <small class="hs-members">${item.subtext}</small>
+                        <strong class="hs-name">Family: ${uiEscape(item.name)}</strong>
+                        <small class="hs-members">${uiEscape(item.subtext)}</small>
                     `;
                     div.onmousedown = (e) => {
                         e.preventDefault();
@@ -554,4 +554,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+{% include 'original_pagination.html' %}
 {% endblock %}

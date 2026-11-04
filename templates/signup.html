@@ -248,6 +248,8 @@
             text-decoration: underline;
         }
     </style>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
 </head>
 <body>
 
@@ -279,7 +281,7 @@
         <span>Your account will be reviewed by an administrator before approval. You'll receive an email notification once your account is activated.</span>
     </div>
 
-    <form action="{{ url_for('signup') }}" method="POST">
+    <form action="{{ url_for('signup') }}" method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <!-- Full Name -->
         <div class="form-group">
             <label for="fullname">Full Name</label>

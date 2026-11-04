@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <!-- Local Lucide Icons - Works Offline -->
     <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}"></script>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/resident-portal.css') }}">
+<script src="{{ url_for('static',filename='js/lucide-refresh.js') }}" defer></script>
 </head>
 
 <body>
@@ -24,7 +28,7 @@
     </div>
 
     <div class="header-right">
-        <a href="{{ url_for('user_profile') }}" class="user-pill" style="text-decoration: none; cursor: pointer;">
+        <a href="{{ url_for('user_profile') }}" class="user-pill" aria-label="My Account / Security" style="text-decoration: none; cursor: pointer;">
             <span class="user-name">{{ session.get('username', 'Resident') }}</span>
             <div class="user-icon-bg">
                 <i data-lucide="user"></i>
@@ -38,68 +42,10 @@
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-inner">
         <ul class="sidebar-menu">
-            <li class="menu-category">Main Console</li>
-            <li>
-                <a href="{{ url_for('user_home') }}" class="menu-link">
-                    <i data-lucide="home"></i>
-                    <span style="margin-left: 16px;">Home</span>
-                </a>
-            </li>
-
-            <li class="menu-category">Community Information</li>
-            <li>
-                <a href="{{ url_for('analytics', **{'as': 'user'}) }}" class="menu-link">
-                    <i data-lucide="bar-chart-2"></i>
-                    <span style="margin-left: 16px;">Community Statistics</span>
-                </a>
-            </li>
-
-            <li class="menu-category">Records & Directory</li>
-            
-            <li class="dropdown" style="margin-bottom: 12px;"> 
-                <a href="javascript:void(0)" class="dropdown-toggle">
-                    <div class="menu-item-content">
-                        <i data-lucide="users"></i>
-                        <span style="margin-left: 16px;">Residents</span>
-                    </div>
-                    <i data-lucide="chevron-down" class="dropdown-icon"></i>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a href="{{ url_for('user_view_members') }}">
-                            <i data-lucide="list"></i>
-                            <span>View Residents</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="dropdown" style="margin-bottom: 12px;">
-                <a href="javascript:void(0)" class="dropdown-toggle">
-                    <div class="menu-item-content">
-                        <i data-lucide="building-2"></i>
-                        <span style="margin-left: 16px;">Households</span>
-                    </div>
-                    <i data-lucide="chevron-down" class="dropdown-icon"></i>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a href="{{ url_for('user_view_households') }}">
-                            <i data-lucide="list"></i>
-                            <span>View Households</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="menu-category" style="margin-top: 20px;">Account</li>
-            <li>
-                <a href="{{ url_for('user_profile') }}" class="menu-link">
-                    <i data-lucide="user"></i>
-                    <span style="margin-left: 16px;">My Profile</span>
-                </a>
-            </li>
-
+            <li class="menu-category">Resident Portal</li>
+            {% for endpoint,icon,label in [('user_home','home','Overview'),('my_record','user','My Resident Record'),('my_household','building-2','My Household'),('barangay_statistics','bar-chart-2','Barangay Statistics'),('user_profile','shield-check','My Account / Security')] %}
+            <li><a href="{{ url_for(endpoint) }}" class="menu-link"><i data-lucide="{{ icon }}" aria-hidden="true"></i><span style="margin-left:16px">{{ label }}</span></a></li>
+            {% endfor %}
             <li class="logout-section">
                 <a href="{{ url_for('logout') }}" class="menu-link logout-btn">
                     <i data-lucide="log-out"></i>
@@ -111,7 +57,8 @@
 </nav>
 
 <main id="main-content">
-    {% block content %}{% endblock %}
+    {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash-message {{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}
+{% block content %}{% endblock %}
 </main>
 
 <style>

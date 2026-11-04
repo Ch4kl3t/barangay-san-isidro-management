@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Barangay Management System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
+    <script src="{{ url_for('static', filename='js/appearance.js') }}"></script>
     <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}"></script>
     <style>
         :root {
@@ -219,70 +220,81 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login-lovable.css') }}">
+<script src="{{ url_for('static', filename='js/login-lovable.js') }}" defer></script>
 </head>
-<body>
-
-<div class="login-card">
-    <div class="login-header">
-        <span class="breadcrumb-tag">Secure Portal</span>
-        <h2>System Login</h2>
+<body class="login-experience">
+<main class="login-layout">
+    <div class="login-backdrop" aria-hidden="true">
+        <img src="{{ url_for('static', filename='images/login-conceptual-hall.jpg') }}" alt="" width="1280" height="1600" fetchpriority="high">
     </div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% set category, message = messages[0] %}
-            <div class="error-box {{ category }}">
-                <i data-lucide="{{ 'check-circle' if category == 'success' else 'info' if category == 'info' else 'alert-circle' }}" style="width:18px;height:18px;"></i> {{ message }}
+    <header class="login-brand-header">
+        <div class="login-brand">
+            <span class="login-brand-mark">BIS</span>
+            <div><p>Barangay Information System</p><p>Barangay San Isidro</p></div>
+        </div>
+        <div class="login-theme" role="group" aria-label="Color theme" hidden>
+            <button type="button" data-theme-choice="light" aria-label="Light mode" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></button>
+            <button type="button" data-theme-choice="dark" aria-label="Dark mode" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14Z"/></svg></button>
+        </div>
+    </header>
+    <section class="login-identity" aria-labelledby="community-title">
+        <div class="login-identity-copy">
+            <p class="login-eyebrow">BARANGAY SAN ISIDRO &bull; ADMINISTRATIVE PORTAL</p>
+            <h1 id="community-title">A stronger community through accurate information.</h1>
+            <p class="login-description">Supporting efficient and organized barangay administration through secure household and resident information management.</p>
+            <ul class="login-features">
+                <li><i data-lucide="home" aria-hidden="true"></i> Manage Households</li>
+                <li><i data-lucide="users" aria-hidden="true"></i> Resident Records</li>
+                <li><i data-lucide="bar-chart-2" aria-hidden="true"></i> Reports &amp; Analytics</li>
+            </ul>
+        </div>
+        <p class="login-image-notice">Conceptual illustration &mdash; not the actual Barangay San Isidro hall.</p>
+    </section>
+    <section class="login-form-region" aria-labelledby="login-title">
+        <div class="login-card">
+            <div class="login-header">
+                <p class="login-portal-label">SECURE PORTAL</p>
+                <h2 id="login-title">System Login</h2>
+                <p>Sign in to access the Barangay Information System.</p>
             </div>
-        {% endif %}
-    {% endwith %}
-
-    <form action="{{ url_for('login') }}" method="POST">
-        <div class="form-group">
-            <label>Authorized Username</label>
-            <input type="text" name="username" placeholder="Username" required autofocus>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% set category, message = messages[0] %}
+                    <div class="error-box {{ category }}" role="{{ 'status' if category in ['success','info'] else 'alert' }}" tabindex="-1" id="login-feedback">{{ message }}</div>
+                {% endif %}
+            {% endwith %}
+            <form action="{{ url_for('login') }}" method="POST" id="login-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="username">Authorized Username</label>
+                    <div class="login-input-wrap">
+                        <i data-lucide="user" aria-hidden="true"></i>
+                        <input type="text" id="username" name="username" placeholder="Username" autocomplete="username" required autofocus>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Security Password</label>
+                    <div class="login-input-wrap">
+                        <svg class="login-field-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                        <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password" required>
+                        <button type="button" id="togglePassword" class="login-password-toggle" aria-label="Show password" aria-controls="password" aria-pressed="false" hidden>
+                            <svg data-eye="show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg data-eye="hide" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.5 5.3A12 12 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.4 4.3M6.2 6.2A18 18 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5.8-1.8"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login">Login <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>
+            </form>
+            <div class="login-footer-links"><a href="{{ url_for('forgot_password') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Forgot Password?</a></div>
+            <div class="login-card-footer">
+                <p>Authorized barangay personnel only.<br>Contact the designated system administrator for staff access.</p>
+                <p>&copy; 2026 Community Registry Information System</p>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label>Security Password</label>
-            <input type="password" name="password" placeholder="Password" required>
-        </div>
-
-        <button type="submit" class="btn-login">
-            Login <span></span>
-        </button>
-    </form>
-
-    <div class="login-footer-links">
-        <a href="{{ url_for('forgot_password') }}"><i data-lucide="lock-keyhole" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i> Forgot Password?</a>
-    </div>
-
-    <div class="login-divider">
-        <span>Don't have an account?</span>
-    </div>
-
-    <div class="footer-note" style="margin-bottom: 20px;">
-        Residents can self-register for view-only access.<br>
-        Your account will be reviewed by an administrator.
-    </div>
-
-    <a href="{{ url_for('signup') }}" style="display: block; text-align: center; color: var(--accent); text-decoration: none; font-weight: 700; padding: 12px; margin-bottom: 20px; border: 2px solid var(--accent); border-radius: 8px; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(52,152,219,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
-        <i data-lucide="edit-3" style="width:14px;height:14px;vertical-align:-2px;margin-right:6px;"></i> Create New Account
-    </a>
-
-    <div class="login-divider" style="margin-top: 10px;">
-        <span>Admin Registration</span>
-    </div>
-
-    <div class="footer-note" style="margin-bottom: 20px;">
-        Only authorized administrators can create new user accounts.<br>
-        Contact your system administrator to request access.
-    </div>
-
-    <div class="footer-note">
-        &copy; 2026 Community Registry Information System
-    </div>
-</div>
-
+    </section>
+</main>
 </body>
 </html>

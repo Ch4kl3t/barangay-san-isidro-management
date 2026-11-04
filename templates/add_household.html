@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/resident-registration.css') }}">
+<script src="{{ url_for('static',filename='js/resident-registration.js') }}" defer></script>
 
 <div class="form-container">
     <div class="form-card">
         <div class="form-header">
-            <h1>Add New Household</h1>
-            <p>Establish a new residential unit in the community registry.</p>
+            <h1>{{ 'Edit Household' if editing else 'Add New Household' }}</h1>
+            <p>{{ 'Update this household in the community registry.' if editing else 'Establish a new residential unit in the community registry.' }}</p>
         </div>
 
-        <form method="POST">
+        <form {% if not editing and from_member != 'true' %}data-record-registration="household"{% endif %} method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% if not editing %}<input type="hidden" name="_submission_token" value="{{ submission_token('household_create') }}">{% endif %}
             <input type="hidden" name="from_member" value="{{ from_member }}">
             <input type="hidden" name="fname" value="{{ fname }}">
             <input type="hidden" name="mname" value="{{ mname }}">
@@ -21,26 +23,26 @@
 
             <div class="form-group">
                 <label>Household Surname</label>
-                <input type="text" name="surname" placeholder="e.g., Dela Cruz" required autocomplete="off">
+                <input type="text" name="surname" value="{{ values.get('surname') or '' }}" placeholder="e.g., Dela Cruz" required autocomplete="off">
             </div>
 
             <div class="form-grid dual">
                 <div class="form-group">
                     <label>House Number</label>
-                    <input type="text" name="house_number" placeholder="e.g., 182-A" required autocomplete="off">
+                    <input type="text" name="house_number" value="{{ values.get('house_number') or '' }}" placeholder="e.g., 182-A" required autocomplete="off">
                 </div>
 
                 <div class="form-group">
                     <label>Purok / Zone</label>
-                    <input type="text" name="address" placeholder="e.g., Purok 1" required autocomplete="off">
+                    <input type="text" name="address" value="{{ values.get('address') or '' }}" placeholder="e.g., Purok 1" required autocomplete="off">
                 </div>
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn-submit">Register Household</button>
+                <button type="submit" class="btn-submit">{{ 'Save Household' if editing else 'Register Household' }}</button>
                 
                 {% if from_member == 'true' or fname or sname %}
-                    <a href="{{ url_for('add_member', fname=fname, mname=mname, sname=sname, age=age, birthdate=birthdate, gender=gender, civil_status=civil_status, occupation=occupation) }}" class="btn-back">
+                    <a href="{{ url_for('add_member') }}" class="btn-back">
                         Back to Resident Form
                     </a>
                 {% else %}
@@ -60,6 +62,7 @@
         <p id="errorText">{{ error }}</p>
         <div class="modal-footer">
             <button class="modal-btn confirm" onclick="closeErrorModal()">Got it</button>
+            <a id="registrationRecoveryLink" class="modal-btn secondary" href="{{ url_for('view_households') }}" hidden>View Households</a>
         </div>
     </div>
 </div>
@@ -197,7 +200,7 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const errorMessage = "{{ error }}";
+    const errorMessage = {{ (error or '')|tojson }};
     if (errorMessage && errorMessage !== "None" && errorMessage !== "") {
         document.getElementById('errorModal').style.display = 'flex';
     }

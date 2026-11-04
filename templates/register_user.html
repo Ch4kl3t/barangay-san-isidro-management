@@ -14,7 +14,7 @@
     </div>
 
     <div class="register-form-container">
-        <form method="POST" class="register-form">
+        <form method="POST" class="register-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <!-- Username -->
             <div class="form-group">
                 <label for="username">Username</label>

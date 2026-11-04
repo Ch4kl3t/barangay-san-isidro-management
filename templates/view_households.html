@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="page-container">
-    <div class="header">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/directory-tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/search-analytics-refinement.css') }}">
+<script src="{{ url_for('static',filename='js/directory-report-links.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
+<div class="page-container households-directory modern-directory admin-ui-consistency admin-page-shell">
+    <div class="header admin-page-header">
         <div class="title-group">
             <span class="breadcrumb">Records / Overview</span>
             <h1>Households</h1>
         </div>
-        <div class="header-actions">
+        <div class="header-actions"><a class="btn-add-member" href="{{ report_url('households') }}">Print / Download</a>
             <a href="{{ url_for('add_household') }}" class="btn-add-member">
                 <span class="icon">+</span> Add New Household
             </a>
@@ -17,7 +21,7 @@
     <div class="info-grid">
         <div class="info-item accent-primary">
             <label>Total Registered</label>
-            <p>{{ households|length }} Households</p>
+            <p>{{ total }} Households</p>
         </div>
         <div class="info-item accent-success">
             <label>Database Status</label>
@@ -25,7 +29,8 @@
         </div>
     </div>
 
-    <div class="table-card">
+    <div class="table-card registry-card">
+        <div class="registry-toolbar"><div class="registry-heading"><div><h2>Household directory</h2><p>Homes and their recorded members</p></div><span class="registry-count">{{ total }} matching</span></div>
         <div class="search-panel">
             <div class="search-wrapper">
                 <input 
@@ -38,8 +43,10 @@
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table>
+        </div>
+        <p class="registry-scroll-note">Scroll horizontally to see all fields and actions.</p>
+        <div class="table-responsive" tabindex="0" role="region" aria-label="Household directory table">
+            <table class="registry-table">
                 <thead>
                     <tr>
                         <th style="width: 130px;">House No.</th>
@@ -56,7 +63,7 @@
                             <span class="house-number-badge">{{ household.house_number if household.house_number else 'N/A' }}</span>
                         </td>
                         <td class="household-name">
-                            <span class="primary-name">Family: {{ household.surname }}</span>
+                            <span class="primary-name">{{ household.surname }}</span><small class="record-secondary">Household #{{ household.id }}</small>
                         </td>
                         <td class="address-cell">{{ household.address }}</td>
                         <td style="text-align: center;">
@@ -64,7 +71,8 @@
                         </td>
                         <td class="actions">
                             <a class="btn edit-btn" href="{{ url_for('view_household', household_id=household.id) }}">View Members</a>
-                            <a class="btn delete-btn" href="javascript:void(0)" onclick="showDeleteModal('{{ url_for('delete_household', id=household.id) }}', '{{ household.surname }}')">Delete</a>
+                            <a class="btn edit-btn" href="{{ url_for('edit_household', id=household.id) }}">Edit</a>
+                            <a class="btn delete-btn" href="javascript:void(0)" onclick="showDeleteModal('{{ url_for('delete_household', id=household.id) }}', {{ household.surname|tojson|forceescape }}, {{ household.member_count|int }})">Delete</a>
                         </td>
                     </tr>
                     {% else %}
@@ -77,13 +85,14 @@
                 </tbody>
             </table>
         </div>
+        <footer class="registry-footer"><span class="registry-footer-count">{{ total }} matching records</span>{% include 'original_pagination.html' %}</footer>
     </div>
 
    <div id="deleteModal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-icon danger-icon"><i data-lucide="alert-circle"></i></div>
         <h3>Confirm Removal</h3>
-        <p>Are you sure you want to delete the <strong><span id="targetName"></span></strong> household? This action is permanent.</p>
+        <p>Are you sure you want to delete the <strong><span id="targetName"></span></strong> household and its <span id="targetMembers"></span> resident records? This action is permanent.</p>
         <div class="modal-footer">
             <button class="modal-btn secondary" onclick="closeDeleteModal()">Cancel</button>
             <a id="confirmDeleteBtn" href="#" class="modal-btn danger-btn">Delete Permanently</a>
@@ -160,7 +169,8 @@
 
 <script>
 // --- DELETE MODAL LOGIC ---
-function showDeleteModal(url, name) {
+function showDeleteModal(url, name, members) {
+    document.getElementById('targetMembers').textContent = members;
     document.getElementById('targetName').innerText = name;
     document.getElementById('confirmDeleteBtn').href = url;
     document.getElementById('deleteModal').style.display = 'flex';
@@ -171,103 +181,6 @@ function closeDeleteModal() {
 }
 
 // --- SEARCH & SUGGESTIONS LOGIC ---
-document.addEventListener('DOMContentLoaded', () => {
-    const searchBox = document.getElementById('searchBox');
-    const suggestions = document.getElementById('suggestions');
-    const rows = document.querySelectorAll('.household-row');
-
-    if (!searchBox) return;
-
-    let lastSuggestions = [];
-    let searchRequestSeq = 0;
-    let searchAbort = null;
-
-    function filterTable(searchTerm, exactMatch = false) {
-        const query = searchTerm.toLowerCase().trim();
-        rows.forEach(row => {
-            const name = row.getAttribute('data-name').toLowerCase();
-            const id = row.getAttribute('data-household-id').toLowerCase();
-            const houseNumber = row.getAttribute('data-house-number').toLowerCase();
-            const rowText = row.innerText.toLowerCase();
-            if (exactMatch) {
-                row.style.display = (name === query || id === query || houseNumber === query) ? '' : 'none';
-            } else {
-                row.style.display = rowText.includes(query) ? '' : 'none';
-            }
-        });
-    }
-
-    searchBox.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        const requestSeq = ++searchRequestSeq;
-
-        if (query.length > 0) {
-            if (searchAbort) searchAbort.abort();
-            searchAbort = new AbortController();
-            fetch(`/search_households?q=${encodeURIComponent(query)}`, { signal: searchAbort.signal })
-                .then(response => response.json())
-                .then(data => {
-                    if (requestSeq !== searchRequestSeq) return;
-                    lastSuggestions = data;
-                    suggestions.innerHTML = '';
-                    if (data.length > 0) {
-                        suggestions.style.display = 'block';
-                        data.forEach(item => {
-                            const div = document.createElement('div');
-                            div.className = 'search-item';
-                            div.innerHTML = `
-                                <strong class="hs-name">Family: ${item.name}</strong>
-                                <small class="hs-members" style="display:block; color: #64748b;">${item.subtext}</small>
-                            `;
-                            div.onclick = () => {
-                                searchBox.value = item.name;
-                                suggestions.style.display = 'none';
-                                filterTable(String(item.id), true);
-                            };
-                            suggestions.appendChild(div);
-                        });
-                    } else {
-                        suggestions.style.display = 'none';
-                    }
-                })
-                .catch(err => {
-                    if (err.name !== 'AbortError') console.error("Search failed:", err);
-                });
-        } else {
-            if (searchAbort) searchAbort.abort();
-            lastSuggestions = [];
-            suggestions.style.display = 'none';
-            rows.forEach(row => row.style.display = '');
-        }
-    });
-
-    searchBox.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const query = searchBox.value.trim();
-            suggestions.style.display = 'none';
-            if (query.length === 0) {
-                rows.forEach(row => row.style.display = '');
-                return;
-            }
-
-            const exactSuggestion = lastSuggestions.find(item => {
-                const id = String(item.id || '').toLowerCase();
-                const name = String(item.name || '').toLowerCase();
-                const houseNumber = String(item.house_number || '').toLowerCase();
-                const search = query.toLowerCase();
-                return id === search || name === search || houseNumber === search;
-            });
-
-            filterTable(query, !!exactSuggestion);
-        }
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!searchBox.contains(e.target) && !suggestions.contains(e.target)) {
-            suggestions.style.display = 'none';
-        }
-    });
-});
 </script>
+
 {% endblock %}

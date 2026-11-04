@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="home-wrapper">
+<script src="{{ url_for('static',filename='js/global-search.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/homepage-lovable.css') }}">
+<div class="home-wrapper home-lovable">
+    <div class="homepage-breadcrumb" aria-label="Location"><span>Administration</span><span aria-hidden="true">/</span><strong>Home</strong></div>
 
     <!-- ══════════════════════════════════
          WELCOME BANNER
@@ -13,7 +16,7 @@
                 Community Registry System
             </span>
             <h1>Barangay Management</h1>
-            <p>Managing community data with precision and ease.</p>
+            <p>Welcome back, {{ session.get('username', 'Administrator') }}.</p>
             <div class="banner-quick-links">
                 <a href="/add_member" class="banner-btn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -33,6 +36,7 @@
             <div class="datetime-block">
                 <div id="live-clock"></div>
                 <div id="live-day"></div>
+                <span class="homepage-timezone">Philippine Standard Time</span>
             </div>
         </div>
     </div>
@@ -41,6 +45,7 @@
          SEARCH
     ══════════════════════════════════ -->
     <div class="search-panel" style="position: relative; z-index: 100;">
+        <label class="global-search-label" for="searchBox">Find a resident or household</label>
         <div class="search-panel-inner">
             <div class="search-icon-wrap">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -48,31 +53,14 @@
             <input
                 type="text"
                 id="searchBox"
-                placeholder="Search residents or household surnames…"
+                placeholder="Name, record ID, house number or address"
                 autocomplete="off"
             />
-            <span class="search-hint-badge">Quick Search</span>
+            <span class="search-hint-badge" aria-hidden="true">Registry Search</span>
         </div>
         <div id="suggestions" class="search-results"></div>
     </div>
 
-    <div id="searchResultsContainer" class="panel" style="display: none; margin-bottom: 32px; overflow-x: auto;">
-        <div class="card-header">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <h2>Search Results</h2>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-            <thead>
-                <tr style="text-align: left; border-bottom: 2px solid #e2e8f0; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
-                    <th style="padding: 12px;">Type</th>
-                    <th style="padding: 12px;">Name / Surname</th>
-                    <th style="padding: 12px;">Details</th>
-                    <th style="padding: 12px; text-align: right;">Action</th>
-                </tr>
-            </thead>
-            <tbody id="resultsBody"></tbody>
-        </table>
-    </div>
 
     <!-- ══════════════════════════════════
          STAT CARDS
@@ -101,7 +89,7 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="5"/><path d="M14 10l7-7"/><path d="M15 3h6v6"/></svg>
             </div>
             <div class="stat-info">
-                <h3>Male Residents</h3>
+                <h3>Active Male Residents</h3>
                 <p>{{ total_males }}</p>
             </div>
         </div>
@@ -110,7 +98,7 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M12 15v7"/><path d="M9 19h6"/></svg>
             </div>
             <div class="stat-info">
-                <h3>Female Residents</h3>
+                <h3>Active Female Residents</h3>
                 <p>{{ total_females }}</p>
             </div>
         </div>
@@ -200,8 +188,8 @@
                 </div>
                 <div class="ratio-bar-track">
                     {% set total = total_males + total_females %}
-                    {% set male_pct = ((total_males / total) * 100) | round(1) if total > 0 else 50 %}
-                    {% set female_pct = (100 - male_pct) | round(1) %}
+                    {% set male_pct = ((total_males / total) * 100) | round(1) if total > 0 else 0 %}
+                    {% set female_pct = (100 - male_pct) | round(1) if total > 0 else 0 %}
                     <div class="ratio-bar-male" style="width: {{ male_pct }}%;"></div>
                     <div class="ratio-bar-female" style="width: {{ female_pct }}%;"></div>
                 </div>
@@ -209,6 +197,7 @@
                     <span><span class="dot dot-male"></span> Male {{ male_pct }}%</span>
                     <span><span class="dot dot-female"></span> Female {{ female_pct }}%</span>
                 </div>
+                {% if total == 0 %}<p class="appearance-help">No active male/female records to compare.</p>{% endif %}
             </div>
 
             <!-- Avg household size -->
@@ -236,7 +225,7 @@
                 {% set active = total_residents %}
                 {% set deceased = total_deceased if total_deceased is defined else 0 %}
                 {% set status_total = active + deceased %}
-                {% set active_pct = ((active / status_total) * 100) | round(1) if status_total > 0 else 100 %}
+                {% set active_pct = ((active / status_total) * 100) | round(1) if status_total > 0 else 0 %}
                 {% set deceased_pct = ((deceased / status_total) * 100) | round(1) if status_total > 0 else 0 %}
                 <div class="coverage-bar-wrap">
                     <div class="coverage-bar-fill" style="width: {{ active_pct }}%;"></div>
@@ -245,6 +234,7 @@
                     <span><span class="dot dot-active"></span> Active {{ active_pct }}%</span>
                     <span><span class="dot dot-deceased"></span> Deceased {{ deceased_pct }}%</span>
                 </div>
+                {% if status_total == 0 %}<p class="appearance-help">No resident records to compare.</p>{% endif %}
             </div>
 
         </div>
@@ -254,60 +244,13 @@
     <!-- ══════════════════════════════════
          INFO CARDS ROW
     ══════════════════════════════════ -->
-    <div class="info-grid-row">
-        <div class="panel info-card">
-            <div class="card-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                <h2>System Overview</h2>
-            </div>
-            <p class="card-desc">Navigate through the digital registry modules using the sidebar to manage community data:</p>
-            <div class="nav-hints">
-                <div class="hint-item">
-                    <strong>Residents:</strong> Access demographic profiles, edit details, and track resident status.
-                </div>
-                <div class="hint-item">
-                    <strong>Household Management:</strong> View family groups, track addresses, and manage house units.
-                </div>
-                <div class="hint-item">
-                    <strong>Analytics:</strong> Explore demographic charts, monthly registration trends, and household breakdowns.
-                </div>
-            </div>
-        </div>
-
-        <div class="panel info-card">
-            <div class="card-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <h2>System Status</h2>
-            </div>
-            <div class="activity-body">
-                <div class="status-indicator">
-                    <span class="pulse-dot"></span>
-                    <p>Data integrity is currently <strong>100%</strong>. All household links are active.</p>
-                </div>
-                <p class="action-note">Use the <strong>Print</strong> features within specific modules to generate barangay certificates and community reports.</p>
-
-                <div class="status-chips">
-                    <div class="status-chip chip-green">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Database Online
-                    </div>
-                    <div class="status-chip chip-green">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Household Links Valid
-                    </div>
-                    <div class="status-chip chip-green">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Search Index Ready
-                    </div>
-                    <div class="status-chip chip-blue">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        Reports Available
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <section class="recent-activity panel" aria-labelledby="recentActivityHeading">
+        <header><div><h2 id="recentActivityHeading">Recent Activity</h2><p>Latest recorded registry and report events. Refresh this page to update.</p></div><a href="{{ url_for('audit_log') }}">View Audit Log</a></header>
+        {% if recent_activity %}<ul>{% for event in recent_activity %}
+        <li><span class="home-event-icon" aria-hidden="true"><i data-lucide="{{ 'file-text' if event.action_type == 'REPORT_GENERATE' else 'home' if event.target_type == 'Household' else 'user' }}"></i></span><div class="home-activity-copy"><strong>{{ event.label }}</strong><span>{{ 'Report' if event.action_type == 'REPORT_GENERATE' else event.target_type }} · Event #{{ event.id }}</span></div><time>{{ event.time }}</time><a href="{{ url_for('audit_log',search=event.id,action_type=event.action_type,target_type=event.target_type) }}#event-{{ event.id }}" aria-label="View audit details for event {{ event.id }}">View details</a></li>
+        {% endfor %}</ul>{% else %}<p class="recent-empty">No registry or report activity has been recorded yet.</p>{% endif %}
+    </section>
+    <footer class="homepage-footer"><span>&copy; 2026 Community Registry Information System</span><span>Authorized barangay personnel only</span></footer>
 </div>
 
 <style>
@@ -702,77 +645,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const c = document.getElementById('live-clock');
         const d = document.getElementById('live-day');
-        if (c) c.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        if (d) d.textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        if (c) c.textContent = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (d) d.textContent = now.toLocaleDateString('en-US', { timeZone: 'Asia/Manila', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // ── SEARCH ──
-    const searchInput     = document.getElementById('searchBox');
-    const suggestionsPanel = document.getElementById('suggestions');
-
-    if (searchInput && suggestionsPanel) {
-        searchInput.addEventListener('input', async function () {
-            const query = this.value.trim();
-            if (!query) { suggestionsPanel.style.display = 'none'; suggestionsPanel.innerHTML = ''; return; }
-
-            try {
-                const [resMem, resHH] = await Promise.all([
-                    fetch(`/search_members?q=${encodeURIComponent(query)}`),
-                    fetch(`/search_households?q=${encodeURIComponent(query)}`)
-                ]);
-                const members    = await resMem.json();
-                const households = await resHH.json();
-                const data = [
-                    ...members.map(m => ({...m, type: 'resident'})),
-                    ...households.map(h => ({...h, type: 'household'}))
-                ];
-
-                suggestionsPanel.innerHTML = '';
-                if (!data.length) {
-                    suggestionsPanel.innerHTML = '<div class="search-item" style="color:#666;">No results found.</div>';
-                    suggestionsPanel.style.display = 'block';
-                    return;
-                }
-
-                suggestionsPanel.style.display = 'block';
-                data.forEach(item => {
-                    const displayName = item.name || item.surname || 'Unknown';
-                    const displaySub  = item.subtext || (item.type === 'household' ? 'Household Unit' : 'Resident');
-                    const tagClass    = item.type === 'resident' ? 'tag-resident' : 'tag-household';
-                    const div         = document.createElement('div');
-                    div.className     = 'search-item';
-                    div.innerHTML = `
-                        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-                            <div>
-                                <div style="font-weight:700;color:#1B3A57;font-size:13px;">${highlight(displayName, query)}</div>
-                                <div style="font-size:11px;color:#64748b;margin-top:2px;">${displaySub}</div>
-                            </div>
-                            <span class="tag ${tagClass}" style="font-size:10px;padding:3px 8px;border-radius:5px;font-weight:700;margin-left:12px;white-space:nowrap;">${item.type.toUpperCase()}</span>
-                        </div>`;
-                    div.onclick = e => {
-                        e.preventDefault();
-                        window.location.href = item.type === 'resident'
-                            ? `/view_members?search=${encodeURIComponent(displayName.split(',')[0])}`
-                            : `/view_household/${item.id}`;
-                    };
-                    suggestionsPanel.appendChild(div);
-                });
-            } catch (err) { console.error('Search error:', err); }
-        });
-
-        document.addEventListener('click', e => {
-            if (!searchInput.contains(e.target) && !suggestionsPanel.contains(e.target)) {
-                suggestionsPanel.style.display = 'none';
-            }
-        });
-    }
-
-    function highlight(text, query) {
-        if (!query) return text;
-        return text.replace(new RegExp(`(${query})`, 'gi'), "<mark style='background:#ffd700;color:#000;padding:0 2px;border-radius:2px;'>$1</mark>");
-    }
 });
 </script>
 

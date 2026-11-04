@@ -7,7 +7,8 @@ from functools import wraps
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from flask import session, redirect, url_for, flash
+from flask import session, redirect, url_for, flash, g, abort
+from html import escape
 from email_config import GMAIL_CONFIG, send_gmail_message
 
 def require_role(*allowed_roles):
@@ -15,14 +16,13 @@ def require_role(*allowed_roles):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if 'username' not in session:
+            if not g.get('identity'):
                 flash('Please log in first', 'danger')
                 return redirect(url_for('login'))
             
-            user_role = session.get('role', 'user')
+            user_role = g.identity['role']
             if user_role not in allowed_roles:
-                flash('You do not have permission to access this page', 'danger')
-                return redirect(url_for('home' if user_role == 'admin' else 'user_home'))
+                abort(403, description='You do not have permission to access this page')
             
             return f(*args, **kwargs)
         return decorated_function
@@ -77,10 +77,10 @@ Barangay Information System
             <body style="font-family: Arial, sans-serif;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #1B3A57;">Password Reset Request</h2>
-                    <p>Hello <strong>{username}</strong>,</p>
+                    <p>Hello <strong>{escape(username)}</strong>,</p>
                     <p>You requested to reset your password for the Barangay Information System.</p>
                     <p>
-                        <a href="{reset_link}"
+                        <a href="{escape(reset_link, quote=True)}"
                            style="display: inline-block; padding: 12px 24px; background-color: #2e86c1;
                                   color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">
                             Reset Your Password
@@ -107,8 +107,8 @@ Barangay Information System
 
         return send_gmail_message(msg)
     except Exception as exc:
-        print(f"Unexpected email send error for password reset: {exc}")
-        return False, f"Unexpected error sending email: {exc}"
+        print('Password recovery message could not be prepared')
+        return False, 'Unable to prepare recovery email'
 
 
 def send_admin_notification(admin_email, username, action):
@@ -157,5 +157,5 @@ Barangay Information System
 
         return send_gmail_message(msg)
     except Exception as exc:
-        print(f"Error sending admin notification: {exc}")
-        return False, str(exc)
+        print('Administrator notification could not be prepared')
+        return False, 'Unable to prepare notification'

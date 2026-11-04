@@ -1,16 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="form-container">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
+<script src="{{ url_for('static',filename='js/resident-form.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/resident-registration.css') }}">
+<script src="{{ url_for('static',filename='js/resident-registration.js') }}" defer></script>
+<div class="form-container resident-editor">
     <div class="form-card">
         <div class="form-header">
             <h1>Add New Resident</h1>
             <p>Register a new individual into the barangay database.</p>
         </div>
 
-        <form action="{{ url_for('add_member') }}" method="POST">
+        <form data-record-registration="resident" action="{{ url_for('add_member') }}" method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="_submission_token" value="{{ submission_token('resident_create') }}">
             <input type="hidden" name="household_id_fixed" value="{{ household_id if household_id else '' }}">
 
+            <fieldset class="form-section"><legend>Personal Information</legend>
             <div class="form-grid">
                 <div class="form-group">
                     <label>First Name</label>
@@ -18,7 +23,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Middle Name</label>
+                    <label>Middle Name <span class="optional-label">(optional)</span></label>
                     <input type="text" name="middlename" id="mname" value="{{ prefill.middlename if prefill else '' }}" placeholder="Enter middle name" autocomplete="off">
                 </div>
 
@@ -31,15 +36,17 @@
             <div class="form-grid dual">
                 <div class="form-group">
                     <label>Age</label>
-                    <input type="number" name="age" id="age" value="{{ prefill.age if prefill else '' }}" placeholder="Age" required autocomplete="off">
+                    <input type="number" name="age" id="age" aria-describedby="ageHelp" value="{{ prefill.age if prefill and prefill.age is not none else '' }}" placeholder="Age" readonly autocomplete="off">
+                    <p id="ageHelp" class="helper-text age-explanation">Age &mdash; automatically calculated from birthdate.</p>
                 </div>
 
                 <div class="form-group">
                     <label>Birthdate</label>
-                    <input type="date" name="birthdate" id="birthdate" value="{{ prefill.birthdate if prefill else '' }}" class="stylish-date" required>
+                    <input type="date" name="birthdate" id="birthdate" value="{{ prefill.birthdate if prefill else '' }}" class="stylish-date">
                 </div>
             </div>
 
+            </fieldset><fieldset class="form-section"><legend>Demographic Details</legend>
             <div class="form-grid dual">
                 <div class="form-group">
                     <label>Gender</label>
@@ -47,6 +54,7 @@
                         <option value="">--Select--</option>
                         <option value="Male" {{ 'selected' if prefill and prefill.gender == 'Male' else '' }}>Male</option>
                         <option value="Female" {{ 'selected' if prefill and prefill.gender == 'Female' else '' }}>Female</option>
+                        <option value="Not recorded" {{ 'selected' if prefill and prefill.gender == 'Not recorded' else '' }}>Not recorded</option>
                     </select>
                 </div>
 
@@ -57,21 +65,24 @@
                         <option value="Single" {{ 'selected' if prefill and prefill.civil_status == 'Single' else '' }}>Single</option>
                         <option value="Married" {{ 'selected' if prefill and prefill.civil_status == 'Married' else '' }}>Married</option>
                         <option value="Widowed" {{ 'selected' if prefill and prefill.civil_status == 'Widowed' else '' }}>Widowed</option>
+                        <option value="Separated" {{ 'selected' if prefill and prefill.civil_status == 'Separated' else '' }}>Separated</option>
+                        <option value="Not recorded" {{ 'selected' if prefill and prefill.civil_status == 'Not recorded' else '' }}>Not recorded</option>
                     </select>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Occupation</label>
+                <label>Occupation <span class="optional-label">(optional)</span></label>
                 <input type="text" name="occupation" id="occupation" value="{{ prefill.occupation if prefill else '' }}" placeholder="e.g. Software Developer, Student, etc." autocomplete="off">
             </div>
 
-            <div class="form-group">
+            </fieldset><fieldset class="form-section"><legend>Household and Resident Status</legend>
+            <div class="form-group household-field">
                 <label>Household Association</label>
                 <div style="position:relative;">
-                    <input type="text" id="householdSearch" value="{{ household_name if household_name else '' }}" placeholder="Search household surname..." autocomplete="off" required {{ 'readonly' if household_id }}>
-                    <input type="hidden" name="household_id" id="householdId" value="{{ household_id if household_id else '' }}">
-                    <div id="suggestionsBox" class="suggestions-box"></div>
+                    <input type="text" id="householdSearch" data-record-combobox data-source="/api/report-suggestions?kind=households" data-target="householdId" data-status="householdSearchStatus" role="combobox" aria-autocomplete="list" aria-controls="suggestionsBox" aria-expanded="false" value="{{ household_name if household_name else '' }}" placeholder="Household name, house number or address" autocomplete="off" required {{ 'readonly' if household_id }}>
+                    <input type="hidden" name="household_id" id="householdId" value="{{ prefill.get('household_id','') }}"><p id="householdSearchStatus" role="status" class="helper-text">Choose an exact household.</p>
+                    <div id="suggestionsBox" role="listbox" class="record-options" hidden></div>
                 </div>
                 {% if not household_id %}
                 <p class="helper-text">
@@ -80,6 +91,23 @@
                 {% endif %}
             </div>
 
+            <div class="form-group"><label for="residentStatus">Resident Status</label><select name="status" id="residentStatus">{% for status in ['Active','Deceased'] %}<option value="{{ status }}" {% if prefill.get('status','Active')==status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select></div>
+            <div class="form-group death-date-field">
+                <label for="death_date">Reported death date</label>
+                <input type="date" id="death_date" name="death_date" value="{{ (member if editing else prefill).get('death_date') or '' }}">
+                <p class="helper-text">For deceased residents only. Leave unknown dates blank. When changing to Active, clear any saved date explicitly.</p>
+            </div>
+            </fieldset><fieldset class="form-section"><legend>Health Information</legend>
+            <p class="helper-text">Optional reported information; administrator access only; up to 500 characters per field.</p>
+            <div class="form-grid dual">
+            {% for field,label in [('mental_health_status','Mental Health Status'),('current_health_status','Current Health Status')] %}
+            <div class="form-group">
+                <label for="{{ field }}">{{ label }}</label>
+                <textarea id="{{ field }}" name="{{ field }}" maxlength="500" rows="3" placeholder="Not recorded" autocomplete="off">{{ (member if editing else prefill).get(field) or '' }}</textarea>
+            </div>
+            {% endfor %}
+            </div></fieldset>
+            {% if duplicate_detected %}<p id="registrationDuplicate" class="helper-text duplicate-warning" role="alert"><label><input type="checkbox" name="confirm_duplicate" value="yes"> I reviewed the possible duplicate and confirm this is a different person.</label></p>{% else %}<div id="registrationDuplicate" hidden></div>{% endif %}
             <div class="form-actions">
                 <button type="submit" class="btn-submit">Register Resident</button>
                 
@@ -104,6 +132,7 @@
         <p id="errorText">{{ error }}</p>
         <div class="modal-footer">
             <button class="modal-btn confirm" onclick="closeErrorModal()">Got it</button>
+            <a id="registrationRecoveryLink" class="modal-btn" href="{{ url_for('view_members') }}" hidden>View Residents</a>
         </div>
     </div>
 </div>
@@ -251,13 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updateHHLink() {
         if (!hhLink) return;
-        const base = "{{ url_for('add_household') }}";
-        const params = new URLSearchParams();
-        params.append('from_member', 'true');
-        for (const key in formFields) {
-            params.append(key, formFields[key].value);
-        }
-        hhLink.href = `${base}?${params.toString()}`;
+        hhLink.href = {{ url_for('add_household')|tojson }};
     }
 
     Object.values(formFields).forEach(field => {
@@ -266,38 +289,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     
     updateHHLink();
-
-    const search = document.getElementById("householdSearch");
-    const box = document.getElementById("suggestionsBox");
-    const hidden = document.getElementById("householdId");
-    const households = [{% for h in households %}{id:"{{h.id}}", name:"{{h.surname}}"},{% endfor %}];
-
-    if (!isFixedHH) {
-        search.addEventListener("input", function () {
-            const query = this.value.toLowerCase().trim();
-            box.innerHTML = ""; hidden.value = "";
-            if (query.length < 1) { box.style.display = "none"; return; }
-            const matches = households.filter(h => h.name.toLowerCase().includes(query));
-            if (matches.length === 0) { 
-                box.innerHTML = "<div style='cursor:default;'>No households found</div>";
-                box.style.display = "block";
-                return; 
-            }
-            matches.forEach(h => {
-                const item = document.createElement("div");
-                item.textContent = h.name;
-                item.onclick = () => { search.value = h.name; hidden.value = h.id; box.style.display = "none"; };
-                box.appendChild(item);
-            });
-            box.style.display = "block";
-        });
-    }
-
-    document.addEventListener("click", function(e) {
-        if (search && e.target !== search) box.style.display = "none";
+    hhLink?.addEventListener('click', e => {
+        e.preventDefault();
+        const form = hhLink.closest('form');
+        let action = form.querySelector('input[name="action"]');
+        if (!action) { action = document.createElement('input'); action.type='hidden'; action.name='action'; form.append(action); }
+        action.value='new_household';
+        HTMLFormElement.prototype.submit.call(form);
     });
 
-    if ("{{ error }}".trim() !== "None" && "{{ error }}".trim() !== "") {
+    if ({{ (error or '')|tojson }}.trim() !== "None" && {{ (error or '')|tojson }}.trim() !== "") {
         document.getElementById('errorModal').style.display = 'flex';
     }
 });

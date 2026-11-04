@@ -24,7 +24,7 @@
         </div>
         <div class="info-card">
             <div class="info-label">Total Members</div>
-            <div class="info-value">{{ members|length }}</div>
+            <div class="info-value">{{ total }}</div>
         </div>
         <div class="info-card">
             <div class="info-label">Active Members</div>
@@ -362,4 +362,5 @@
         lucide.createIcons();
     }
 </script>
+{% include 'original_pagination.html' %}
 {% endblock %}

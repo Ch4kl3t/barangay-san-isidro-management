@@ -1,110 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="audit-page">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/audit-improvements.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/search-analytics-refinement.css') }}">
+<script src="{{ url_for('static',filename='js/audit-search.js') }}" defer></script>
+<div class="audit-page admin-ui-consistency audit-visual admin-page-shell">
     <section class="audit-top-panel">
-        <div class="audit-hero">
+        <div class="audit-hero admin-page-header">
             <div class="audit-title-group">
                 <div class="audit-page-icon">
                     <i data-lucide="shield-check"></i>
                 </div>
                 <div>
+                    <span class="admin-page-eyebrow">Administration / Activity</span>
                     <h1>Audit Log</h1>
                     <p>Track and monitor all system activities, user actions, and affected records.</p>
                 </div>
             </div>
 
             <div class="audit-summary-chip">
-                <span>{{ total_logs }} total entries</span>
+                <span>{{ total_logs }} matching entries</span>
             </div>
         </div>
 
-        <section class="audit-controls-card">
-            <div class="audit-search-row">
-                <div class="audit-search">
-                    <i data-lucide="search"></i>
-                    <input id="searchFilter" type="search" autocomplete="off" placeholder="Search by log ID, user, action, entity, description...">
-                    <div class="search-suggestions" id="searchSuggestions" role="listbox"></div>
-                </div>
-            </div>
-
-            <div class="audit-filter-row">
-                <span class="filter-label">
-                    <i data-lucide="filter"></i>
-                    Filters
-                </span>
-
-                <div class="filter-control">
-                    <i data-lucide="calendar-days"></i>
-                    <select id="monthFilter">
-                        <option value="">All Dates</option>
-                        <option value="-01-">January</option>
-                        <option value="-02-">February</option>
-                        <option value="-03-">March</option>
-                        <option value="-04-">April</option>
-                        <option value="-05-">May</option>
-                        <option value="-06-">June</option>
-                        <option value="-07-">July</option>
-                        <option value="-08-">August</option>
-                        <option value="-09-">September</option>
-                        <option value="-10-">October</option>
-                        <option value="-11-">November</option>
-                        <option value="-12-">December</option>
-                    </select>
-                    <i data-lucide="chevron-down" class="select-caret"></i>
-                </div>
-
-                <div class="filter-control">
-                    <i data-lucide="user"></i>
-                    <select id="userFilter">
-                        <option value="">All Users</option>
-                        {% for user in users %}
-                            <option value="{{ user.user_id or user.username }}">{{ user.username }}</option>
-                        {% endfor %}
-                    </select>
-                    <i data-lucide="chevron-down" class="select-caret"></i>
-                </div>
-
-                <div class="filter-control">
-                    <i data-lucide="boxes"></i>
-                    <select id="targetFilter">
-                        <option value="">All Modules</option>
-                        <option value="Resident">Residents</option>
-                        <option value="Household">Households</option>
-                        <option value="System">System</option>
-                    </select>
-                    <i data-lucide="chevron-down" class="select-caret"></i>
-                </div>
-
-                <div class="filter-control">
-                    <i data-lucide="activity"></i>
-                    <select id="actionFilter">
-                        <option value="">All Actions</option>
-                        <option value="ADD">Added</option>
-                        <option value="UPDATE">Updated</option>
-                        <option value="DELETE">Deleted</option>
-                    </select>
-                    <i data-lucide="chevron-down" class="select-caret"></i>
-                </div>
-
-                <div class="filter-actions">
-                    <button class="apply-btn" type="button" id="applyFilters">
-                        <i data-lucide="check"></i>
-                        Apply
-                    </button>
-                    <button class="reset-btn" type="button" id="resetFilters">
-                        <i data-lucide="rotate-ccw"></i>
-                        Reset
-                    </button>
-                </div>
-            </div>
-        </section>
+        <form class="audit-controls-card audit-server-filters" method="get" data-auto-filters>
+<input type="hidden" name="page_size" value="{{ page_size }}">
+<div class="audit-search-row"><label>Search <input type="search" name="search" value="{{ request.args.get('search','') }}" maxlength="200" placeholder="Actor, action, entity, description" autocomplete="off" data-explicit-search></label></div>
+<div class="audit-filter-row">
+<label>Actor <select name="username"><option value="">All actors</option>{% for user in users %}<option value="{{ user.username }}" {{ 'selected' if request.args.get('username')==user.username }}>{{ user.username }}</option>{% endfor %}</select></label>
+<label>Action <select name="action_type"><option value="">All actions</option>{% for v in ['ADD','UPDATE','DELETE','LOGIN','LOGIN_DENIED','LOGOUT','SIGNUP','PASSWORD_CHANGE','PASSWORD_RESET_REQUEST','PASSWORD_RESET_SUCCESS','REPORT_GENERATE'] %}<option {{ 'selected' if request.args.get('action_type')==v }}>{{ v }}</option>{% endfor %}</select></label>
+<label>Entity <select name="target_type"><option value="">All entities</option>{% for v in ['Resident','Household','User','System'] %}<option {{ 'selected' if request.args.get('target_type')==v }}>{{ v }}</option>{% endfor %}</select></label>
+<label>From (PHT) <input name="date_from" type="datetime-local" value="{{ request.args.get('date_from','') }}"></label><label>Through (PHT) <input name="date_to" type="datetime-local" value="{{ request.args.get('date_to','') }}"></label>
+<label>Recorded outcome <select name="outcome"><option value="">All outcomes</option>{% for v in ['SUCCESS','FAILED','DENIED','PENDING'] %}<option {{ 'selected' if request.args.get('outcome')==v }}>{{ v }}</option>{% endfor %}</select></label>
+<div class="audit-filter-actions"><button class="apply-btn" type="submit">Apply filters</button><a class="reset-btn" href="{{ url_for('audit_log') }}">Reset Filters</a><a class="reset-btn" href="{{ report_url('audit') }}">Print / Download</a></div>
+</div></form>
     </section>
 
     <section class="audit-table-section">
         <div class="audit-table-topbar">
             <div class="audit-table-meta">
-                Showing <strong id="visibleCount">{{ total_logs }}</strong> of <strong>{{ total_logs }}</strong> entries
+                Showing <strong id="visibleCount">{{ logs|length }}</strong> of <strong>{{ total_logs }}</strong> entries
             </div>
         </div>
 
@@ -127,7 +63,7 @@
                         <th>Action</th>
                         <th>Entity Affected</th>
                         <th>Timestamp</th>
-                        <th>IP / Device</th>
+                        <th>Summary</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -138,13 +74,13 @@
                             {% set log_user_id = log.user_id or log.username %}
                             {% set log_target_type = log.target_type or ('Resident' if 'Resident' in log.details else 'Household' if 'Household' in log.details else 'System') %}
                             {% set log_target_id = log.target_id or log.household_context or 'N/A' %}
-                            {% set log_status = log.status or 'SUCCESS' %}
+                            {% set log_status = log.outcome_display or 'Not recorded' %}
                             <tr
                                 data-action="{{ log.action_type }}"
                                 data-user="{{ log_user_id }}"
                                 data-target="{{ log_target_type }}"
                                 data-status="{{ log_status }}"
-                                data-search="{{ log.id }} {{ log_user_id }} {{ log.username }} {{ log.action_type }} {{ log_target_type }} {{ log_target_id }} {{ log.details }} {{ log.created_at }}"
+                                data-search="{{ log.id }} {{ log_user_id }} {{ log.username }} {{ log.action_type }} {{ log_target_type }} {{ log_target_id }} {{ log.details }} {{ log.time_display }}"
                             >
                                 <td class="user-column">
                                     <div class="user-cell">
@@ -155,7 +91,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="role-cell">Administrator</td>
+                                <td class="role-cell">{{ log.actor_role }}</td>
                                 <td class="action-column">
                                     {% if log.action_type == 'ADD' %}
                                         <span class="action-pill action-add">Added</span>
@@ -173,25 +109,17 @@
                                         <small>Target ID: {{ log_target_id }}</small>
                                     </div>
                                 </td>
-                                <td class="timestamp-cell">{{ log.created_at }}</td>
-                                <td class="device-cell">
-                                    <span>{{ log.ip_address or 'Local' }}</span>
-                                    <small>{{ log.user_agent or 'Browser session' }}</small>
-                                </td>
+                                <td class="timestamp-cell">{% set stamp=log.time_display.split(' ',3) %}{% if stamp|length == 4 %}<span class="audit-event-date">{{ stamp[:3]|join(' ') }}</span><small class="audit-event-time">{{ stamp[3] }}</small>{% else %}{{ log.time_display }}{% endif %}</td>
+                                <td class="device-cell"><span>{{ log.details or 'No summary recorded' }}</span></td>
                                 <td class="status-column">
-                                    {% if log_status == 'FAILED' %}
-                                        <span class="status-pill status-failed">Failed</span>
-                                    {% elif log_status == 'PENDING' %}
-                                        <span class="status-pill status-pending">Pending</span>
-                                    {% else %}
-                                        <span class="status-pill status-success">Success</span>
-                                    {% endif %}
+                                    <span class="status-pill {{ 'status-success' if log_status=='SUCCESS' else 'status-failed' if log_status in ['FAILED','DENIED'] else 'action-other' }}">{{ log_status }}</span>
                                 </td>
                                 <td class="controls-column">
                                     <button
                                         class="details-btn"
                                         type="button"
                                         data-log-id="#{{ log.id }}"
+                                        data-role="{{ log.actor_role }}" data-outcome="{{ log.outcome_display }}" data-detail="{{ log.detail_data|tojson|forceescape }}"
                                         data-user="{{ log.username|e }}"
                                         data-user-id="{{ log_user_id|e }}"
                                         data-action="{{ log.action_type|e }}"
@@ -200,7 +128,7 @@
                                         data-description="{{ log.details|e }}"
                                         data-old="{{ (log.old_value or 'No previous value recorded')|e }}"
                                         data-new="{{ (log.new_value or 'No new value recorded')|e }}"
-                                        data-time="{{ log.created_at|e }}"
+                                        data-time="{{ log.time_display|e }}"
                                     >
                                         View Details
                                     </button>
@@ -211,7 +139,7 @@
                         <tr>
                             <td colspan="8" class="empty-row">
                                 <i data-lucide="database-zap"></i>
-                                No audit activity has been recorded yet.
+                                No audit entries match this view. Adjust filters or reset to view all entries.
                             </td>
                         </tr>
                     {% endif %}
@@ -224,6 +152,7 @@
                 </tbody>
             </table>
         </div>
+        <footer class="audit-pagination">{% include 'original_pagination.html' %}</footer>
     </section>
 </div>
 
@@ -233,6 +162,7 @@
             <div>
                 <span class="modal-kicker" id="modalLogId">Log</span>
                 <h2 id="modalTitle">Audit Details</h2>
+                <span id="modalOutcome" class="audit-outcome"></span>
             </div>
             <button class="modal-close" type="button" id="closeModal" aria-label="Close details">
                 <i data-lucide="x"></i>
@@ -240,7 +170,7 @@
         </div>
         <div class="modal-summary">
             <div>
-                <label>User</label>
+                <label>Actor</label>
                 <strong id="modalUser"></strong>
             </div>
             <div>
@@ -248,11 +178,11 @@
                 <strong id="modalAction"></strong>
             </div>
             <div>
-                <label>Target</label>
+                <label>Affected record</label>
                 <strong id="modalTarget"></strong>
             </div>
             <div>
-                <label>Timestamp</label>
+                <label>When (Philippine time)</label>
                 <strong id="modalTime"></strong>
             </div>
         </div>
@@ -260,20 +190,7 @@
             <label>Description</label>
             <p id="modalDescription"></p>
         </div>
-        <div class="modal-changes">
-            <label>Fields Changed</label>
-            <div id="modalChangedFields" class="changed-fields-list"></div>
-        </div>
-        <div class="change-grid">
-            <div>
-                <label>Before Change</label>
-                <div id="modalOld" class="snapshot-list"></div>
-            </div>
-            <div>
-                <label>After Change</label>
-                <div id="modalNew" class="snapshot-list"></div>
-            </div>
-        </div>
+        <section id="modalEventDetails"></section><details class="audit-technical"><summary>Technical details (redacted)</summary><pre id="modalTechnical"></pre></details>
     </div>
 </div>
 
@@ -1149,287 +1066,5 @@
 
 </style>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-
-    const searchFilter = document.getElementById('searchFilter');
-    const monthFilter = document.getElementById('monthFilter');
-    const userFilter = document.getElementById('userFilter');
-    const targetFilter = document.getElementById('targetFilter');
-    const actionFilter = document.getElementById('actionFilter');
-    const applyButton = document.getElementById('applyFilters');
-    const resetButton = document.getElementById('resetFilters');
-    const suggestionsBox = document.getElementById('searchSuggestions');
-    const visibleCount = document.getElementById('visibleCount');
-    const noMatchesRow = document.getElementById('noMatchesRow');
-    const rows = Array.from(document.querySelectorAll('#auditTable tbody tr[data-action]'));
-    let pendingFilters = {
-        search: '',
-        month: '',
-        user: '',
-        target: '',
-        action: ''
-    };
-
-    const suggestionItems = rows.flatMap((row) => {
-        const detailsButton = row.querySelector('.details-btn');
-        const action = row.dataset.action || '';
-        const target = row.dataset.target || '';
-        const user = row.dataset.user || '';
-        const logId = row.querySelector('.log-id')?.textContent.trim() || '';
-        const description = detailsButton?.dataset.description || '';
-        return [
-            { icon: 'hash', label: logId, meta: 'Log ID' },
-            { icon: 'user', label: user, meta: 'User ID' },
-            { icon: 'activity', label: action, meta: 'Action' },
-            { icon: 'boxes', label: target, meta: 'Module' },
-            { icon: 'file-text', label: description, meta: 'Description' }
-        ];
-    }).filter((item, index, all) => item.label && all.findIndex((candidate) => candidate.label === item.label && candidate.meta === item.meta) === index);
-
-    function parseSnapshot(value) {
-        if (!value || value === 'No previous value recorded' || value === 'No new value recorded') return null;
-        try {
-            const parsed = JSON.parse(value);
-            return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    function formatFieldName(field) {
-        return String(field)
-            .replace(/_/g, ' ')
-            .replace(/\b\w/g, (letter) => letter.toUpperCase());
-    }
-
-    function shouldShowField(field) {
-        return !['id', 'created_at', 'updated_at'].includes(String(field).toLowerCase());
-    }
-
-    function formatFieldValue(value) {
-        if (value === null || value === undefined || value === '') return 'Blank';
-        if (typeof value === 'object') return 'Multiple values';
-        return String(value);
-    }
-
-    function renderSnapshot(containerId, value, emptyMessage) {
-        const container = document.getElementById(containerId);
-        const snapshot = parseSnapshot(value);
-
-        if (!snapshot) {
-            container.innerHTML = `<p class="snapshot-empty">${escapeHtml(emptyMessage)}</p>`;
-            return;
-        }
-
-        const entries = Object.entries(snapshot)
-            .filter(([key]) => shouldShowField(key))
-            .slice(0, 8);
-
-        if (entries.length === 0) {
-            container.innerHTML = '<p class="snapshot-empty">No readable values were captured.</p>';
-            return;
-        }
-
-        container.innerHTML = entries.map(([key, fieldValue]) => `
-            <div class="snapshot-row">
-                <strong>${escapeHtml(formatFieldName(key))}</strong>
-                <span title="${escapeHtml(formatFieldValue(fieldValue))}">${escapeHtml(formatFieldValue(fieldValue))}</span>
-            </div>
-        `).join('');
-    }
-
-    function renderChangedFields(action, oldValue, newValue) {
-        const container = document.getElementById('modalChangedFields');
-        const oldSnapshot = parseSnapshot(oldValue);
-        const newSnapshot = parseSnapshot(newValue);
-        const normalizedAction = (action || '').toUpperCase();
-
-        if (normalizedAction === 'ADD' && newSnapshot) {
-            container.innerHTML = '<p class="changed-empty">This action created a new record. The captured values are listed in After Change.</p>';
-            return;
-        }
-
-        if (normalizedAction === 'DELETE' && oldSnapshot) {
-            container.innerHTML = '<p class="changed-empty">This action removed the record. The removed values are listed in Before Change.</p>';
-            return;
-        }
-
-        if (!oldSnapshot || !newSnapshot) {
-            container.innerHTML = '<p class="changed-empty">No field-by-field change summary was captured for this older audit entry.</p>';
-            return;
-        }
-
-        const keys = Array.from(new Set([...Object.keys(oldSnapshot), ...Object.keys(newSnapshot)]))
-            .filter(shouldShowField);
-        const changed = keys.filter((key) => JSON.stringify(oldSnapshot[key]) !== JSON.stringify(newSnapshot[key]));
-
-        if (changed.length === 0) {
-            container.innerHTML = '<p class="changed-empty">No individual field differences were detected.</p>';
-            return;
-        }
-
-        container.innerHTML = changed.map((key) => `
-            <div class="changed-field-item">
-                <strong>${escapeHtml(formatFieldName(key))}</strong>
-                <div class="changed-field-values">
-                    <span title="${escapeHtml(formatFieldValue(oldSnapshot[key]))}">${escapeHtml(formatFieldValue(oldSnapshot[key]))}</span>
-                    <b class="changed-arrow">-></b>
-                    <span title="${escapeHtml(formatFieldValue(newSnapshot[key]))}">${escapeHtml(formatFieldValue(newSnapshot[key]))}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function applyFilters() {
-        const searchValue = pendingFilters.search.toLowerCase();
-        const monthValue = pendingFilters.month.toLowerCase();
-        const userValue = pendingFilters.user.toLowerCase();
-        const targetValue = pendingFilters.target.toLowerCase();
-        const actionValue = pendingFilters.action;
-        let count = 0;
-
-        rows.forEach((row) => {
-            const timestamp = row.querySelector('.timestamp-cell').textContent.toLowerCase();
-            const matchesSearch = !searchValue || (row.dataset.search || '').toLowerCase().includes(searchValue);
-            const matchesMonth = !monthValue || timestamp.includes(monthValue);
-            const matchesUser = !userValue || (row.dataset.user || '').toLowerCase() === userValue;
-            const matchesTarget = !targetValue || (row.dataset.target || '').toLowerCase() === targetValue;
-            const matchesAction = !actionValue || row.dataset.action === actionValue;
-            const visible = matchesSearch && matchesMonth && matchesUser && matchesTarget && matchesAction;
-
-            row.style.display = visible ? '' : 'none';
-            if (visible) count++;
-        });
-
-        visibleCount.textContent = count;
-        noMatchesRow.style.display = rows.length > 0 && count === 0 ? '' : 'none';
-    }
-
-    function captureFilters() {
-        pendingFilters = {
-            search: searchFilter.value.trim(),
-            month: monthFilter.value,
-            user: userFilter.value,
-            target: targetFilter.value,
-            action: actionFilter.value
-        };
-        applyFilters();
-        hideSuggestions();
-    }
-
-    function resetFilters() {
-        searchFilter.value = '';
-        monthFilter.value = '';
-        userFilter.value = '';
-        targetFilter.value = '';
-        actionFilter.value = '';
-        captureFilters();
-    }
-
-    function hideSuggestions() {
-        suggestionsBox.classList.remove('open');
-        suggestionsBox.innerHTML = '';
-    }
-
-    function escapeHtml(value) {
-        return String(value)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
-    }
-
-    function showSuggestions() {
-        const value = searchFilter.value.trim().toLowerCase();
-        if (!value) {
-            hideSuggestions();
-            return;
-        }
-
-        const matches = suggestionItems
-            .filter((item) => item.label.toLowerCase().includes(value))
-            .slice(0, 7);
-
-        if (matches.length === 0) {
-            hideSuggestions();
-            return;
-        }
-
-        suggestionsBox.innerHTML = matches.map((item) => `
-            <button class="suggestion-item" type="button" data-value="${escapeHtml(item.label)}">
-                <i data-lucide="${item.icon}"></i>
-                <span>
-                    <strong>${escapeHtml(item.label)}</strong>
-                    <small>${escapeHtml(item.meta)}</small>
-                </span>
-            </button>
-        `).join('');
-
-        suggestionsBox.classList.add('open');
-        if (typeof loadIcons === 'function') loadIcons();
-
-        suggestionsBox.querySelectorAll('.suggestion-item').forEach((item) => {
-            item.addEventListener('click', () => {
-                searchFilter.value = item.dataset.value;
-                captureFilters();
-            });
-        });
-    }
-
-    searchFilter.addEventListener('input', showSuggestions);
-    searchFilter.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') captureFilters();
-        if (event.key === 'Escape') hideSuggestions();
-    });
-    applyButton.addEventListener('click', captureFilters);
-    resetButton.addEventListener('click', resetFilters);
-
-    document.addEventListener('click', (event) => {
-        if (!event.target.closest('.audit-search')) hideSuggestions();
-    });
-
-    const modal = document.getElementById('auditModal');
-    const closeModal = document.getElementById('closeModal');
-
-    function setText(id, value) {
-        document.getElementById(id).textContent = value || 'N/A';
-    }
-
-    document.querySelectorAll('.details-btn').forEach((button) => {
-        button.addEventListener('click', () => {
-            setText('modalLogId', button.dataset.logId);
-            setText('modalUser', `${button.dataset.user} (${button.dataset.userId})`);
-            setText('modalAction', button.dataset.action);
-            setText('modalTarget', `${button.dataset.target} #${button.dataset.targetId}`);
-            setText('modalTime', button.dataset.time);
-            setText('modalDescription', button.dataset.description);
-            renderSnapshot('modalOld', button.dataset.old, 'No previous readable values were recorded.');
-            renderSnapshot('modalNew', button.dataset.new, 'No new readable values were recorded.');
-            renderChangedFields(button.dataset.action, button.dataset.old, button.dataset.new);
-            modal.classList.add('open');
-            modal.setAttribute('aria-hidden', 'false');
-        });
-    });
-
-    function hideModal() {
-        modal.classList.remove('open');
-        modal.setAttribute('aria-hidden', 'true');
-    }
-
-    closeModal.addEventListener('click', hideModal);
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) hideModal();
-    });
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') hideModal();
-    });
-
-    captureFilters();
-});
-</script>
+<script src="{{ url_for('static',filename='js/audit-details.js') }}" defer></script>
 {% endblock %}

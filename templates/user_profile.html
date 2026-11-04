@@ -216,7 +216,7 @@
                 <i data-lucide="x" style="width:16px;height:16px;"></i>
             </button>
         </div>
-        <form method="POST" action="{{ url_for('update_profile') }}">
+        <form method="POST" action="{{ url_for('update_profile') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-body">
                 <div class="form-field">
                     <label for="edit_username">Username</label>
@@ -255,7 +255,7 @@
                 <i data-lucide="x" style="width:16px;height:16px;"></i>
             </button>
         </div>
-        <form method="POST" action="{{ url_for('change_password') }}">
+        <form method="POST" action="{{ url_for('change_password') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-body">
                 <div class="form-field">
                     <label for="current_password">Current Password</label>

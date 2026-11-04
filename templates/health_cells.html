@@ -1,0 +1,8 @@
+{% for field in ['mental_health_status','current_health_status'] %}
+<td class="admin-health-cell">
+{% set value = member.get(field) %}
+{% if not value %}Not recorded
+{% elif value|length <= 65 %}{{ value }}
+{% else %}<details><summary>{{ value[:65] }}… <span>View full text</span></summary><p>{{ value }}</p></details>{% endif %}
+</td>
+{% endfor %}

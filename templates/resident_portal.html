@@ -1,0 +1,21 @@
+{% extends 'user_base.html' %}
+{% block content %}
+<div class="resident-portal">
+<header class="portal-banner"><span class="breadcrumb">Barangay San Isidro / Resident Portal</span><h1>{{ {'overview':'Overview','record':'My Resident Record','household':'My Household'}[section] }}</h1><p>Your official information, securely connected by barangay staff.</p></header>
+{% if state!='linked' %}
+<section class="portal-card verification-state" aria-labelledby="verificationHeading"><i data-lucide="shield-check" aria-hidden="true"></i><h2 id="verificationHeading">{{ 'Access on hold' if state=='hold' else 'Awaiting resident verification' }}</h2>
+<p>{{ 'Your personal record is unavailable pending administrator review. Please contact barangay staff.' if state=='hold' else 'Your account is approved. Barangay staff must verify your identity and link your official resident record before you can view personal information.' }}</p><p>You can still view barangay-wide statistics and manage your account security.</p><div class="portal-actions"><a href="{{ url_for('barangay_statistics') }}">Barangay Statistics</a><a href="{{ url_for('user_profile') }}">My Account / Security</a></div></section>
+{% else %}
+{% if section=='overview' %}
+<div class="portal-grid"><a class="portal-card portal-link" href="{{ url_for('my_record') }}"><i data-lucide="user" aria-hidden="true"></i><h2>My Resident Record</h2><p>{{ resident.firstname }} {{ resident.middlename or '' }} {{ resident.surname }}</p><span>Read your official record</span></a><a class="portal-card portal-link" href="{{ url_for('my_household') }}"><i data-lucide="building-2" aria-hidden="true"></i><h2>My Household</h2><p>{{ household.surname ~ ' / House ' ~ household.house_number if household else 'Household unavailable' }}</p><span>Shared household information and counts</span></a></div>
+{% elif section=='record' %}
+<section class="portal-card"><div class="portal-section-title"><i data-lucide="user" aria-hidden="true"></i><h2>Official resident information</h2></div><dl class="portal-fields">
+{% for key,label in [('id','Resident ID'),('surname','Surname'),('firstname','First name'),('middlename','Middle name'),('birthdate','Birthdate'),('age','Age'),('gender','Gender'),('civil_status','Civil status'),('occupation','Occupation'),('status','Resident status'),('registration_date','Reported registration date')] %}
+<div><dt>{{ label }}</dt><dd>{{ resident[key] if resident[key] is not none and resident[key]!='' else 'Not recorded' }}</dd></div>{% endfor %}</dl></section>
+{% elif section=='household' %}
+<section class="portal-card"><div class="portal-section-title"><i data-lucide="building-2" aria-hidden="true"></i><h2>Current household</h2></div>{% if household %}<dl class="portal-fields">{% for key,label in [('surname','Household name'),('house_number','House number'),('address','Address'),('active_members','Active members'),('recorded_members','All recorded members')] %}<div><dt>{{ label }}</dt><dd>{{ household[key] if household[key] is not none else 'Not recorded' }}</dd></div>{% endfor %}</dl><p class="portal-note">Active members exclude deceased records. All recorded members include active and deceased records. Other members' personal profiles are private.</p>{% else %}<p>Your own record is available, but a current household is not recorded. Please contact barangay staff.</p>{% endif %}</section>
+{% endif %}
+<aside class="portal-card portal-note"><i data-lucide="alert-circle" aria-hidden="true"></i> Official resident and household information is read-only. For a correction, ask barangay staff to review the official record. Account security settings are managed separately.</aside>
+{% endif %}
+</div>
+{% endblock %}

@@ -2,20 +2,15 @@ import os
 import json
 import urllib.request
 import urllib.error
-from dotenv import load_dotenv
 
-load_dotenv()
+
+
 
 def get_brevo_api_key():
     return os.getenv("BREVO_API_KEY", "").strip()
 
-SENDER_EMAIL = os.getenv("GMAIL_ADDRESS", "lorainenina40@gmail.com").strip()
+SENDER_EMAIL = os.getenv("GMAIL_ADDRESS", "").strip()
 SENDER_NAME = "Barangay Information System"
-
-if get_brevo_api_key():
-    print("[EMAIL CONFIG SUCCESS] BREVO_API_KEY is configured.")
-else:
-    print("[EMAIL CONFIG ERROR] BREVO_API_KEY environment variable is MISSING or EMPTY!")
 
 class SafeConfigDict(dict):
     def __getitem__(self, key):
@@ -37,8 +32,10 @@ def send_gmail_message(msg):
     """
     Sends email via Brevo HTTP API (Port 443) to bypass Render SMTP restrictions.
     """
+    if os.getenv('APP_ENV') != 'production' or os.getenv('ENABLE_EMAIL') != '1':
+        return False, 'Email transport is disabled in this environment'
     api_key = get_brevo_api_key()
-    if not api_key:
+    if not api_key or not SENDER_EMAIL:
         print("[EMAIL ERROR] Missing BREVO_API_KEY in environment variables at send time.")
         return False, "Email service not configured. Contact administrator."
 
@@ -80,14 +77,13 @@ def send_gmail_message(msg):
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             if response.status in (200, 201):
-                print(f"[EMAIL SUCCESS] Brevo API delivered reset email to {to_email}")
-                return True, "Email sent successfully"
+                print("[EMAIL ACCEPTED] Provider accepted email for processing.")
+                return True, "Provider accepted email for processing"
             else:
                 return False, f"Brevo API error status: {response.status}"
     except urllib.error.HTTPError as exc:
-        err_body = exc.read().decode('utf-8', errors='ignore')
-        print(f"[EMAIL ERROR] Brevo HTTP Error {exc.code}: {err_body}")
+        print(f"[EMAIL ERROR] Provider rejected request: HTTP {exc.code}")
         return False, f"Failed to send email via API: {exc.code}"
     except Exception as exc:
-        print(f"[EMAIL ERROR] Network error sending via Brevo: {exc}")
-        return False, f"Failed to send email: {exc}"
+        print("[EMAIL ERROR] Provider request failed or timed out")
+        return False, "Email provider unavailable"

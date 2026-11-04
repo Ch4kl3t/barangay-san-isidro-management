@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barangay Information System</title>
+    <script src="{{ url_for('static',filename='js/appearance.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <!-- Local Lucide Icons - Works Offline -->
     <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}"></script>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
+<script src="{{ url_for('static',filename='js/record-combobox.js') }}" defer></script>
+
+<script src="{{ url_for('static',filename='js/lucide-refresh.js') }}" defer></script>
 </head>
 
-<body>
+<body class="admin-workspace">
 
 <header class="top-header">
     <div class="header-left">
@@ -24,13 +30,13 @@
     </div>
 
     <div class="header-right">
-        {% if session.get('role') == 'admin' %}
-        <a href="{{ url_for('user_management') }}#pending" class="notification-bell" id="notificationBell" title="View pending signups">
+        {% if session.get('role') == 'admin' and request.endpoint != 'home' %}
+        <a href="/notifications" class="notification-bell" role="button" aria-expanded="false" aria-controls="notificationPanel" id="notificationBell" title="Notifications">
             <i data-lucide="bell"></i>
             <span class="notification-badge" id="notificationBadge">0</span>
         </a>
         {% endif %}
-        <a href="{{ url_for('profile') }}" class="user-pill" style="text-decoration: none; cursor: pointer;">
+        <a href="{{ url_for('profile') }}" class="user-pill" aria-label="My account" style="text-decoration: none; cursor: pointer;">
             <span class="user-name">{{ session.get('username', 'Administrator') }}</span>
             <div class="user-icon-bg">
                 <i data-lucide="user"></i>
@@ -124,15 +130,7 @@
                 </a>
             </li>
 
-            {% if session.get('role') == 'admin' %}
-            <li class="menu-category" style="margin-top: 20px;">System Administration</li>
-            <li>
-                <a href="{{ url_for('user_management') }}" class="menu-link">
-                    <i data-lucide="users-cog"></i>
-                    <span style="margin-left: 16px;">User Management</span>
-                </a>
-            </li>
-            {% endif %}
+
 
             <li class="menu-category" style="margin-top: 20px;">Account</li>
             <li>
@@ -153,7 +151,10 @@
 </nav>
 
 <main id="main-content">
-    {% block content %}{% endblock %}
+<div class="office-feedback-region" aria-label="Application messages">
+    {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}{% if category in ['resident_registered','household_registered'] %}{% set registration_kind = 'resident' if category == 'resident_registered' else 'household' %}{% include 'resident_registration_success.html' %}{% else %}<div class="office-feedback {{ 'error' if category in ['danger','error'] else category if category in ['success','warning','info'] else 'info' }}" role="{{ 'alert' if category in ['danger','error','warning'] else 'status' }}"><strong>{{ 'Error' if category in ['danger','error'] else category|capitalize if category in ['success','warning','info'] else 'Information' }}</strong><span>{{ message }}</span><button type="button" data-dismiss-feedback aria-label="Dismiss message">×</button></div>{% endif %}{% endfor %}{% endwith %}
+</div>
+{% block content %}{% endblock %}
 </main>
 
 <style>
@@ -415,38 +416,18 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Update notification badge for pending signups (admin only)
-    const notificationBell = document.getElementById('notificationBell');
-    if (notificationBell) {
-        async function updateNotificationBadge() {
-            try {
-                const response = await fetch('/api/pending-signups-count');
-                if (response.ok) {
-                    const data = await response.json();
-                    const badge = document.getElementById('notificationBadge');
-                    if (badge) {
-                        const count = data.count || 0;
-                        badge.textContent = count;
-                        if (count === 0) {
-                            badge.classList.add('hidden');
-                        } else {
-                            badge.classList.remove('hidden');
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch pending signups:', error);
-            }
-        }
 
-        // Update on page load
-        updateNotificationBadge();
-        
-        // Update every 30 seconds
-        setInterval(updateNotificationBadge, 30000);
-    }
 });
 </script>
 
+<link rel="stylesheet" href="{{ url_for('static',filename='css/report-center.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/workflow-polish.css') }}">
+{% if request.endpoint != 'home' %}<div id="notificationPanel" role="region" class="notification-panel" hidden aria-label="Notifications"></div>{% endif %}
+<script src="{{ url_for('static',filename='js/report-center.js') }}" defer></script><script src="{{ url_for('static',filename='js/workflow-polish.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/portal-admin-polish.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/controlled-admin-ui.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/workspace-refinement.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/appearance.css') }}">
+<script src="{{ url_for('static',filename='js/automatic-filters.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/report-builder.css') }}">
 </body>
 </html>

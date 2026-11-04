@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/directory-tables.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
 
-<div class="page-container">
+<div class="page-container admin-resident-table modern-directory">
     {% if household %}
     <div class="header">
         <div class="title-group">
@@ -12,10 +14,8 @@
             <a href="{{ url_for('add_member', household_id=household.id) }}" class="btn-action btn-add">
                 <span class="icon">+</span> Add Member
             </a>
-            <button class="btn-action btn-print" onclick="openPrintModal({{ members|length }})">
-                <i data-lucide="printer" style="width:16px;height:16px;"></i>
-                Print Record
-            </button>
+            <a class="btn-action btn-print" href="{{ report_url('households',mode='members',household_id=household.id) }}"><i data-lucide="printer"></i>Print / Download</a>
+            <a href="{{ url_for('edit_household', id=household.id) }}" class="btn-action btn-back">Edit Household</a>
             <a href="{{ url_for('view_households') }}" class="btn-action btn-back">← Back</a>
         </div>
     </div>
@@ -31,16 +31,15 @@
         </div>
         <div class="info-item accent-green">
             <label>Total Residents</label>
-            <p>{{ members|length }} Members</p>
+            <p>{{ total }} Members</p>
         </div>
     </div>
 
-    <div class="table-card">
-        <div class="table-header">
-            <h3 class="section-title">Household Residents</h3>
-        </div>
-        <div class="table-responsive">
-            <table>
+    <div class="table-card registry-card">
+        <div class="registry-toolbar"><div class="registry-heading"><div><h2>Household residents</h2><p>Residents in this household</p></div><span class="registry-count">{{ total }} matching</span></div></div>
+        <p class="registry-scroll-note">Scroll horizontally to see all fields and actions.</p>
+        <div class="table-responsive" tabindex="0" role="region" aria-label="Household residents table">
+            <table class="registry-table"><colgroup><col style="width:48px"><col style="width:280px"><col style="width:116px"><col style="width:64px"><col style="width:90px"><col style="width:116px"><col style="width:170px"><col style="width:100px"><col style="width:220px"><col style="width:220px"><col style="width:210px"></colgroup>
                 <thead>
                     <tr>
                         <th>#</th>
@@ -51,6 +50,7 @@
                         <th>Civil Status</th>
                         <th>Occupation</th>
                         <th>Status</th> 
+                        <th>Mental Health Status</th><th>Current Health Status</th>
                         <th style="text-align: center;">Actions</th> 
                     </tr>
                 </thead>
@@ -60,7 +60,7 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td class="name-cell">
-                            <strong>{{ member.get('surname', '') }}</strong>, {{ member.get('firstname', '') }} {{ member.get('middlename', '') }}
+                            <div class="registry-person"><span class="registry-initials" aria-hidden="true" data-initials="{{ (member.firstname or '')[:1] }}{{ (member.surname or '')[:1] }}"></span><div class="name-container"><span class="primary-name">{{ member.get('surname', '') }}, {{ member.get('firstname', '') }} {{ member.get('middlename') or '' }}</span> <small class="record-secondary">Resident #{{ member.id }}</small></div></div>
                         </td>
                         <td>{{ member.get('birthdate', '') }}</td> 
                         <td>{{ member.get('age', 'N/A') }}</td>
@@ -74,18 +74,20 @@
                                 <span class="status-badge active">Active</span>
                             {% endif %}
                         </td>
+                        {% include 'health_cells.html' %}
                         <td class="actions">
-                            <a class="btn-table edit" href="{{ url_for('edit_member', id=member.get('id'), household_id=household.id) }}" title="Edit">Edit</a>
-                            <a class="btn-table delete" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member.get('id'), household_id=household.id) }}')" title="Delete">Delete</a>
+                            <a class="btn-table edit" href="{{ resident_url(member.id) }}">View Details</a><a class="btn-table edit" href="{{ url_for('edit_member', id=member.get('id'), household_id=household.id) }}" title="Edit">Edit</a>
+                            <a class="btn-table delete" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member.get('id'), household_id=household.id) }}', this)" title="Delete">Delete</a>
                         </td>
                     </tr>
                     {% endfor %}
                 {% else %}
-                    <tr><td colspan="9" class="no-data">No members registered in this household yet.</td></tr> 
+                    <tr><td colspan="11" class="no-data">No members registered in this household yet.</td></tr>
                 {% endif %}
                 </tbody>
             </table>
         </div>
+        <footer class="registry-footer"><span class="registry-footer-count">{{ total }} matching records</span>{% include 'original_pagination.html' %}</footer>
     </div>
     {% else %}
     <div class="error-state">
@@ -96,23 +98,11 @@
     {% endif %}
 </div>
 
-<div id="printModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-icon print-icon"><i data-lucide="printer"></i></div>
-        <h3>Generate Report</h3>
-        <p>Would you like to generate a printable record for the <strong>{{ household.surname }}</strong> household?</p>
-        <div class="modal-footer">
-            <button class="modal-btn secondary" onclick="closePrintModal()">Cancel</button>
-            <a href="{{ url_for('print_household_members', household_id=household.id) }}" class="modal-btn success-btn" onclick="closePrintModal()">Yes, Generate</a>
-        </div>
-    </div>
-</div>
-
 <div id="deleteModal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-icon danger-icon"><i data-lucide="alert-circle"></i></div>
         <h3>Confirm Removal</h3>
-        <p>Are you sure you want to remove this resident? This action is permanent.</p>
+        <p>Permanently remove <strong id="deleteTarget">this resident</strong>? This action is permanent.</p>
         <div class="modal-footer">
             <button class="modal-btn secondary" onclick="closeDeleteModal()">Cancel</button>
             <a id="confirmDeleteBtn" href="#" class="modal-btn danger-btn">Delete Resident</a>
@@ -221,23 +211,19 @@
 
 <script>
     // JS functions stay identical to handle modal visibility
-    function openDeleteModal(deleteUrl) {
+    function openDeleteModal(deleteUrl, source) {
+    const record = source?.closest('tr')?.querySelector('.primary-name,.name-cell')?.textContent.trim() || 'Selected resident';
+    const identifier = new URL(deleteUrl, location.href).pathname.split('/').pop();
+    const target = document.getElementById('deleteTarget');
+    if(target)target.textContent = 'Resident #' + identifier + ' / ' + record;
         document.getElementById('confirmDeleteBtn').href = deleteUrl;
         document.getElementById('deleteModal').style.display = 'flex';
     }
     function closeDeleteModal() {
         document.getElementById('deleteModal').style.display = 'none';
     }
-    function openPrintModal(memberCount) {
-        if (memberCount === 0) {
-            document.getElementById('noMembersModal').style.display = 'flex';
-        } else {
-            document.getElementById('printModal').style.display = 'flex';
-        }
-    }
-    function closePrintModal() {
-        document.getElementById('printModal').style.display = 'none';
-    }
+    function closePrintModal() {}
+
     function closeNoMembersModal() {
         document.getElementById('noMembersModal').style.display = 'none';
     }
@@ -247,5 +233,6 @@
         }
     }
 </script>
+
 
 {% endblock %}

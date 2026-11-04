@@ -1,0 +1,50 @@
+/* Explicit search and information-table fit; no homepage, shell or chart selectors. */
+.modern-directory .registry-toolbar .workflow-search .record-options,.audit-visual .workflow-search .record-options{position:absolute;top:52px;left:0;right:0;margin:0;z-index:45;max-height:300px;overflow:auto;border:1px solid var(--office-border,#d8e2ed);border-radius:8px;background:var(--office-surface,#fff);box-shadow:0 12px 28px #10283f24}
+.workflow-search .record-options [role=option]{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:12px 18px;line-height:1.5;border-bottom:1px solid var(--office-border,#d8e2ed);color:var(--office-text,#1e293b)}
+.workflow-search .record-options [role=option]:last-child{border-bottom:0}
+.workflow-search .record-options strong{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.workflow-search .record-options small{font-size:12px;color:var(--office-muted,#52677c);overflow-wrap:anywhere}
+.workflow-search .record-options [role=option]:hover,.workflow-search .record-options [aria-selected=true]{background:var(--office-raised,#edf5fc);outline:2px solid var(--office-focus,#2e86c1);outline-offset:-2px}
+.modern-directory .directory-commit-help{grid-column:2;grid-row:2;margin:0;font-size:11px;line-height:1.5;color:var(--office-muted,#52677c)}
+.modern-directory .registry-toolbar .workflow-search .directory-search-actions{flex-wrap:wrap;justify-content:flex-start}
+.modern-directory .registry-toolbar .workflow-search .directory-search-actions button{min-height:40px;padding:8px 14px;border-radius:8px;font-size:12px}
+.audit-visual .audit-search-row.workflow-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start}
+.audit-visual .workflow-search label{position:relative;min-width:0}
+.audit-visual .workflow-search .record-options{top:67px}
+.audit-visual .workflow-search .report-note{margin:5px 0 0;font-size:11px;line-height:1.5;color:var(--office-muted,#52677c)}
+.audit-visual .workflow-search .audit-search-submit{margin-top:23px;min-height:40px;padding:9px 15px;border:1px solid #1b3a57;border-radius:7px;background:#1b3a57;color:#fff;font:600 12px/1.5 'Segoe UI',system-ui,sans-serif;cursor:pointer}
+.analytics-wrapper.admin-ui-consistency .analytics-record-link{font-weight:600;color:var(--office-link,#1b5c8b);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.analytics-wrapper.admin-ui-consistency .analytics-record-link:focus-visible{outline:3px solid var(--office-focus,#2e86c1);outline-offset:3px}
+html[data-theme=dark] .workflow-search .record-options{background:var(--office-surface)!important}
+html[data-theme=dark] .workflow-search .record-options [aria-selected=true]{background:var(--office-raised)!important}
+html[data-theme=dark] .audit-visual .workflow-search .audit-search-submit{background:#285d8a!important;color:#fff!important;border-color:#547e9e!important}
+@media(min-width:1200px){
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table{min-width:0;width:100%;table-layout:fixed}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(1){width:3%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(2){width:14%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(3){width:7%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(4){width:3.5%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(5){width:5%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(6){width:6%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(7){width:8%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(8){width:10%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(9){width:6%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(10),.modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:nth-child(11){width:10.5%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table col:last-child{width:16.5%!important}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table :is(th,td){padding:12px 7px;font-size:12px;white-space:normal;overflow-wrap:anywhere}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table :is(.resident-name,.admin-health-cell){min-width:0!important;max-width:none}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table td.actions{width:auto;min-width:0;white-space:normal}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card table.registry-table td.actions a{box-sizing:border-box;width:calc(50% - 10px);min-width:0;min-height:38px;margin:3px;padding:7px 4px;font-size:12px;white-space:normal;vertical-align:middle}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-person{gap:7px}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-initials{flex-basis:26px;height:28px;font-size:10px;border-radius:7px}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card .primary-name{font-size:12px}
+ .modern-directory.admin-resident-table.admin-ui-consistency .registry-card :is(.age-badge,.status-badge){padding:4px;max-width:100%;box-sizing:border-box;font-size:11px}
+ .analytics-wrapper.admin-ui-consistency :is(#detailsTable,#hhTable){min-width:0;width:100%;table-layout:fixed}
+ .analytics-wrapper.admin-ui-consistency :is(#detailsTable,#hhTable) :is(th,td){white-space:normal;overflow-wrap:anywhere;padding:12px 10px;font-size:12px}
+ .analytics-wrapper.admin-ui-consistency :is(#detailsTable,#hhTable) th:first-child,.analytics-wrapper.admin-ui-consistency :is(#detailsTable,#hhTable) td:first-child{width:17%}
+ .analytics-wrapper.admin-ui-consistency #hhTable th:first-child,.analytics-wrapper.admin-ui-consistency #hhTable td:first-child{width:4%}
+ .analytics-wrapper.admin-ui-consistency #hhTable :is(th,td):nth-child(2){width:20%}
+ .analytics-wrapper.admin-ui-consistency #hhTable :is(th,td):nth-child(4){width:18%}
+}
+@media(max-width:600px){.audit-visual .audit-search-row.workflow-search{grid-template-columns:minmax(0,1fr)}.audit-visual .workflow-search .record-options{top:71px}.audit-visual .workflow-search .audit-search-submit{margin-top:0;min-height:44px;justify-self:start}.modern-directory .registry-toolbar .workflow-search .directory-search-actions button{min-height:44px}.workflow-search .record-options [role=option]{min-height:44px;padding:12px 14px}}
+@media(max-width:700px){.modern-directory .directory-commit-help{grid-column:1;grid-row:4}}

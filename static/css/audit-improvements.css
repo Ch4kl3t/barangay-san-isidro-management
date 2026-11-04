@@ -1,0 +1,38 @@
+.audit-page {min-width:0;max-width:100%;overflow:hidden}
+.audit-page .audit-table-wrap{max-width:100%;overflow-x:auto}
+.audit-page #auditTable{min-width:1280px;width:100%;table-layout:fixed}
+.audit-page #auditTable .col-user{width:14%}.audit-page #auditTable .col-role{width:12%}.audit-page #auditTable .col-action{width:10%}.audit-page #auditTable .col-entity{width:9%}.audit-page #auditTable .col-time{width:13%}.audit-page #auditTable .col-device{width:18%}.audit-page #auditTable .col-status{width:10%}.audit-page #auditTable .col-controls{width:14%}
+.audit-page #auditTable td{overflow-wrap:anywhere;white-space:normal}
+.audit-page .timestamp-cell{white-space:normal}
+.audit-page .device-cell small{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.audit-server-filters label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px;font-weight:600}
+.audit-server-filters input,.audit-server-filters select{max-width:100%;padding:9px;border:1px solid #dedfe3;border-radius:7px;font:inherit;background:white}
+.audit-server-filters .audit-search-row label{width:100%}
+.audit-server-filters .audit-filter-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.audit-server-filters .audit-filter-row>label{flex:1 1 150px}
+.audit-server-filters .audit-filter-row>a{box-sizing:border-box;text-decoration:none}
+.audit-modal{max-height:85vh;overflow-y:auto;max-width:calc(100vw - 30px)}
+.audit-modal pre{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;font-size:12px}
+.audit-modal #modalEventDetails{padding:0 24px 20px;overflow-wrap:anywhere}
+.audit-technical{padding:0 24px 24px}
+@media(max-width:600px){.audit-page .audit-top-panel{padding:24px 14px 65px}.audit-page .audit-hero{flex-wrap:wrap}.audit-page .audit-filter-row>label{flex:1 1 140px}.audit-page .audit-table-section{margin-left:10px;margin-right:10px}}
+
+.audit-page #auditTable td.role-cell{word-break:normal;overflow-wrap:normal}
+/* Details share equal information groups; long values wrap inside the dialog. */
+#auditModal{padding:clamp(10px,3vw,28px)}
+#auditModal .audit-modal{width:min(840px,100%);max-height:88dvh;overscroll-behavior:contain}
+#auditModal .modal-header{position:sticky;top:0;z-index:1;background:var(--office-surface,#fff);padding:22px 24px;align-items:flex-start}
+#auditModal .modal-header>div{min-width:0;overflow-wrap:anywhere}
+#auditModal .modal-header h2{font-size:22px;line-height:1.35;margin:5px 0 10px}
+#auditModal .modal-close{flex-shrink:0;min-width:40px;min-height:40px;display:grid;place-items:center}
+#auditModal .modal-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:22px 24px 16px}
+#auditModal .modal-summary>div{min-width:0;padding:16px;border-color:var(--office-border,#dedfe3)}
+#auditModal .modal-summary label,#auditModal .modal-description label{font-size:11px;letter-spacing:.45px;line-height:1.5;margin-bottom:8px}
+#auditModal .modal-summary strong{display:block;font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+#auditModal .modal-description{padding:16px;margin:0 24px 22px;border-color:var(--office-border,#dedfe3)}
+#auditModal .modal-description p{line-height:1.65;overflow-wrap:anywhere;font-weight:500}
+#auditModal #modalEventDetails{padding:0 24px 20px;line-height:1.65;min-width:0}
+#auditModal #modalEventDetails h3{font-size:16px;margin:0 0 12px}
+#auditModal .audit-technical{padding:0 24px 24px;border-top:1px solid var(--office-border,#dedfe3)}
+#auditModal .audit-technical summary{padding:16px 0;cursor:pointer}
+@media(max-width:600px){#auditModal .modal-summary{grid-template-columns:1fr;gap:12px;padding:16px}#auditModal .modal-header{padding:18px 16px}#auditModal .modal-description{margin:0 16px 18px}#auditModal :is(#modalEventDetails,.audit-technical){padding-left:16px;padding-right:16px}#auditModal .modal-header h2{font-size:20px}}

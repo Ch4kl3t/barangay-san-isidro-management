@@ -61,7 +61,7 @@
                     <div class="select-wrapper">
                         <select id="filterActivity">
                             <option value="registered">Registered</option>
-                            <option value="deleted">Deleted</option>
+
                         </select>
                         <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
                     </div>
@@ -614,50 +614,36 @@ function buildDailyFromResidents(residents, monthStr) {
 
 function buildHouseholdMap(households, residents) {
     const map = {};
-    if (households && households.length) {
-        households.forEach(h => {
-            const hh = h.household_name || h.surname || 'Unknown';
-            const d = h.registration_date ? new Date(h.registration_date) : null;
-            map[hh] = {
-                members: Number(h.members || 0),
-                active: Number(h.active || 0),
-                deceased: Number(h.deceased || 0),
-                male: Number(h.male || 0),
-                female: Number(h.female || 0),
-                dates: d && !isNaN(d) ? [d] : [],
-                registered: d && !isNaN(d) ? d : null,
-                address: h.address || '—',
-                house_number: h.house_number || 'N/A'
-            };
-        });
-        return map;
-    }
-
-    residents.forEach(r => {
-        const hh = r.household || r.household_name || 'Unknown';
-        if (!map[hh]) map[hh] = { members: 0, active: 0, deceased: 0, male: 0, female: 0, dates: [], registered: null, address: '—', house_number: 'N/A' };
-        map[hh].members++;
-        (r.status || '').toLowerCase() === 'deceased' ? map[hh].deceased++ : map[hh].active++;
-        const g = (r.gender || '').toLowerCase();
-        if (g === 'male')   map[hh].male++;
-        if (g === 'female') map[hh].female++;
+    (households || []).forEach(h => {
+        const key = String(h.id);
+        const d = h.registration_date ? new Date(h.registration_date) : null;
+        map[key] = { label: `${h.household_name || h.surname || 'Unknown'} — ${h.house_number || 'N/A'}`,
+            members: Number(h.members ?? h.member_count ?? 0), active: Number(h.active ?? h.active_count ?? 0),
+            deceased: Number(h.deceased ?? h.deceased_count ?? 0), male: Number(h.male ?? h.male_members ?? 0),
+            female: Number(h.female ?? h.female_members ?? 0), dates: d && !isNaN(d) ? [d] : [],
+            registered: d && !isNaN(d) ? d : null, address: h.address || '—', house_number: h.house_number || 'N/A' };
     });
     return map;
 }
 
 function populateHouseholdFilter(residents, households = []) {
-    const sel = document.getElementById('filterHousehold');
-    const cur = sel.value;
-    const fromHouseholds = households.map(h => h.household_name || h.surname || '').filter(Boolean);
-    const fromResidents = residents.map(r => r.household || r.household_name || '').filter(Boolean);
-    const hhs = [...new Set([...fromHouseholds, ...fromResidents])].sort();
-    sel.innerHTML = '<option value="">All Households</option>' +
-        hhs.map(h => `<option value="${h}"${h === cur ? ' selected' : ''}>${h}</option>`).join('');
+    const sel = document.getElementById('filterHousehold'), cur = sel.value;
+    // Preserve the full set when the API returns only a selected household.
+    const options = new Map([...sel.options].filter(o => o.value).map(o => [o.value, o.textContent]));
+    households.forEach(h => options.set(String(h.id), `${h.household_name || h.surname || 'Unknown'} — ${h.house_number || 'N/A'}`));
+    sel.replaceChildren(new Option('All Households', ''));
+    [...options].forEach(([id,label]) => sel.add(new Option(label,id)));
+    sel.value=cur;
 }
 
 /* ═══════════════════════════════ SERIES ════════════════════════════════════ */
 function getSeriesForStat(stat) {
     const monthFilter = getFilters().month;
+    const supplied = monthFilter ? dashData?.dailyData : dashData?.monthData;
+    if (supplied?.datasets) {
+        const ds = supplied.datasets.find(d => d.stat === stat);
+        if (ds) return { labels: supplied.labels, data: ds.data };
+    }
     if (monthFilter) {
         const daily = buildDailyFromResidents(allResidents, monthFilter);
         return { labels: daily.labels, data: daily[stat] || [] };
@@ -753,7 +739,7 @@ function renderHouseholdChart(tab) {
         .filter(([name]) => !hhFilter || name === hhFilter)
         .sort((a, b) => b[1][tab] - a[1][tab])
         .slice(0, 15);
-    const labels = sorted.map(([n]) => n.length > 22 ? n.slice(0, 20) + '…' : n);
+    const labels = sorted.map(([,v]) => v.label.length > 22 ? v.label.slice(0,20) + '…' : v.label);
     const data   = sorted.map(([, v]) => v[tab]);
     const colorMap = { members: '#2e86c1', active: '#27ae60', deceased: '#e74c3c' };
     const color = colorMap[tab] || '#2e86c1';
@@ -788,7 +774,7 @@ function updateHouseholdStats() {
     document.getElementById('hhTotal').textContent        = total || '—';
     document.getElementById('hhAvg').textContent          = avg;
     document.getElementById('hhLargestCount').textContent = largest ? largest[1].members : '—';
-    document.getElementById('hhLargestName').textContent  = largest ? largest[0] : 'members';
+    document.getElementById('hhLargestName').textContent  = largest ? largest[1].label : 'members';
     document.getElementById('hhSingle').textContent       = singles || '—';
 }
 

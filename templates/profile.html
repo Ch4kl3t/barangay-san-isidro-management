@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="profile-wrapper">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
+<div class="profile-wrapper admin-ui-consistency admin-page-shell">
 
     <!-- ══════════════════════════
          PAGE HEADER
     ══════════════════════════ -->
-    <div class="profile-page-header">
+    <div class="profile-page-header admin-page-header">
         <div class="profile-page-header-icon">
             <i data-lucide="user-circle" style="width:24px;height:24px;"></i>
         </div>
@@ -50,7 +51,7 @@
                         </span>
                         Email
                     </div>
-                    <div class="detail-value">admin@barangay.local</div>
+                    <div class="detail-value">{{ user_email or 'Not recorded' }}</div>
                 </div>
                 <div class="detail-row">
                     <div class="detail-label">
@@ -77,7 +78,7 @@
                         </span>
                         Member Since
                     </div>
-                    <div class="detail-value">2024</div>
+                    <div class="detail-value">{{ joined_display }}</div>
                 </div>
                 <div class="detail-row">
                     <div class="detail-label">
@@ -86,7 +87,7 @@
                         </span>
                         Last Login
                     </div>
-                    <div class="detail-value">Today</div>
+                    <div class="detail-value">{{ last_login_display }}</div>
                 </div>
             </div>
 
@@ -108,35 +109,7 @@
         <!-- ── RIGHT: Info cards ── -->
         <div class="profile-side">
 
-            <!-- System info -->
-            <div class="info-card">
-                <div class="info-card-header">
-                    <span class="info-card-icon" style="background:#eff6ff; color:#2e86c1;">
-                        <i data-lucide="server" style="width:15px;height:15px;"></i>
-                    </span>
-                    <h3>System Information</h3>
-                </div>
-                <div class="info-card-body">
-                    <div class="info-row">
-                        <span class="info-label">System Role</span>
-                        <span class="info-value">Administrator</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Permissions</span>
-                        <span class="info-value">
-                            <span class="badge badge-blue">Full Access</span>
-                        </span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Data Scope</span>
-                        <span class="info-value">System-wide</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Account Age</span>
-                        <span class="info-value">~2 years</span>
-                    </div>
-                </div>
-            </div>
+            {% include 'appearance_controls.html' %}
 
             <!-- Access control -->
             <div class="info-card">
@@ -163,8 +136,8 @@
                         </span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Login Sessions</span>
-                        <span class="info-value">1 active session</span>
+                        <span class="info-label">Security</span>
+                        <span class="info-value">Password-protected access</span>
                     </div>
                 </div>
             </div>
@@ -219,21 +192,21 @@
                 <i data-lucide="x" style="width:16px;height:16px;"></i>
             </button>
         </div>
-        <form method="POST" action="{{ url_for('update_profile') }}">
+        <form method="POST" action="{{ url_for('update_profile') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-body">
                 <div class="form-field">
                     <label for="edit_username">Username</label>
-                    <input type="text" id="edit_username" name="username"
+                    <input type="text" id="edit_username" name="username" required minlength="3" maxlength="100"
                            value="{{ session.get('username', '') }}" placeholder="Username" autocomplete="username">
                 </div>
                 <div class="form-field">
                     <label for="edit_email">Email Address</label>
                     <input type="email" id="edit_email" name="email"
-                           value="admin@barangay.local" placeholder="Email address" autocomplete="email">
+                           value="{{ user_email or 'Not recorded' }}" placeholder="Email address" autocomplete="email">
                 </div>
                 <div class="hint-note">
                     <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;"></i>
-                    Changes will be applied on your next login session.
+                    Saving profile changes signs out existing sessions. Sign in again using your updated username.
                 </div>
             </div>
             <div class="modal-footer">
@@ -258,7 +231,7 @@
                 <i data-lucide="x" style="width:16px;height:16px;"></i>
             </button>
         </div>
-        <form method="POST" action="{{ url_for('change_password') }}">
+        <form method="POST" action="{{ url_for('change_password') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-body">
                 <div class="form-field">
                     <label for="current_password">Current Password</label>
