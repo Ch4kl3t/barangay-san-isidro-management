@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration - Community Registry System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
+    <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1B3A57 0%, #2e86c1 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        :root {
+            --navy: #1B3A57;
+            --blue: #2e86c1;
+            --white: #ffffff;
+            --border-color: #dde3ed;
+            --text-muted: #7a93aa;
+            --accent: #3498db;
+            --danger: #ef4444;
+            --green: #10b981;
+        }
+
+        .signup-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(27, 58, 87, 0.2);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .breadcrumb-tag {
+            display: inline-block;
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--accent);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .signup-header h2 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+
+        .signup-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border-left: 4px solid var(--accent);
+            padding: 12px 14px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            font-size: 12px;
+            color: #1e40af;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--navy);
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--navy);
+            transition: all 0.2s;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-size: 13px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 18px;
+            padding: 4px;
+        }
+
+        .toggle-password:hover {
+            color: var(--accent);
+        }
+
+        .btn-signup {
+            width: 100%;
+            padding: 14px;
+            background: var(--green);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-signup:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-back {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-back:hover {
+            background: var(--border-color);
+            border-color: var(--accent);
+        }
+
+        .error-box {
+            color: var(--danger);
+            background-color: #fff1f2;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #fecdd3;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .success-box {
+            color: #15803d;
+            background-color: #f0fdf4;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #bbf7d0;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-text a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
+</head>
+<body>
+
+<div class="signup-card">
+    <div class="signup-header">
+        <span class="breadcrumb-tag">Public Registration</span>
+        <h2>Create Account</h2>
+        <p>Register to access the Community Registry System</p>
+    </div>
+
+    {% with messages = get_flashed_messages(category_filter=["danger"]) %}
+        {% if messages %}
+            <div class="error-box">
+                <i data-lucide="alert-circle" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"></i>{{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% with messages = get_flashed_messages(category_filter=["success"]) %}
+        {% if messages %}
+            <div class="success-box">
+                <i data-lucide="check-circle" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px;"></i>{{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="info-box">
+        <i data-lucide="info" style="width:18px;height:18px;flex-shrink:0;"></i>
+        <span>Your account will be reviewed by an administrator before approval. You'll receive an email notification once your account is activated.</span>
+    </div>
+
+    <form action="{{ url_for('signup') }}" method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <!-- Full Name -->
+        <div class="form-group">
+            <label for="fullname">Full Name</label>
+            <input type="text" id="fullname" name="fullname" placeholder="Your full name" required autofocus>
+            <small>As it appears in official documents</small>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" required>
+            <small>For account notifications and password recovery</small>
+        </div>
+
+        <!-- Username -->
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Choose a username" required minlength="3" maxlength="50">
+            <small>3-50 characters (letters, numbers, dots, dashes, underscores)</small>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="password" name="password" placeholder="Enter password" required minlength="8">
+                <button type="button" class="toggle-password" onclick="togglePassword('password')" aria-label="Show password">
+                    <i data-lucide="eye"></i>
+                </button>
+            </div>
+            <small>Minimum 8 characters for security</small>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password" required>
+                <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')" aria-label="Show confirm password">
+                    <i data-lucide="eye"></i>
+                </button>
+            </div>
+            <small>Must match the password above</small>
+        </div>
+
+        <!-- Purpose -->
+        <div class="form-group">
+            <label for="purpose">Why would you like access?</label>
+            <textarea id="purpose" name="purpose" placeholder="Brief reason for requesting access..." required></textarea>
+            <small>This helps administrators review your request</small>
+        </div>
+
+        <button type="submit" class="btn-signup">Create Account</button>
+        <a href="{{ url_for('login') }}" class="btn-back">← Back to Login</a>
+    </form>
+
+    <div class="footer-text">
+        Already have an account? <a href="{{ url_for('login') }}">Log in here</a>
+    </div>
+</div>
+
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm_password').value;
+
+    if (password !== confirm) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+        return false;
+    }
+
+    if (password.length < 8) {
+        e.preventDefault();
+        alert('Password must be at least 8 characters!');
+        return false;
+    }
+});
+</script>
+
+</body>
+</html>

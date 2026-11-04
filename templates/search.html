@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Search Household</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}"></script>
+</head>
+<body>
+
+<!-- Top panel -->
+<div class="top-panel">
+    <button class="menu-icon" type="button" onclick="openMenu()" aria-label="Open menu">
+        <i data-lucide="menu"></i>
+    </button>
+</div>
+
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar">
+    <span class="closebtn" onclick="closeMenu()">×</span>
+    <a href="{{ url_for('view_members') }}">Members</a>
+    <a href="{{ url_for('view_households') }}">Households</a>
+    <a href="{{ url_for('add_member') }}">Add Member</a>
+    <a href="{{ url_for('add_household') }}">Add Household</a>
+</div>
+
+<!-- Page content -->
+<div class="container">
+    <h1>Search Households</h1>
+    <p>Enter a surname to find all household members:</p>
+
+    <form method="POST">
+        <input type="text" name="surname" placeholder="Enter surname..." required required autocomplete="off">
+        <input class="btn" type="submit" value="Search">
+    </form>
+
+    <a class="btn" href="{{ url_for('home') }}">Back to Home</a>
+
+    {% if households %}
+        <h2>Search Results:</h2>
+        <ul class="household-list">
+            {% for household in households %}
+                <li>
+                    <a href="{{ url_for('view_household', household_id=household[0]) }}">
+                        Household: {{ household[1] }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif searched %}
+        <p>No households found with that surname.</p>
+    {% endif %}
+</div>
+
+<script>
+const sidebar = document.getElementById('sidebar');
+const links = sidebar.querySelectorAll('a');
+
+function openMenu() {
+    sidebar.style.width = '250px';
+    links.forEach((link, index) => {
+        setTimeout(() => { link.classList.add('show'); }, index * 50);
+    });
+}
+
+function closeMenu() {
+    sidebar.style.width = '0';
+    links.forEach(link => link.classList.remove('show'));
+}
+</script>
+
+</body>
+</html>

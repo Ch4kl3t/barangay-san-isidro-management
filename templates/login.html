@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Barangay Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
+    <script src="{{ url_for('static', filename='js/appearance.js') }}"></script>
+    <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}"></script>
+    <style>
+        :root {
+            --primary: #1B3A57;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --bg-light: #f8fafc;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --white: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            /* Cleaner, more professional subtle gradient */
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(27, 58, 87, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(52, 152, 219, 0.05) 0%, transparent 40%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-card {
+            background: var(--white);
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            width: 420px;
+            max-width: 90%;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .login-header {
+            margin-bottom: 40px;
+        }
+
+        /* Using the same Breadcrumb style from your household details */
+        .breadcrumb-tag {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .login-header h2 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        /* Standardized Input Styling */
+        .form-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            font-size: 15px;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background: #ffffff;
+            color: var(--primary);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+        }
+
+        /* Button matching your Dashboard 'Add Member' and 'Generate' style */
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-login:hover {
+            background-color: #244a6e;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(27, 58, 87, 0.2);
+        }
+
+        /* Error box matching your Modal alerts */
+        .error-box {
+            color: var(--danger);
+            background-color: #fff1f2;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #fecdd3;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .error-box.success,
+        .error-box.info {
+            color: var(--primary);
+            background-color: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .error-box.warning {
+            color: #92400e;
+            background-color: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .footer-note {
+            margin-top: 30px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .login-footer-links {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .login-footer-links a {
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--accent);
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .login-footer-links a:hover {
+            color: var(--primary);
+            background-color: rgba(52, 152, 219, 0.1);
+            border-color: var(--accent);
+        }
+
+        .login-divider {
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .login-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .login-divider span {
+            position: relative;
+            background: var(--white);
+            padding: 0 10px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login-lovable.css') }}">
+<script src="{{ url_for('static', filename='js/login-lovable.js') }}" defer></script>
+</head>
+<body class="login-experience">
+<main class="login-layout">
+    <div class="login-backdrop" aria-hidden="true">
+        <img src="{{ url_for('static', filename='images/login-conceptual-hall.jpg') }}" alt="" width="1280" height="1600" fetchpriority="high">
+    </div>
+    <header class="login-brand-header">
+        <div class="login-brand">
+            <span class="login-brand-mark">BIS</span>
+            <div><p>Barangay Information System</p><p>Barangay San Isidro</p></div>
+        </div>
+        <div class="login-theme" role="group" aria-label="Color theme" hidden>
+            <button type="button" data-theme-choice="light" aria-label="Light mode" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></button>
+            <button type="button" data-theme-choice="dark" aria-label="Dark mode" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14A8.5 8.5 0 0 1 10 3.5 8.5 8.5 0 1 0 20.5 14Z"/></svg></button>
+        </div>
+    </header>
+    <section class="login-identity" aria-labelledby="community-title">
+        <div class="login-identity-copy">
+            <p class="login-eyebrow">BARANGAY SAN ISIDRO &bull; ADMINISTRATIVE PORTAL</p>
+            <h1 id="community-title">A stronger community through accurate information.</h1>
+            <p class="login-description">Supporting efficient and organized barangay administration through secure household and resident information management.</p>
+            <ul class="login-features">
+                <li><i data-lucide="home" aria-hidden="true"></i> Manage Households</li>
+                <li><i data-lucide="users" aria-hidden="true"></i> Resident Records</li>
+                <li><i data-lucide="bar-chart-2" aria-hidden="true"></i> Reports &amp; Analytics</li>
+            </ul>
+        </div>
+        <p class="login-image-notice">Conceptual illustration &mdash; not the actual Barangay San Isidro hall.</p>
+    </section>
+    <section class="login-form-region" aria-labelledby="login-title">
+        <div class="login-card">
+            <div class="login-header">
+                <p class="login-portal-label">SECURE PORTAL</p>
+                <h2 id="login-title">System Login</h2>
+                <p>Sign in to access the Barangay Information System.</p>
+            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% set category, message = messages[0] %}
+                    <div class="error-box {{ category }}" role="{{ 'status' if category in ['success','info'] else 'alert' }}" tabindex="-1" id="login-feedback">{{ message }}</div>
+                {% endif %}
+            {% endwith %}
+            <form action="{{ url_for('login') }}" method="POST" id="login-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="username">Authorized Username</label>
+                    <div class="login-input-wrap">
+                        <i data-lucide="user" aria-hidden="true"></i>
+                        <input type="text" id="username" name="username" placeholder="Username" autocomplete="username" required autofocus>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Security Password</label>
+                    <div class="login-input-wrap">
+                        <svg class="login-field-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                        <input type="password" id="password" name="password" placeholder="Password" autocomplete="current-password" required>
+                        <button type="button" id="togglePassword" class="login-password-toggle" aria-label="Show password" aria-controls="password" aria-pressed="false" hidden>
+                            <svg data-eye="show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg data-eye="hide" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.5 5.3A12 12 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.4 4.3M6.2 6.2A18 18 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5.8-1.8"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-login">Login <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>
+            </form>
+            <div class="login-footer-links"><a href="{{ url_for('forgot_password') }}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Forgot Password?</a></div>
+            <div class="login-card-footer">
+                <p>Authorized barangay personnel only.<br>Contact the designated system administrator for staff access.</p>
+                <p>&copy; 2026 Community Registry Information System</p>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

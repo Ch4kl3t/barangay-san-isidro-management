@@ -1,0 +1,57 @@
+/* One shared appearance palette. Light preserves the existing interface. */
+:root{--office-page:#f8fafc;--office-surface:#fff;--office-raised:#f1f5f9;--office-text:#1e293b;--office-muted:#52677c;--office-border:#d8e2ed;--office-link:#1b5c8b;--office-focus:#2e86c1;--office-action:#1b3a57}
+html[data-theme=dark]{--office-page:#0c1522;--office-surface:#152438;--office-raised:#1d3047;--office-text:#e0e9f5;--office-muted:#b7c8dc;--office-border:#3a506b;--office-link:#a8d5ff;--office-focus:#87c9ff;--office-action:#285d8a;color-scheme:dark;--bg:#0c1522;--bg-light:#0c1522;--card:#152438;--white:#152438;--border:#3a506b;--border-color:#3a506b;--text-dark:#e0e9f5;--text-mid:#c6d5e6;--text-muted:#b7c8dc;--secondary:#b7c8dc;--accent:#87c9ff;--blue:#a8d5ff}
+html[data-theme=dark] body.admin-workspace{background:var(--office-page)!important;color:var(--office-text)}
+html[data-theme=dark] body.admin-workspace::before{background:none}
+/* Analytics' legacy body > main !important rule must follow the selected theme. */
+html[data-theme=dark] body.admin-workspace>#main-content{background:var(--office-page)!important}
+html[data-theme=dark]:has(body.admin-workspace){background:var(--office-page)!important}
+html[data-theme=dark] :is(.filter-bar-card,.hh-chart-controls,.table-focus-dialog){background:var(--office-surface)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :is(.form-container,.profile-wrapper,.analytics-wrapper,.audit-page){background:var(--office-page)!important}
+html[data-theme=dark] :is(.top-header,.sidebar,.submenu,.panel,.stat-box,.info-item,.table-card,.registry-card,.form-card,.chart-card,.table-card,.profile-main-card,.info-card,.audit-controls-card,.audit-table-section,.audit-table-wrap,.report-panel,.report-history,.notification-panel,.notification-list,.modal-content,.modal-panel,.audit-modal,.office-dialog,.registration-success-content,.request-error-card){background:var(--office-surface)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :is(.chart-card-header,.info-card-header,.modal-head,.modal-header,.registry-toolbar,.registry-footer,.audit-table-topbar,.audit-technical,.inline-print-panel,.inline-print-panel>header,.filter-hint,.report-summary,.report-note-box,.notification-item,.qa-item,.search-results,.record-options,.report-suggestions,.suggestions-panel,.global-search-category,.user-pill,.user-icon-bg,.notification-bell,.filter-bar,.filter-panel,.metric-light,.empty-state,.request-error){background:var(--office-raised)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :is(main,.inline-print-panel,.notification-panel,.modal-overlay,.office-dialog) :is(h1,h2,h3,h4,p,label,legend,strong,small,dt,dd,summary,td,th,span){color:var(--office-text)!important}
+html[data-theme=dark] :is(main,.inline-print-panel,.notification-panel,.modal-overlay,.office-dialog) :is(.helper-text,.report-note,.breadcrumb,.breadcrumb-label,.record-secondary,.info-label,.detail-label,.appearance-help,.global-search-status,.chart-card-sub,.metric-sub,.qa-sub,.demo-sub-label,.age-explanation){color:var(--office-muted)!important}
+html[data-theme=dark] :is(a,.header-title,.user-name,.brand-group,.menu-link,.sidebar a,.submenu a){color:var(--office-link)!important}
+html[data-theme=dark] :is(input:not([type=checkbox]):not([type=radio]),select,textarea){background:var(--office-surface)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] input::placeholder,html[data-theme=dark] textarea::placeholder{color:#a1b5cd!important;opacity:1}
+html[data-theme=dark] input[readonly]{background:var(--office-raised)!important;color:var(--office-muted)!important}
+html[data-theme=dark] :is(button,.btn,.btn-back,.reset-btn,.btn-reset,.edit-btn,.mobile-row-details,.page-link,.pagination a,.appearance-options label){background:var(--office-raised);color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :is(.btn-primary,.btn-submit,.btn-apply,.apply-btn,.btn-add-member,.btn-print-all,.modal-btn.primary,.modal-btn.confirm,.registration-success-actions .primary,.directory-search-actions button,.btn-add,.banner-btn){background:var(--office-action)!important;color:#fff!important;border-color:var(--office-action)!important}
+html[data-theme=dark] :is(.btn-primary,.btn-submit,.btn-apply,.apply-btn,.modal-btn.primary,.btn-add-member,.banner-btn) :is(span,strong){color:#fff!important}
+html[data-theme=dark] :is(.btn-secondary,.modal-btn.secondary,.reset-btn,.btn-reset,.edit-btn,.btn-print-all){background:var(--office-raised)!important;color:var(--office-link)!important}
+html[data-theme=dark] :is(.delete-btn,.danger-btn,.action-delete,.status-failed,.status-deceased,.deceased,.audit-outcome[data-tone=denied],.audit-outcome[data-tone=failed]){background:#512b37!important;color:#ffbac6!important;border-color:#885067!important}
+html[data-theme=dark] :is(.status-active,.status-success,.status-badge.active,.member-badge,.hh-active,.badge-green,.profile-wrapper .status-pill,.audit-outcome[data-tone=success]){background:#163f36!important;color:#a8efce!important;border-color:#407965!important}
+html[data-theme=dark] :is(.action-pill,.action-other,.badge-blue,.tag,.age-badge,.house-number-badge,.hh-count,.registry-count,.filter-chips>span,.filter-chips>button,.search-hint-badge){background:#233f5c!important;color:#d4eaff!important;border-color:#496c90!important}
+html[data-theme=dark] :is(.row-details,.row-details td,.audit-changes th,.audit-changes td){background:var(--office-raised)!important}
+html[data-theme=dark] :is(table,tbody,td){background:var(--office-surface)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :is(th,thead,thead tr){background:var(--office-raised)!important;color:var(--office-muted)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] tr:hover>td{background:#20364f!important}
+html[data-theme=dark] :is(.primary-name,.resident-name,.name-cell,.household-link,.detail-value,.info-value,.avatar-name,.qa-label,.demo-big-num,.chart-card-title,.metric-value,.form-group>label,.page-title){color:var(--office-text)!important}
+html[data-theme=dark] :is(.qa-icon,.detail-icon,.ql-icon,.info-card-icon,.stat-icon-bg,.avatar-circle,.registry-initials,.user-avatar){background:#203c59!important;color:#b7dbff!important}
+html[data-theme=dark] :is(.record-options [role=option],.report-suggestions [role=option],.search-results a){background:var(--office-surface)!important;color:var(--office-text)!important}
+html[data-theme=dark] :is([role=option][aria-selected=true],.global-search-result.search-selected,.global-search-result:hover,.appearance-options label:has(input:checked)){background:#294764!important;color:#eaf3ff!important;border-color:#87c9ff!important}
+html[data-theme=dark] :is(.welcome-banner,.profile-page-header,.metric-dark,.metric-light.active,.table-header,.audit-top-panel){background:#17334e!important;color:#fff!important}
+html[data-theme=dark] :is(.welcome-banner,.profile-page-header,.metric-dark,.metric-light.active,.table-header,.audit-hero) :is(h1,h2,h3,p,span,strong,small){color:#e7f1ff!important}
+html[data-theme=dark] .brand-badge{background:#285d8a!important;color:#fff!important}
+html[data-theme=dark] :is(.flash-message,.duplicate-warning,[role=alert]){background:#382a24!important;color:#ffd6ac!important;border-color:#a67b50!important}
+html[data-theme=dark] :is(.audit-technical pre,.detail-box,.modal-summary>div,.modal-description,.change-card,.diff-panel){background:var(--office-raised)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :focus-visible{outline:3px solid var(--office-focus)!important;outline-offset:3px}
+html[data-theme=dark] :is(.card-divider,.section-divider::before,.section-divider::after){background:var(--office-border)!important}
+html[data-theme=dark] :is(.home-wrapper .search-panel,.notifications-page article){background:var(--office-surface)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :is(.report-center .report-button,.report-center button){background:var(--office-action)!important;color:#fff!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :is(.report-center .secondary,.report-heading .secondary,.report-actions .secondary){background:var(--office-raised)!important;color:var(--office-link)!important}
+html[data-theme=dark] :is(.hh-deceased,.hh-female,.gender-f){background:#512b37!important;color:#ffccd5!important}
+html[data-theme=dark] :is(.hh-male,.gender-m){background:#233f5c!important;color:#cce5ff!important}
+html[data-theme=dark] :is(.filter-title,.filter-label,.notification-panel article,.notifications-page article,.report-error){color:var(--office-text)!important}
+html[data-theme=dark] :is(.profile-wrapper .detail-row,.profile-wrapper .info-row,.quick-link-item,.report-center details){border-color:var(--office-border)!important}
+html[data-theme=dark] :is(.registry-scroll-note,.btn-table,.btn-action,.appearance-card .info-card-body){background:var(--office-raised)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] .btn-table.delete{background:#512b37!important;color:#ffccd5!important}
+html[data-theme=dark] .audit-table-meta{color:var(--office-muted)!important}
+html[data-theme=dark] .audit-pagination{background:var(--office-surface);color:var(--office-text);border-color:var(--office-border)}
+html[data-theme=dark] .admin-workspace .mobile-row-details{background:var(--office-raised)!important;color:var(--office-text)!important;border-color:var(--office-border)!important}
+html[data-theme=dark] :is(.btn-action.btn-print,.btn-action.btn-add){background:var(--office-action)!important;color:#fff!important}
+html[data-theme=dark] :is(.notification-panel,.report-center,.modal-overlay) :is(a,button){color:var(--office-link)}
+/* Actual report/print routes have standalone light documents and never load this file.
+   Printing the workspace itself also uses paper-friendly colors. */
+@media print{html[data-theme] body.admin-workspace,html[data-theme] .admin-workspace :is(main,section,article,div,table,thead,tbody,tr,th,td,header,footer){background:#fff!important;color:#111!important;box-shadow:none!important}html[data-theme] .admin-workspace :is(h1,h2,h3,h4,p,label,legend,strong,small,dt,dd,summary,span,a){color:#111!important}.appearance-card{display:none!important}}

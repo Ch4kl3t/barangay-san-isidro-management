@@ -1,0 +1,63 @@
+/* Audit-only opt-in. No shared shell, modal, query or theme behavior changes. */
+.audit-page.admin-ui-consistency.audit-visual{max-width:1640px;margin:24px auto;padding:0 28px 48px}
+.audit-visual.audit-page.admin-ui-consistency .audit-hero{padding:21px 24px;margin:0 0 16px;border:1px solid #244965;border-radius:12px;background:#1b3a57;gap:20px;align-items:center}
+.audit-visual.audit-page.admin-ui-consistency .audit-title-group{gap:14px}
+.audit-visual.audit-page.admin-ui-consistency .audit-page-icon{width:42px;height:42px;flex:0 0 42px;border:1px solid #54718b;background:#294b68;color:#fff;border-radius:10px}
+.audit-visual.audit-page.admin-ui-consistency .audit-hero h1{margin:0 0 5px;font-size:26px;line-height:1.25;color:#fff}
+.audit-visual.audit-page.admin-ui-consistency .audit-hero p{margin:0;color:#dce7f1;font-size:13px;line-height:1.5;font-weight:400}
+.audit-visual.audit-page.admin-ui-consistency .audit-hero .admin-page-eyebrow{margin:0 0 6px;color:#d1e0ed;font-size:10px;letter-spacing:.8px}
+.audit-visual.audit-page.admin-ui-consistency .audit-summary-chip{background:#294b68;color:#fff;border:1px solid #668198;border-radius:8px;padding:9px 12px;font-weight:600;flex-shrink:0}
+.audit-visual.audit-page.admin-ui-consistency .audit-controls-card{padding:16px 20px;border:1px solid var(--admin-line);border-radius:12px;box-shadow:0 3px 14px #10283f06}
+.audit-visual.audit-page.admin-ui-consistency .audit-search-row{margin-bottom:12px}
+.audit-visual.audit-page.admin-ui-consistency .audit-server-filters .audit-filter-row{margin-top:0;gap:12px 16px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.audit-visual.audit-page.admin-ui-consistency .audit-server-filters label{font-size:11px;font-weight:600;gap:5px;line-height:1.4}
+.audit-visual.audit-page.admin-ui-consistency .audit-server-filters :is(input,select){min-height:40px;height:40px;padding:8px 11px;border-radius:7px;font-size:13px}
+.audit-visual.audit-page.admin-ui-consistency .audit-filter-actions{padding-top:10px;border-top:1px solid var(--admin-line);justify-content:flex-end;gap:8px}
+.audit-visual.audit-page.admin-ui-consistency .audit-filter-actions .reset-btn{min-height:38px;padding:8px 13px;font-size:12px;border-color:var(--admin-line);font-weight:600}
+.audit-visual.audit-page.admin-ui-consistency .audit-filter-actions a[href*='/reports/builder']{background:#1b3a57;color:#fff;border-color:#1b3a57}
+.audit-visual.audit-page.admin-ui-consistency .audit-table-section{padding-top:18px;min-height:0;background:transparent!important}
+.audit-visual.audit-page.admin-ui-consistency .audit-table-topbar{padding:12px 18px;background:var(--admin-surface);border-color:var(--admin-line)}
+.audit-visual.audit-page.admin-ui-consistency .audit-table-meta{font-size:12px;font-weight:400}
+.audit-visual.audit-page.admin-ui-consistency .audit-table-wrap{border-radius:0;border-color:var(--admin-line)}
+.audit-visual.audit-page.admin-ui-consistency #auditTable{min-width:1280px}
+.audit-visual.audit-page.admin-ui-consistency #auditTable th{background:#1b3a57;color:#fff;border-color:#355570;padding:13px 15px;font-size:11px;font-weight:600;letter-spacing:.2px}
+.audit-visual.audit-page.admin-ui-consistency #auditTable td{padding:14px 15px;line-height:1.55;vertical-align:middle;border-color:var(--admin-line)}
+.audit-visual.audit-page.admin-ui-consistency #auditTable tbody>tr:nth-child(even)>td{background:var(--admin-raised)}
+.audit-visual.audit-page.admin-ui-consistency #auditTable tbody>tr:hover>td{background:var(--admin-raised);box-shadow:inset 0 1px var(--admin-line),inset 0 -1px var(--admin-line)}
+.audit-visual.audit-page.admin-ui-consistency .user-avatar{flex:0 0 32px;width:32px;height:32px;border-radius:9px;background:#294b68;color:#fff;font-size:12px}
+.audit-visual.audit-page.admin-ui-consistency :is(.user-cell,.entity-cell) strong{font-weight:600;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;font-size:12px}
+.audit-visual.audit-page.admin-ui-consistency :is(.user-cell,.entity-cell) small{font-size:11px;line-height:1.5;color:var(--admin-muted)}
+.audit-visual.audit-page.admin-ui-consistency .device-cell span{font-weight:400;font-size:12px;line-height:1.65;color:var(--admin-ink);white-space:normal;overflow:visible;overflow-wrap:anywhere;text-overflow:clip}
+.audit-visual.audit-page.admin-ui-consistency :is(.audit-event-date,.audit-event-time){font-size:12px;line-height:1.55;font-variant-numeric:tabular-nums}
+.audit-visual.audit-page.admin-ui-consistency .audit-event-time{font-size:11px;color:var(--admin-muted)}
+.audit-visual.audit-page.admin-ui-consistency #auditTable .action-pill{min-width:0;max-width:100%;margin:0;padding:5px 8px;border:1px solid var(--admin-line);background:var(--admin-raised);color:var(--admin-ink);font-size:10px;font-weight:600;border-radius:6px;line-height:1.5}
+.audit-visual.audit-page.admin-ui-consistency #auditTable .status-pill{min-width:0;max-width:100%;margin:0;padding:5px 9px;border:1px solid var(--admin-line);background:var(--admin-raised);color:var(--admin-ink);font-size:10px;font-weight:650;border-radius:6px;line-height:1.5}
+.audit-visual.audit-page.admin-ui-consistency #auditTable tr[data-status='SUCCESS'] .status-pill{background:#e4f4eb;border-color:#a2cbb3;color:#216541}
+.audit-visual.audit-page.admin-ui-consistency #auditTable tr[data-status='FAILED'] .status-pill{background:#f9e9ed;border-color:#dfa9b4;color:#993348}
+.audit-visual.audit-page.admin-ui-consistency .details-btn{min-height:38px;height:auto;width:auto;min-width:108px;padding:9px 12px;border:1px solid #6685a0;border-radius:7px;background:var(--admin-surface);color:var(--office-link,#234e70);font-size:12px;font-weight:600;line-height:1.4;box-shadow:0 1px 2px #10283f08}
+.audit-visual.audit-page.admin-ui-consistency .details-btn:hover{background:var(--admin-raised);border-color:var(--office-focus,#2e86c1)}
+.audit-visual.audit-page.admin-ui-consistency :is(button,a,input,select):focus-visible{outline:3px solid var(--office-focus,#2e86c1);outline-offset:3px}
+.audit-visual.audit-page.admin-ui-consistency .audit-pagination{background:var(--admin-surface);border-color:var(--admin-line);padding:13px 18px;font-size:12px}
+html[data-theme=dark] .audit-visual.audit-page.admin-ui-consistency .audit-hero :is(h1,p,span,strong,small){color:#fff!important}
+html[data-theme=dark] .audit-visual.audit-page.admin-ui-consistency .audit-hero :is(p,.admin-page-eyebrow){color:#dce7f1!important}
+html[data-theme=dark] .audit-visual.audit-page.admin-ui-consistency #auditTable th{background:#1b3a57!important;color:#fff!important;border-color:#54718b!important}
+html[data-theme=dark] .audit-visual.audit-page.admin-ui-consistency #auditTable tbody>tr:nth-child(even)>td{background:var(--admin-raised)!important}
+html[data-theme=dark] .audit-visual.audit-page.admin-ui-consistency #auditTable :is(.action-pill,.status-pill){background:var(--admin-raised)!important;color:var(--admin-ink)!important;border-color:var(--admin-line)!important}
+html[data-theme=dark] .audit-visual.audit-page.admin-ui-consistency #auditTable tr[data-status='SUCCESS'] .status-pill{background:#173e33!important;border-color:#548b72!important;color:#b5efd0!important}
+html[data-theme=dark] .audit-visual.audit-page.admin-ui-consistency #auditTable tr[data-status='FAILED'] .status-pill{background:#492b35!important;border-color:#a26677!important;color:#ffc4cf!important}
+html[data-theme=dark] .audit-visual.audit-page.admin-ui-consistency .audit-filter-actions a[href*='/reports/builder']{background:#285d8a!important;color:#fff!important;border-color:#547e9e!important}
+@media(min-width:601px) and (max-width:1000px){.audit-visual.audit-page.admin-ui-consistency .audit-server-filters .audit-filter-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+ .audit-page.admin-ui-consistency.audit-visual{padding:0 14px 32px;margin:18px auto}
+ .audit-visual.audit-page.admin-ui-consistency .audit-hero{padding:18px 16px;gap:14px;align-items:flex-start}
+ .audit-visual.audit-page.admin-ui-consistency .audit-title-group{gap:10px;align-items:flex-start}
+ .audit-visual.audit-page.admin-ui-consistency .audit-page-icon{width:34px;height:34px;flex-basis:34px}
+ .audit-visual.audit-page.admin-ui-consistency .audit-hero h1{font-size:23px}
+ .audit-visual.audit-page.admin-ui-consistency .audit-hero p{font-size:12px}
+ .audit-visual.audit-page.admin-ui-consistency .audit-summary-chip{margin-left:44px;padding:7px 10px}
+ .audit-visual.audit-page.admin-ui-consistency .audit-controls-card{padding:14px}
+ .audit-visual.audit-page.admin-ui-consistency .audit-server-filters .audit-filter-row{grid-template-columns:1fr;gap:10px}
+ .audit-visual.audit-page.admin-ui-consistency .audit-server-filters :is(input,select){height:44px;min-height:44px}
+ .audit-visual.audit-page.admin-ui-consistency .audit-filter-actions{padding-top:12px}
+ .audit-visual.audit-page.admin-ui-consistency :is(.details-btn,.audit-filter-actions .reset-btn){min-height:44px}
+}

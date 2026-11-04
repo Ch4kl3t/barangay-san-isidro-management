@@ -1,0 +1,1070 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/audit-improvements.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/search-analytics-refinement.css') }}">
+<script src="{{ url_for('static',filename='js/audit-search.js') }}" defer></script>
+<div class="audit-page admin-ui-consistency audit-visual admin-page-shell">
+    <section class="audit-top-panel">
+        <div class="audit-hero admin-page-header">
+            <div class="audit-title-group">
+                <div class="audit-page-icon">
+                    <i data-lucide="shield-check"></i>
+                </div>
+                <div>
+                    <span class="admin-page-eyebrow">Administration / Activity</span>
+                    <h1>Audit Log</h1>
+                    <p>Track and monitor all system activities, user actions, and affected records.</p>
+                </div>
+            </div>
+
+            <div class="audit-summary-chip">
+                <span>{{ total_logs }} matching entries</span>
+            </div>
+        </div>
+
+        <form class="audit-controls-card audit-server-filters" method="get" data-auto-filters>
+<input type="hidden" name="page_size" value="{{ page_size }}">
+<div class="audit-search-row"><label>Search <input type="search" name="search" value="{{ request.args.get('search','') }}" maxlength="200" placeholder="Actor, action, entity, description" autocomplete="off" data-explicit-search></label></div>
+<div class="audit-filter-row">
+<label>Actor <select name="username"><option value="">All actors</option>{% for user in users %}<option value="{{ user.username }}" {{ 'selected' if request.args.get('username')==user.username }}>{{ user.username }}</option>{% endfor %}</select></label>
+<label>Action <select name="action_type"><option value="">All actions</option>{% for v in ['ADD','UPDATE','DELETE','LOGIN','LOGIN_DENIED','LOGOUT','SIGNUP','PASSWORD_CHANGE','PASSWORD_RESET_REQUEST','PASSWORD_RESET_SUCCESS','REPORT_GENERATE'] %}<option {{ 'selected' if request.args.get('action_type')==v }}>{{ v }}</option>{% endfor %}</select></label>
+<label>Entity <select name="target_type"><option value="">All entities</option>{% for v in ['Resident','Household','User','System'] %}<option {{ 'selected' if request.args.get('target_type')==v }}>{{ v }}</option>{% endfor %}</select></label>
+<label>From (PHT) <input name="date_from" type="datetime-local" value="{{ request.args.get('date_from','') }}"></label><label>Through (PHT) <input name="date_to" type="datetime-local" value="{{ request.args.get('date_to','') }}"></label>
+<label>Recorded outcome <select name="outcome"><option value="">All outcomes</option>{% for v in ['SUCCESS','FAILED','DENIED','PENDING'] %}<option {{ 'selected' if request.args.get('outcome')==v }}>{{ v }}</option>{% endfor %}</select></label>
+<div class="audit-filter-actions"><button class="apply-btn" type="submit">Apply filters</button><a class="reset-btn" href="{{ url_for('audit_log') }}">Reset Filters</a><a class="reset-btn" href="{{ report_url('audit') }}">Print / Download</a></div>
+</div></form>
+    </section>
+
+    <section class="audit-table-section">
+        <div class="audit-table-topbar">
+            <div class="audit-table-meta">
+                Showing <strong id="visibleCount">{{ logs|length }}</strong> of <strong>{{ total_logs }}</strong> entries
+            </div>
+        </div>
+
+        <div class="audit-table-wrap">
+            <table id="auditTable">
+                <colgroup>
+                    <col class="col-user">
+                    <col class="col-role">
+                    <col class="col-action">
+                    <col class="col-entity">
+                    <col class="col-time">
+                    <col class="col-device">
+                    <col class="col-status">
+                    <col class="col-controls">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                        <th>Entity Affected</th>
+                        <th>Timestamp</th>
+                        <th>Summary</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if logs %}
+                        {% for log in logs %}
+                            {% set log_user_id = log.user_id or log.username %}
+                            {% set log_target_type = log.target_type or ('Resident' if 'Resident' in log.details else 'Household' if 'Household' in log.details else 'System') %}
+                            {% set log_target_id = log.target_id or log.household_context or 'N/A' %}
+                            {% set log_status = log.outcome_display or 'Not recorded' %}
+                            <tr
+                                data-action="{{ log.action_type }}"
+                                data-user="{{ log_user_id }}"
+                                data-target="{{ log_target_type }}"
+                                data-status="{{ log_status }}"
+                                data-search="{{ log.id }} {{ log_user_id }} {{ log.username }} {{ log.action_type }} {{ log_target_type }} {{ log_target_id }} {{ log.details }} {{ log.time_display }}"
+                            >
+                                <td class="user-column">
+                                    <div class="user-cell">
+                                        <span class="user-avatar">{{ (log.username or 'A')[:1]|upper }}</span>
+                                        <div>
+                                            <strong>{{ log.username }}</strong>
+                                            <small>ID: {{ log_user_id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="role-cell">{{ log.actor_role }}</td>
+                                <td class="action-column">
+                                    {% if log.action_type == 'ADD' %}
+                                        <span class="action-pill action-add">Added</span>
+                                    {% elif log.action_type == 'UPDATE' %}
+                                        <span class="action-pill action-update">Updated</span>
+                                    {% elif log.action_type == 'DELETE' %}
+                                        <span class="action-pill action-delete">Deleted</span>
+                                    {% else %}
+                                        <span class="action-pill action-other">{{ log.action_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="entity-column">
+                                    <div class="entity-cell">
+                                        <strong>{{ log_target_type }}</strong>
+                                        <small>Target ID: {{ log_target_id }}</small>
+                                    </div>
+                                </td>
+                                <td class="timestamp-cell">{% set stamp=log.time_display.split(' ',3) %}{% if stamp|length == 4 %}<span class="audit-event-date">{{ stamp[:3]|join(' ') }}</span><small class="audit-event-time">{{ stamp[3] }}</small>{% else %}{{ log.time_display }}{% endif %}</td>
+                                <td class="device-cell"><span>{{ log.details or 'No summary recorded' }}</span></td>
+                                <td class="status-column">
+                                    <span class="status-pill {{ 'status-success' if log_status=='SUCCESS' else 'status-failed' if log_status in ['FAILED','DENIED'] else 'action-other' }}">{{ log_status }}</span>
+                                </td>
+                                <td class="controls-column">
+                                    <button
+                                        class="details-btn"
+                                        type="button"
+                                        data-log-id="#{{ log.id }}"
+                                        data-role="{{ log.actor_role }}" data-outcome="{{ log.outcome_display }}" data-detail="{{ log.detail_data|tojson|forceescape }}"
+                                        data-user="{{ log.username|e }}"
+                                        data-user-id="{{ log_user_id|e }}"
+                                        data-action="{{ log.action_type|e }}"
+                                        data-target="{{ log_target_type|e }}"
+                                        data-target-id="{{ log_target_id|e }}"
+                                        data-description="{{ log.details|e }}"
+                                        data-old="{{ (log.old_value or 'No previous value recorded')|e }}"
+                                        data-new="{{ (log.new_value or 'No new value recorded')|e }}"
+                                        data-time="{{ log.time_display|e }}"
+                                    >
+                                        View Details
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="empty-row">
+                                <i data-lucide="database-zap"></i>
+                                No audit entries match this view. Adjust filters or reset to view all entries.
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <tr id="noMatchesRow" style="display: none;">
+                        <td colspan="8" class="empty-row">
+                            <i data-lucide="filter-x"></i>
+                            No logs match the selected filters.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <footer class="audit-pagination">{% include 'original_pagination.html' %}</footer>
+    </section>
+</div>
+
+<div class="audit-modal-backdrop" id="auditModal" aria-hidden="true">
+    <div class="audit-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-header">
+            <div>
+                <span class="modal-kicker" id="modalLogId">Log</span>
+                <h2 id="modalTitle">Audit Details</h2>
+                <span id="modalOutcome" class="audit-outcome"></span>
+            </div>
+            <button class="modal-close" type="button" id="closeModal" aria-label="Close details">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <div class="modal-summary">
+            <div>
+                <label>Actor</label>
+                <strong id="modalUser"></strong>
+            </div>
+            <div>
+                <label>Action</label>
+                <strong id="modalAction"></strong>
+            </div>
+            <div>
+                <label>Affected record</label>
+                <strong id="modalTarget"></strong>
+            </div>
+            <div>
+                <label>When (Philippine time)</label>
+                <strong id="modalTime"></strong>
+            </div>
+        </div>
+        <div class="modal-description">
+            <label>Description</label>
+            <p id="modalDescription"></p>
+        </div>
+        <section id="modalEventDetails"></section><details class="audit-technical"><summary>Technical details (redacted)</summary><pre id="modalTechnical"></pre></details>
+    </div>
+</div>
+
+<style>
+:root {
+    --audit-navy: #1B3A57;
+    --audit-navy-dark: #10283f;
+    --audit-blue: #2e86c1;
+    --audit-bg: #f6f7f9;
+    --audit-surface: #ffffff;
+    --audit-control: #f0f1f4;
+    --audit-border: #dedfe3;
+    --audit-text: #17181c;
+    --audit-muted: #747789;
+    --audit-row: #f8fafc;
+    --audit-width: 1520px;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+.audit-page {
+    min-height: calc(100vh - 65px);
+    background: var(--audit-bg);
+    color: var(--audit-text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.audit-top-panel {
+    padding: 36px 32px 72px;
+    background: linear-gradient(180deg, var(--audit-navy) 0%, var(--audit-navy-dark) 100%);
+    border-bottom: 1px solid #d8dee8;
+}
+
+.audit-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: var(--audit-width);
+    margin: 0 auto 24px;
+}
+
+.audit-title-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.audit-page-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 18px rgba(7, 17, 28, 0.18);
+}
+
+.audit-page-icon i {
+    width: 26px;
+    height: 26px;
+}
+
+.audit-hero h1 {
+    margin: 0 0 6px;
+    color: #fff;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.audit-hero p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.audit-summary-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.10);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.audit-summary-chip i {
+    width: 16px;
+    height: 16px;
+}
+
+.audit-controls-card {
+    max-width: var(--audit-width);
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--audit-surface);
+    border: 1px solid var(--audit-border);
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.audit-search-row {
+    margin-bottom: 20px;
+}
+
+.audit-search,
+.filter-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--audit-control);
+    border: 1px solid transparent;
+    border-radius: 9px;
+}
+
+.audit-search {
+    width: 100%;
+    z-index: 10;
+}
+
+.audit-search > i {
+    position: absolute;
+    left: 18px;
+    width: 20px;
+    height: 20px;
+    color: #7a7f93;
+}
+
+.audit-search input {
+    width: 100%;
+    height: 48px;
+    padding: 0 18px 0 54px;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--audit-text);
+    font: inherit;
+    font-size: 15px;
+}
+
+.search-suggestions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    display: none;
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid var(--audit-border);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
+    padding: 6px;
+}
+
+.search-suggestions.open {
+    display: block;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--audit-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+    background: #eef4fb;
+}
+
+.suggestion-item i {
+    position: static;
+    width: 17px;
+    height: 17px;
+    color: var(--audit-blue);
+    flex-shrink: 0;
+}
+
+.suggestion-item span {
+    min-width: 0;
+}
+
+.suggestion-item strong {
+    display: block;
+    color: var(--audit-navy);
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.suggestion-item small {
+    display: block;
+    color: var(--audit-muted);
+    font-size: 12px;
+    margin-top: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.audit-filter-row {
+    display: grid;
+    grid-template-columns: 92px repeat(4, minmax(150px, 1fr)) 236px;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    color: var(--audit-text);
+    font-size: 15px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.filter-label i {
+    width: 20px;
+    height: 20px;
+    color: #7a7f93;
+}
+
+.filter-control {
+    min-width: 0;
+    height: 48px;
+}
+
+.filter-control > i:first-child {
+    position: absolute;
+    left: 16px;
+    width: 20px;
+    height: 20px;
+    color: #74798b;
+}
+
+.filter-control select {
+    width: 100%;
+    height: 100%;
+    padding: 0 42px 0 50px;
+    border: none;
+    outline: none;
+    appearance: none;
+    background: transparent;
+    color: var(--audit-text);
+    font: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.select-caret {
+    position: absolute;
+    right: 16px;
+    width: 18px;
+    height: 18px;
+    color: #9aa0ad;
+    pointer-events: none;
+}
+
+.audit-search:focus-within,
+.filter-control:focus-within {
+    border-color: rgba(46, 134, 193, 0.45);
+    box-shadow: 0 0 0 3px rgba(46, 134, 193, 0.10);
+}
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
+    white-space: nowrap;
+}
+
+.apply-btn,
+.reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 20px;
+    border: 1px solid var(--audit-border);
+    border-radius: 9px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.apply-btn {
+    min-width: 112px;
+    background: var(--audit-navy);
+    color: #fff;
+    border-color: var(--audit-navy);
+}
+
+.reset-btn {
+    min-width: 112px;
+    background: var(--audit-surface);
+    color: var(--audit-text);
+}
+
+.apply-btn:hover {
+    background: var(--audit-navy-dark);
+}
+
+.reset-btn:hover,
+.details-btn:hover {
+    border-color: var(--audit-navy);
+    color: var(--audit-navy);
+}
+
+.apply-btn i,
+.reset-btn i,
+.details-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+.audit-table-section {
+    background: var(--audit-bg);
+    padding: 28px 32px 72px;
+    min-height: 520px;
+}
+
+.audit-table-topbar {
+    max-width: var(--audit-width);
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+}
+
+.audit-table-meta {
+    max-width: var(--audit-width);
+    margin: 0;
+    color: var(--audit-muted);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.audit-table-meta strong {
+    color: var(--audit-navy);
+}
+
+.audit-table-wrap {
+    max-width: var(--audit-width);
+    margin: 0 auto;
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--audit-border);
+    background: #fff;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+}
+
+#auditTable {
+    width: 100%;
+    min-width: 1320px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+#auditTable .col-user { width: 210px; }
+#auditTable .col-role { width: 145px; }
+#auditTable .col-action { width: 180px; }
+#auditTable .col-entity { width: 180px; }
+#auditTable .col-time { width: 180px; }
+#auditTable .col-device { width: 210px; }
+#auditTable .col-status { width: 154px; }
+#auditTable .col-controls { width: 160px; }
+
+#auditTable th {
+    padding: 15px 16px;
+    text-align: left;
+    color: #4b5563;
+    background: #f4f7fb;
+    border-bottom: 1px solid var(--audit-border);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+#auditTable td {
+    padding: 14px 16px;
+    color: #1f2937;
+    border-bottom: 1px solid #edf1f6;
+    font-size: 14px;
+    vertical-align: middle;
+    line-height: 1.35;
+}
+
+#auditTable th:nth-child(4),
+#auditTable th:nth-child(8),
+#auditTable th:nth-child(9),
+.action-column,
+.status-column,
+.controls-column {
+    text-align: center;
+}
+
+.action-column,
+.status-column {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+}
+
+#auditTable tbody tr:nth-child(even) td {
+    background: #fbfcfe;
+}
+
+#auditTable tbody tr:hover td {
+    background: #eef6fd;
+}
+
+.log-id,
+.role-cell,
+.timestamp-cell {
+    color: #64748b !important;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.user-cell > div,
+.entity-cell {
+    min-width: 0;
+}
+
+.user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--audit-blue);
+    color: #fff;
+    font-weight: 800;
+}
+
+.user-cell strong,
+.entity-cell strong {
+    display: block;
+    color: var(--audit-navy);
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-cell small,
+.entity-cell small,
+.device-cell small {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--audit-muted);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.device-cell span {
+    display: block;
+    color: #334155;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.action-pill,
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: normal;
+    word-wrap: break-word;
+    min-width: 100px;
+    max-width: 140px;
+    line-height: 1.3;
+    margin: 0 auto;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.action-add {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.action-update {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.action-delete {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.action-other {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.status-success {
+    background: #c7f8d2;
+    color: #0a7c3a;
+}
+
+.status-failed {
+    background: #e9164f;
+    color: #fff;
+}
+
+.status-pending {
+    background: #fff06a;
+    color: #8a5b00;
+}
+
+.details-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    height: 38px;
+    width: 132px;
+    padding: 0 12px;
+    border: 1px solid var(--audit-border);
+    border-radius: 8px;
+    background: #fff;
+    color: #16181d;
+    font: inherit;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.empty-row {
+    padding: 48px 20px !important;
+    color: var(--audit-muted) !important;
+    text-align: center;
+}
+
+.empty-row i {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.audit-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(7, 17, 28, 0.62);
+}
+
+.audit-modal-backdrop.open {
+    display: flex;
+}
+
+.audit-modal {
+    width: min(980px, 100%);
+    max-height: 88vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px;
+    border-bottom: 1px solid var(--audit-border);
+}
+
+.modal-kicker {
+    color: var(--audit-blue);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.modal-header h2 {
+    margin: 4px 0 0;
+    color: var(--audit-navy);
+    font-size: 22px;
+}
+
+.modal-close {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--audit-border);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.modal-close i {
+    width: 18px;
+    height: 18px;
+}
+
+.modal-summary,
+.change-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    padding: 20px 24px;
+}
+
+.modal-summary div,
+.modal-description,
+.change-grid div {
+    border: 1px solid var(--audit-border);
+    border-radius: 10px;
+    padding: 14px;
+    background: #fafbfc;
+}
+
+.modal-summary label,
+.modal-description label,
+.change-grid label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--audit-muted);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-summary strong {
+    color: var(--audit-navy);
+    font-size: 13px;
+}
+
+.modal-description,
+.modal-changes {
+    margin: 0 24px;
+}
+
+.modal-description p {
+    margin: 0;
+    color: var(--audit-text);
+    font-weight: 600;
+}
+
+.modal-changes {
+    margin-top: 14px;
+    border: 1px solid var(--audit-border);
+    border-radius: 10px;
+    padding: 14px;
+    background: #f8fbff;
+}
+
+.changed-fields-list {
+    display: grid;
+    gap: 8px;
+}
+
+.changed-field-item {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 10px 12px;
+    border: 1px solid #dbe7f3;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.changed-field-item strong {
+    color: var(--audit-navy);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.changed-field-values {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.changed-field-values span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.changed-arrow {
+    color: var(--audit-blue);
+    flex-shrink: 0;
+    font-weight: 800;
+}
+
+.changed-empty {
+    color: var(--audit-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.change-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+.snapshot-list {
+    display: grid;
+    gap: 8px;
+    min-height: 96px;
+    max-height: 260px;
+    overflow: auto;
+}
+
+.snapshot-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    align-items: start;
+    padding: 10px 12px;
+    border: 1px solid #e3eaf2;
+    border-radius: 8px;
+    background: #fafbfc;
+}
+
+.snapshot-row strong {
+    color: var(--audit-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.snapshot-row span {
+    min-width: 0;
+    color: #233047;
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+.snapshot-empty {
+    margin: 0;
+    padding: 12px;
+    border: 1px dashed #d8e1ec;
+    border-radius: 8px;
+    color: var(--audit-muted);
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+    .audit-filter-row {
+        grid-template-columns: repeat(2, minmax(190px, 1fr));
+    }
+
+    .filter-label {
+        grid-column: 1 / -1;
+        height: auto;
+    }
+
+    .filter-actions {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 900px) {
+    .audit-filter-row,
+    .filter-control,
+    .filter-actions,
+    .apply-btn,
+    .reset-btn {
+        width: 100%;
+    }
+
+    .audit-filter-row {
+        display: flex;
+        gap: 12px;
+    }
+
+    .filter-actions {
+        margin-left: 0;
+        justify-content: stretch;
+    }
+
+    .audit-table-topbar {
+        align-items: flex-start;
+    }
+
+    .modal-summary,
+    .change-grid,
+    .changed-field-item,
+    .snapshot-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .audit-top-panel,
+    .audit-table-section {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .audit-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .audit-title-group {
+        align-items: flex-start;
+    }
+}
+
+</style>
+
+<script src="{{ url_for('static',filename='js/audit-details.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/report-center.css') }}">
+<div class="report-center">
+<header class="report-heading"><div><h1 id="reportWorkspaceTitle">Report Builder</h1><p class="report-note">Select records, customize information, preview and export.</p>{% if report_locked %}<p class="report-note">Launched from records. Fixed criteria cannot be broadened here. <a href="{{ url_for('print_reports') }}">Open full Print Center</a> for a separate report.</p>{% endif %}</div><nav class="builder-header-actions" aria-label="Report navigation"><a class="report-button secondary" href="#resultsHeading">Review preview</a><a class="report-button secondary" href="{{ return_to }}">{{ 'Back to resident' if report_locked.get('resident_id') and return_to.startswith('/resident/') else 'Back to records' }}</a></nav></header>
+{% include 'report_workspace.html' %}
+<details class="report-panel"><summary>Recent report generation</summary><p class="report-note">Generation records do not prove physical printing. Reruns use current records; personal search text is not retained.</p><div class="report-scroll"><table><thead><tr><th>When (PHT)</th><th>Preparer</th><th>Report</th><th>Matching count</th><th>Output</th><th>Configuration</th></tr></thead><tbody>{% for item in history %}<tr><td>{{ item.time }}</td><td>{{ item.username }}</td><td>{{ item.report_type }}</td><td>{{ item.count }}</td><td>{{ item.output }}</td><td><a href="{{ item.rerun }}">Run again using current records</a>{% if item.search_omitted %}<p>Personal search omitted; re-enter it if needed.</p>{% endif %}</td></tr>{% else %}<tr><td colspan="6">No report-generation history recorded yet.</td></tr>{% endfor %}</tbody></table></div></details>
+</div>
+{% endblock %}

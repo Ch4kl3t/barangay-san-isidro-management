@@ -1,0 +1,90 @@
+/* Approved administrative refinements only; home, navigation and analytics retain their design. */
+:is(.admin-resident-table,.households-directory) .table-card{border:1px solid #dce5ee;box-shadow:0 3px 12px #10283f08;overflow:hidden}
+:is(.admin-resident-table,.households-directory) .table-responsive{overflow:auto;max-width:100%;scrollbar-gutter:stable}
+:is(.admin-resident-table,.households-directory) table{border-collapse:separate;border-spacing:0;font-family:inherit}
+.admin-resident-table table{min-width:1770px;table-layout:fixed}
+.households-directory table{min-width:1000px;table-layout:auto}
+:is(.admin-resident-table,.households-directory) table :is(th,td){padding:16px 18px;border:0;border-bottom:1px solid #e8edf3;font-family:inherit;font-size:14px;line-height:1.55;vertical-align:middle;overflow-wrap:break-word}
+:is(.admin-resident-table,.households-directory) table th{background:#f3f6fa;color:#415a73;font-size:11px;font-weight:700;letter-spacing:.45px;text-transform:uppercase;white-space:normal}
+:is(.admin-resident-table,.households-directory) tbody tr:not(.row-details):hover>td{background:#f8fafc}
+:is(.admin-resident-table,.households-directory) tbody tr:last-child>td{border-bottom:0}
+.admin-resident-table :is(.resident-name,.name-cell),.households-directory .primary-name{font-size:14px;font-weight:650;color:#1b3a57;line-height:1.6}
+.admin-resident-table .record-secondary{font-size:12px;color:#64748b;margin-top:5px}
+.admin-resident-table .admin-health-cell{line-height:1.6;max-width:none;min-width:0;overflow-wrap:anywhere}
+.admin-resident-table .status-badge{font-size:11px;font-weight:650;letter-spacing:.2px;padding:5px 9px}
+:is(.admin-resident-table,.households-directory) td.actions{white-space:normal;text-align:left;min-width:0}
+:is(.admin-resident-table,.households-directory) td.actions :is(a,button){display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:34px;margin:3px 3px 3px 0;padding:6px 10px;border-radius:7px;font:inherit;font-size:12px;line-height:1.4;text-decoration:none;box-sizing:border-box}
+:is(.admin-resident-table,.households-directory) .search-panel{padding:20px}
+.households-directory .house-number-badge{font-size:13px;white-space:nowrap}
+.households-directory .address-cell{min-width:260px;max-width:440px;line-height:1.6}
+.households-directory .household-name{min-width:210px}
+.households-directory td.actions{min-width:220px}
+@media(max-width:600px){
+ .admin-resident-table table{min-width:780px}
+ :is(.admin-resident-table,.households-directory) table :is(th,td){padding:14px 12px}
+ .admin-resident-table :is(.resident-name,.name-cell){position:static!important}
+ .admin-resident-table .row-details td{padding:18px;background:#f8fafc}
+ .admin-resident-table .row-details dl{gap:7px}
+ .admin-resident-table td.actions :is(a,button){min-height:40px;min-width:44px}
+}
+
+/* The restored form components, with explicit groups and a derived-age explanation. */
+.resident-editor .form-card{padding:32px 36px}
+.resident-editor .form-header{margin-bottom:28px}
+.resident-editor .form-section{margin-bottom:28px}
+.resident-editor .form-section legend{font-size:15px;line-height:1.5;padding-bottom:10px;margin-bottom:20px}
+.resident-editor .form-grid,.resident-editor .form-grid.dual{gap:20px 24px;margin-bottom:22px}
+.resident-editor .form-group{margin-bottom:0}
+.resident-editor .form-group>label{display:block;font-size:12px;font-weight:650;letter-spacing:.3px;margin-bottom:8px;color:#1b3a57}
+.resident-editor .optional-label{font-size:11px;font-weight:400;color:#64748b;text-transform:none;letter-spacing:0}
+.resident-editor .age-explanation{min-height:18px;font-size:12px;margin:7px 0 0;color:#52657a}
+.resident-editor input[readonly]{background:#edf2f7;color:#415a73;cursor:default}
+.resident-editor [role=alert]{padding:12px 14px;border:1px solid #e8c3c3;border-radius:8px;background:#fff7f7;color:#8d2626;line-height:1.6}
+.resident-editor .helper-text{line-height:1.6}
+@media(max-width:640px){.resident-editor .form-card{padding:24px 18px}.resident-editor .form-grid,.resident-editor .form-grid.dual{gap:18px}.resident-editor .form-section{margin-bottom:24px}}
+
+/* One nonmodal contextual workspace; closing it leaves directory state intact. */
+.inline-print-panel{margin:22px 0 26px;border:1px solid #cfdeea;border-radius:12px;background:#f6f8fb;min-width:0;max-width:100%;scroll-margin-top:82px}
+.inline-print-panel[hidden]{display:none!important}
+.inline-print-panel>header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:20px 24px;border-bottom:1px solid #dce5ee;background:white;border-radius:12px 12px 0 0}
+.inline-print-panel>header h2{font-size:20px;color:#1b3a57;margin:0 0 6px}
+.inline-print-panel>header p{margin:0;font-size:13px;line-height:1.6;color:#52657a}
+.inline-print-panel [data-close-print]{padding:9px 14px;border:1px solid #cbd5e1;border-radius:7px;background:white;color:#1b3a57;font:inherit;cursor:pointer}
+.inline-print-panel>.report-center{padding:20px;margin:0;max-width:none}
+.inline-print-panel>footer{padding:0 24px 22px;font-size:13px}
+.report-center .report-step{margin:24px 0 16px;font-size:16px;color:#1b3a57}
+.report-center .report-fields{gap:18px 24px}
+.report-center .report-panel{box-shadow:none}
+.inline-print-panel .report-panel{padding:20px}
+.inline-print-panel :focus-visible{outline:3px solid #2e86c1;outline-offset:3px}
+@media(max-width:800px){.inline-print-panel .report-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.inline-print-panel>header{padding:18px 14px;gap:10px}.inline-print-panel>.report-center{padding:14px 10px}.inline-print-panel .report-fields{grid-template-columns:1fr}.inline-print-panel .report-panel{padding:18px 12px}.inline-print-panel>footer{padding:0 14px 18px}}
+
+/* Event hierarchy without nested summary cards or new audit semantics. */
+.audit-modal{width:720px;max-width:calc(100vw - 32px);max-height:88vh;border-radius:12px}
+.audit-modal .modal-header{position:sticky;top:0;z-index:2;background:white;padding:20px 24px;border-bottom:1px solid #e2e8f0;align-items:flex-start}
+.audit-modal .modal-header h2{font-size:21px;line-height:1.4;margin:5px 0 10px;color:#1b3a57}
+.audit-modal .modal-close{min-width:40px;min-height:40px;flex-shrink:0}
+.audit-outcome{display:inline-block;padding:4px 9px;border:1px solid #dce5ee;border-radius:6px;font-size:12px;line-height:1.5;font-weight:650;background:#f1f5f9;color:#415a73;max-width:100%;overflow-wrap:anywhere}
+.audit-outcome[data-tone=success]{color:#17663b;background:#ecfdf3;border-color:#c8ead6}
+.audit-outcome[data-tone=denied],.audit-outcome[data-tone=failed]{color:#9a3333;background:#fff2f2;border-color:#f0cece}
+.audit-modal .modal-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;padding:22px 24px;margin:0}
+.audit-modal .modal-summary>div{padding:0;background:none;border:0;border-radius:0;min-width:0}
+.audit-modal .modal-summary label,.audit-modal .modal-description label{display:block;font-size:11px;font-weight:650;letter-spacing:.4px;color:#64748b;text-transform:uppercase;margin-bottom:7px}
+.audit-modal .modal-summary strong{display:block;font-size:14px;line-height:1.6;font-weight:600;color:#1b3a57;overflow-wrap:anywhere}
+.audit-modal .modal-description{padding:0 24px 20px;margin:0;background:none;border:0}
+.audit-modal #modalDescription{font-size:14px;line-height:1.7;margin:0;color:#334155;overflow-wrap:anywhere}
+.audit-modal #modalEventDetails{padding:0 24px 22px;font-size:14px;line-height:1.65}
+.audit-modal #modalEventDetails h3{font-size:14px;margin:0 0 12px;color:#1b3a57}
+.audit-modal #modalEventDetails p{margin:7px 0;color:#52657a}
+.audit-change-scroll{overflow-x:auto;max-width:100%;border:1px solid #e2e8f0;border-radius:8px}
+.audit-changes{width:100%;border-collapse:collapse;min-width:350px;table-layout:fixed}
+.audit-changes th,.audit-changes td{padding:10px 12px;text-align:left;vertical-align:top;overflow-wrap:anywhere;white-space:pre-wrap;border-bottom:1px solid #e8edf3;font-size:13px}
+.audit-changes th{background:#f3f6fa;color:#415a73;font-weight:650}
+.audit-changes tr:last-child td{border-bottom:0}
+.audit-modal .audit-technical{padding:16px 24px 22px;border-top:1px solid #e2e8f0;background:#f8fafc}
+.audit-modal .audit-technical summary{font-size:13px;color:#415a73;cursor:pointer;line-height:1.6}
+.audit-modal .audit-technical pre{max-height:260px;overflow:auto;line-height:1.6;margin:14px 0 0}
+.audit-page #auditTable th,.audit-page #auditTable td{padding:15px 16px;border-right:0;border-bottom:1px solid #e8edf3;line-height:1.6}
+.audit-page #auditTable td{font-weight:400}.audit-page #auditTable tbody tr:hover{background:#f8fafc}
+@media(max-width:600px){.audit-modal .modal-summary{grid-template-columns:1fr;gap:16px;padding:18px}.audit-modal .modal-header{padding:18px}.audit-modal .modal-description,.audit-modal #modalEventDetails{padding-left:18px;padding-right:18px}.audit-modal .audit-technical{padding:16px 18px}.audit-modal .modal-close{min-width:44px;min-height:44px}}

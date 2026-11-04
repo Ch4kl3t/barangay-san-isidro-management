@@ -1,0 +1,26 @@
+{% set ns = namespace(label='All matching households' if report_initial.kind == 'households' else 'All matching residents') %}
+{% if report_locked.resident_id %}{% set ns.label = 'Only the selected resident' %}
+{% elif report_locked.household_id %}{% for h in households if h.id|string == report_locked.household_id|string %}{% set ns.label = ('Members of ' if report_initial.mode == 'members' else 'Residents of ') ~ h.surname ~ ' · House ' ~ h.house_number %}{% endfor %}{% endif %}
+<div class="context-print-workspace">
+    <div class="context-document-summary">
+        <div><span class="report-note">Document</span><h3 id="contextDocument"></h3><p id="contextIncludes">{{ ns.label }}</p><span id="contextCriteria" class="report-note"></span></div>
+        <p id="contextCount" class="context-record-count" role="status">Checking records…</p>
+    </div>
+    <form id="reportFilters">
+        <details id="reportAdvanced"><summary>Advanced Options <span class="report-note">· Optional columns</span></summary>
+            <p class="report-note">Required identifying columns stay included. Current directory filters and record scope stay fixed. Health information is excluded.</p>
+            <div id="reportColumns" class="report-columns"></div>
+            <button type="button" class="secondary" id="reportReset">Reset columns</button>
+        </details>
+    </form>
+    <div class="context-print-actions" role="group" aria-label="Document actions">
+        <p id="reportMessage" class="report-note" role="status" aria-live="polite">Loading matching records…</p>
+        <div class="context-action-buttons"><button type="submit" form="reportFilters">Preview</button><a id="reportPrint" class="report-button" aria-disabled="true" target="_blank" rel="noopener">Print</a><a id="reportWord" class="report-button secondary" aria-disabled="true">Download Word</a></div>
+    </div>
+    <section class="context-document-preview" aria-labelledby="resultsHeading">
+        <h3 id="resultsHeading">Document preview</h3>
+        <p id="reportSummary" class="report-note" role="status" aria-live="polite">Preparing the current selection.</p>
+        <div class="report-scroll" tabindex="0" role="region" aria-label="Document preview table"><table id="reportPreview"><thead></thead><tbody></tbody></table></div>
+    </section>
+</div>
+<script type="application/json" class="report-configuration">{{ {'contextual':true,'context_label':ns.label,'columns':report_columns,'required':required_columns,'defaults':default_columns,'initial':report_initial,'locked':report_locked}|tojson }}</script>

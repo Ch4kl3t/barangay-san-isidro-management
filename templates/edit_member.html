@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
+<script src="{{ url_for('static',filename='js/resident-form.js') }}" defer></script>
+
+<div class="form-container resident-editor">
+    <div class="form-card">
+        
+        <div class="form-header"><div class="header-actions"><a class="btn-back" href="{{ report_url('residents',scope='resident',resident_id=member.id) }}">Print Options</a></div>
+            <h1>Edit Resident Profile</h1>
+            <p>Modify existing records for this community member.</p>
+        </div>
+
+        {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+        <form method="POST" action="{{ url_for('edit_member', id=member.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="household_id_fixed" value="{{ request.args.get('household_id', '') }}">
+
+            <fieldset class="form-section"><legend>Personal Information</legend>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" name="firstname" value="{{ member['firstname'] }}" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Middle Name <span class="optional-label">(optional)</span></label>
+                    <input type="text" name="middlename" value="{{ member['middlename'] or '' }}" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" name="surname" value="{{ member['surname'] }}" required autocomplete="off">
+                </div>
+            </div>
+
+            <div class="form-grid dual">
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="number" name="age" id="age" aria-describedby="ageHelp" value="{{ member['age'] if member['age'] is not none else '' }}" readonly>
+                    <p id="ageHelp" class="helper-text age-explanation">Age &mdash; automatically calculated from birthdate.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Birthdate</label>
+                    <input type="date" name="birthdate" value="{{ member['birthdate'] or '' }}">
+                </div>
+            </div>
+
+            </fieldset><fieldset class="form-section"><legend>Demographic Details</legend>
+            <div class="form-grid dual">
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select name="gender">
+                        <option value="Male" {% if member['gender']=='Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if member['gender']=='Female' %}selected{% endif %}>Female</option>
+                        <option value="Not recorded" {% if member.get('gender') in [None,'','Not recorded'] %}selected{% endif %}>Not recorded</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Civil Status</label>
+                    <select name="civil_status">
+                        <option value="Single" {% if member['civil_status']=='Single' %}selected{% endif %}>Single</option>
+                        <option value="Married" {% if member['civil_status']=='Married' %}selected{% endif %}>Married</option>
+                        <option value="Widowed" {% if member['civil_status']=='Widowed' %}selected{% endif %}>Widowed</option>
+                        <option value="Separated" {% if member['civil_status']=='Separated' %}selected{% endif %}>Separated</option>
+                        <option value="Not recorded" {% if member.get('civil_status') in [None,'','Not recorded'] %}selected{% endif %}>Not recorded</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Occupation <span class="optional-label">(optional)</span></label>
+                <input type="text" name="occupation" value="{{ member['occupation'] or '' }}" autocomplete="off">
+            </div>
+
+            </fieldset><fieldset class="form-section"><legend>Household and Resident Status</legend>
+            <div class="form-grid dual">
+                <div class="form-group household-field">
+                    <label>Household Association</label>
+                    <select name="household_id" id="editHousehold" data-searchable required>
+                        {% for h in households %}
+                            <option value="{{ h['id'] }}"
+                                {% if member['household_id'] == h['id'] %}selected{% endif %}>
+                                {{ h['surname'] }} — House {{ h.get('house_number') or 'Not recorded' }} — {{ h.get('address') or 'Not recorded' }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Resident Status</label>
+                    <select name="status">
+                        <option value="Active" {% if member['status']=='Active' %}selected{% endif %}>Active</option>
+                        <option value="Deceased" {% if member['status']=='Deceased' %}selected{% endif %}>Deceased</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group death-date-field">
+                <label for="death_date">Reported death date</label>
+                <input type="date" id="death_date" name="death_date" value="{{ (member if editing else prefill).get('death_date') or '' }}">
+                <p class="helper-text">For deceased residents only. Leave unknown dates blank. When changing to Active, clear any saved date explicitly.</p>
+            </div>
+            </fieldset><fieldset class="form-section"><legend>Health Information</legend>
+            <p class="helper-text">Optional reported information; administrator access only; up to 500 characters per field.</p>
+            <div class="form-grid dual">
+            {% for field,label in [('mental_health_status','Mental Health Status'),('current_health_status','Current Health Status')] %}
+            <div class="form-group">
+                <label for="{{ field }}">{{ label }}</label>
+                <textarea id="{{ field }}" name="{{ field }}" maxlength="500" rows="3" placeholder="Not recorded" autocomplete="off">{{ (member if editing else prefill).get(field) or '' }}</textarea>
+            </div>
+            {% endfor %}
+            </div></fieldset>
+            {% if duplicate_detected %}<p class="helper-text duplicate-warning" role="alert"><label><input type="checkbox" name="confirm_duplicate" value="yes"> I reviewed the possible duplicate and confirm this is a different person.</label></p>{% endif %}
+            <div class="form-actions">
+                <button type="button" class="btn-submit" id="openModal">
+                    Save Profile Changes
+                </button>
+
+                {% if request.args.get('household_id') %}
+                    <a href="{{ url_for('view_household', household_id=request.args.get('household_id')) }}" class="btn-back">
+                        Back to Household Details
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('view_members') }}" class="btn-back">
+                        Back to Members List
+                    </a>
+                {% endif %}
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<div id="modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon"><i data-lucide="edit-3"></i></div>
+        <h3>Confirm Update</h3>
+        <p>Are you sure you want to save the changes made to this resident's profile?</p>
+        <div class="modal-footer">
+            <button id="cancel" class="modal-btn secondary">Cancel</button>
+            <button id="confirm" class="modal-btn primary">Yes, Update</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #1B3A57;
+        --accent: #3498db;
+        --bg-light: #f8fafc;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+    }
+
+    .form-container { 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        padding: 60px 20px; 
+        min-height: 90vh; 
+        background-color: var(--bg-light);
+        font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    .form-card { 
+        background: white; 
+        padding: 40px; 
+        border-radius: 16px; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        width: 100%; 
+        max-width: 600px; 
+        border: 1px solid var(--border-color);
+    }
+
+    .form-header { text-align: left; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;}
+    .form-header h1 { margin: 0; color: var(--primary); font-size: 24px; font-weight: 800; }
+    .form-header p { margin: 8px 0 0; color: var(--text-muted); font-size: 14px; }
+
+    .form-grid { display: grid; gap: 15px; margin-bottom: 15px; grid-template-columns: 1fr 1fr 1fr; }
+    .form-grid.dual { grid-template-columns: 1fr 1fr; }
+
+    .form-group { display: flex; flex-direction: column; margin-bottom: 18px; }
+    .form-group label { margin-bottom: 8px; font-weight: 700; color: var(--primary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .form-group input, .form-group select { 
+        width: 100%; 
+        padding: 12px 16px; 
+        border-radius: 10px; 
+        border: 1.5px solid var(--border-color); 
+        font-size: 14px; 
+        background-color: #fdfdfd; 
+        box-sizing: border-box; 
+        transition: all 0.2s; 
+        color: #1e293b;
+    }
+
+    .form-group input:focus, .form-group select:focus { 
+        outline: none; 
+        border-color: var(--accent); 
+        background-color: #fff; 
+        box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+    }
+
+    /* ACTION SECTION */
+    .form-actions {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .btn-submit { 
+        width: 100%; 
+        padding: 16px; 
+        border: none; 
+        background-color: var(--primary); 
+        color: white; 
+        font-size: 15px; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        font-weight: 700; 
+        transition: all 0.2s;
+    }
+    .btn-submit:hover { background-color: #132a3f; transform: translateY(-1px); }
+
+    .btn-back {
+        text-decoration: none;
+        color: var(--primary);
+        font-size: 14px;
+        font-weight: 700;
+        transition: all 0.2s;
+        padding: 8px;
+        opacity: 0.7;
+    }
+    .btn-back:hover {
+        opacity: 1;
+        text-decoration: underline;
+    }
+
+    /* Modals */
+    .modal-overlay { 
+        display: none; 
+        position: fixed; 
+        inset: 0; 
+        background: rgba(15, 23, 42, 0.7); 
+        z-index: 10000; 
+        align-items: center; 
+        justify-content: center; 
+        backdrop-filter: blur(4px); 
+    }
+    .modal-content { 
+        background: white; 
+        padding: 40px; 
+        border-radius: 20px; 
+        width: 400px; 
+        text-align: center; 
+    }
+    .modal-icon { color: var(--accent); font-size: 48px; margin-bottom: 15px; }
+    .modal-footer { display: flex; gap: 12px; margin-top: 25px; }
+    
+    .modal-btn { 
+        flex: 1; 
+        padding: 14px; 
+        border: none; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        font-weight: 700; 
+        transition: 0.2s; 
+    }
+    .modal-btn.primary { background: var(--primary); color: white; }
+    .modal-btn.secondary { background: #f1f5f9; color: #475569; }
+
+    @media (max-width: 600px) {
+        .form-grid { grid-template-columns: 1fr; }
+        .form-grid.dual { grid-template-columns: 1fr; }
+    }
+</style>
+
+<script>
+const modal = document.getElementById("modal");
+
+document.getElementById("openModal").onclick = () => {
+    if (!document.querySelector(".form-card form").reportValidity()) return;
+    modal.style.display = "flex";
+};
+
+document.getElementById("cancel").onclick = () => {
+    modal.style.display = "none";
+};
+
+document.getElementById("confirm").onclick = () => {
+    document.querySelector(".form-card form").requestSubmit();
+};
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
+
+{% endblock %}

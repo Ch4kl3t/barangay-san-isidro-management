@@ -1,0 +1,1191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="user-management-page">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="header-icon">
+            <i data-lucide="users-cog" style="width:26px;height:26px;"></i>
+        </div>
+        <div class="header-text">
+            <span class="breadcrumb">System / Administration</span>
+            <h1>User Management</h1>
+            <p>Manage user roles and monitor password reset activity.</p>
+        </div>
+        <a href="{{ url_for('register_user') }}" class="btn-header-action">
+            <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+            Register User
+        </a>
+    </div>
+
+    <!-- CONTENT TABS -->
+    <div class="management-tabs">
+        <button class="tab-btn {{ 'active' if active_tab=='users' }}" data-tab="users">
+            <i data-lucide="users" style="width:16px;height:16px;"></i>
+            Users
+        </button>
+        <button class="tab-btn {{ 'active' if active_tab=='pending' }}" data-tab="pending">
+            <i data-lucide="clock" style="width:16px;height:16px;"></i>
+            Pending Signups <span class="badge">{{ pending_count }}</span>
+        </button>
+        <button class="tab-btn {{ 'active' if active_tab=='activity' }}" data-tab="activity">
+            <i data-lucide="activity" style="width:16px;height:16px;"></i>
+            Password Reset Activity
+        </button>
+    </div>
+
+<form class="management-filters" method="get" action="/user-management"><input type="hidden" name="tab" value="{{ active_tab }}">{% if request.args.get('user_id') %}<input type="hidden" name="user_id" value="{{ request.args.get('user_id') }}"><span>Account #{{ request.args.get('user_id') }}</span>{% endif %}<label>Search accounts <input name="search" value="{{ request.args.get('search','') }}" maxlength="200" placeholder="Username, account ID or email"></label>{% if active_tab!='activity' %}<label>Role <select name="role"><option value="">All roles</option>{% for v in ['admin','user'] %}<option {{ 'selected' if request.args.get('role')==v }}>{{ v }}</option>{% endfor %}</select></label><label>Status <select name="status"><option value="">All statuses</option>{% for v in ['approved','pending','rejected','inactive'] %}<option {{ 'selected' if request.args.get('status')==v }}>{{ v }}</option>{% endfor %}</select></label>{% endif %}<button type="submit">Apply filters</button><a href="{{ url_for('user_management',tab=active_tab) }}">Reset</a></form>
+    <!-- USERS TAB -->
+    <div id="users" class="tab-content {{ 'active' if active_tab=='users' }}">
+        <div class="users-grid">
+            <div class="users-header">
+                <h3>System Users</h3>
+                <span class="users-count">{{ total }} matching / {{ account_total }} total accounts</span>
+            </div>
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Current Role</th>
+                        <th>Status</th>
+                        <th>Resident access</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="user-row" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+                        <td class="user-name">{{ user.username }}</td>
+                        <td class="user-role">
+                            <span class="role-badge role-{{ user.role }}">{{ (user.role or 'Not recorded')|upper }}</span>
+                        </td>
+                        <td class="user-status">
+                            <span class="status-badge {{ user.status or 'Not recorded' }}">{{ (user.status or 'Not recorded')|upper }}</span>
+                        </td>
+                        <td class="link-status">{{ user.link_status }}{% if user.role=='user' %}<br><a class="btn-action" href="{{ url_for('resident_link',user_id=user.id) }}"><i data-lucide="shield-check" aria-hidden="true"></i>Review resident link</a>{% endif %}</td><td class="user-actions">
+                            {% if user.id == session.get('user_id') %}
+                            <span class="current-account-label">Current Account</span>
+                            {% else %}
+                            <div class="table-user-actions">
+                                {% if user.role == 'user' %}
+                                <button type="button" class="btn-action promote-btn" 
+                                        onclick="promoteUser({{ user.id }}, {{ user.username|tojson|forceescape }})">
+                                    <i data-lucide="arrow-up" style="width:14px;height:14px;"></i>
+                                    Make Admin
+                                </button>
+                                {% elif user.role == 'admin' %}
+                                <button type="button" class="btn-action demote-btn"
+                                        onclick="demoteUser({{ user.id }}, {{ user.username|tojson|forceescape }})">
+                                    <i data-lucide="arrow-down" style="width:14px;height:14px;"></i>
+                                    Make User
+                                </button>
+                                {% endif %}
+                                <button type="button" class="btn-action delete-btn"
+                                        onclick="openUserDeleteModal({{ user.id }}, {{ user.username|tojson|forceescape }})">
+                                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                                    Delete User
+                                </button>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}<tr><td colspan="4">No accounts match these filters. Use Reset to view this tab without filters.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PENDING SIGNUPS TAB -->
+    <div id="pending" class="tab-content {{ 'active' if active_tab=='pending' }}">
+        <div class="pending-grid">
+            <div class="pending-header">
+                <h3>Pending User Signups</h3>
+                <span class="pending-count">{{ pending_count }} pending</span>
+            </div>
+            {% if pending_users %}
+            <div class="pending-list">
+                {% for user in pending_users %}
+                <div class="pending-card" data-user-id="{{ user.id }}">
+                    <div class="pending-info">
+                        <div class="pending-name">{{ user.username }}</div>
+                        <div class="pending-email">{{ user.email }}</div>
+                        {% if user.signup_date %}
+                        <div class="pending-date">Requested: {{ user.signup_date.strftime('%Y-%m-%d %H:%M') }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="pending-actions">
+                        <button class="btn-approve" onclick="updateUserStatus({{ user.id }}, 'approve')">
+                            <i data-lucide="check" style="width:14px;height:14px;"></i>
+                            Approve
+                        </button>
+                        <button class="btn-reject" onclick="updateUserStatus({{ user.id }}, 'reject')">
+                            <i data-lucide="x" style="width:14px;height:14px;"></i>
+                            Reject
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i data-lucide="check-circle" style="width:32px;height:32px;"></i>
+                <p>No pending requests match these filters</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ACTIVITY TAB -->
+    <div id="activity" class="tab-content {{ 'active' if active_tab=='activity' }}">
+        <div class="activity-grid">
+            <div class="activity-header">
+                <h3>Password Reset Activity</h3>
+                <span class="activity-count">{{ total }} matching attempts</span>
+            </div>
+            {% if reset_history %}
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Request Date</th>
+                        <th>Completed</th>
+                        <th>Status</th>
+                        <th>Attempts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in reset_history %}
+                    <tr>
+                        <td class="activity-user">{{ entry.username }}</td>
+                        <td class="activity-date">{{ entry.created_at.strftime('%Y-%m-%d %H:%M') if entry.created_at else '—' }}</td>
+                        <td class="activity-completed">
+                            {% if entry.used_at %}
+                            <i data-lucide="check" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>{{ entry.used_display }}
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                        <td class="activity-status">
+                            <span class="status-badge {{ 'completed' if entry.reset_status in ['Used','Closed'] else 'pending' }}">{{ entry.reset_status }}</span>
+                        </td>
+                        <td class="activity-count">{{ entry.attempts }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i data-lucide="inbox" style="width:32px;height:32px;"></i>
+                <p>No password reset activity recorded</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ROLE CHANGE MODAL -->
+    <div id="roleModal" class="role-modal-backdrop">
+        <div class="role-modal">
+            <div class="role-modal-header">
+                <div class="role-modal-icon" id="roleModalIcon">
+                    <i data-lucide="alert-circle"></i>
+                </div>
+                <div>
+                    <h2 id="roleModalTitle">Confirm Role Change</h2>
+                    <p id="roleModalSubtitle">Update user role</p>
+                </div>
+            </div>
+            <div class="role-modal-content">
+                <p id="roleModalMessage">Are you sure you want to change this user's role?</p>
+                <div class="role-modal-info" id="roleModalInfo"></div>
+            </div>
+            <div class="role-modal-actions">
+                <button class="role-modal-cancel" onclick="closeRoleModal()">Cancel</button>
+                <button class="role-modal-confirm" id="roleModalConfirm" onclick="confirmRoleChange()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER DELETE MODAL -->
+    <div id="deleteUserModal" class="role-modal-backdrop">
+        <div class="role-modal delete-modal">
+            <div class="role-modal-header delete-header">
+                <div class="role-modal-icon" id="deleteModalIcon">
+                    <i data-lucide="trash-2"></i>
+                </div>
+                <div>
+                    <h2 id="deleteModalTitle">Delete User</h2>
+                    <p id="deleteModalSubtitle">Choose a deletion mode</p>
+                </div>
+            </div>
+            <div class="role-modal-content">
+                <p id="deleteModalMessage">Select the action you want to take for this user.</p>
+                <div class="delete-mode-list">
+                    <button type="button" class="delete-mode-option" data-mode="soft" onclick="selectDeleteMode('soft')">
+                        <span class="delete-mode-label"><i data-lucide="shield-alert"></i>Soft Delete / Revoke Access</span>
+                        <small>Set the account status to inactive and block login access.</small>
+                    </button>
+                    <button type="button" class="delete-mode-option" data-mode="hard" onclick="selectDeleteMode('hard')">
+                        <span class="delete-mode-label"><i data-lucide="trash-2"></i>Hard Delete / Permanent Removal</span>
+                        <small>Permanently remove the user record from the database.</small>
+                    </button>
+                </div>
+                <div class="role-modal-info" id="deleteModalInfo"></div>
+            </div>
+            <div class="role-modal-actions">
+                <button class="role-modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="role-modal-confirm delete-confirm" id="deleteModalConfirm" onclick="confirmDeleteUser()" disabled>Select a mode</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+:root {
+    --navy: #1B3A57;
+    --blue: #2e86c1;
+    --bg: #eef1f6;
+    --card: #ffffff;
+    --border: #dde3ed;
+    --text-mid: #3d5a75;
+    --text-muted: #7a93aa;
+    --green: #10b981;
+    --red: #ef4444;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+[data-lucide] { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.user-management-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 72px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: var(--navy);
+    background: var(--bg);
+    min-height: 100vh;
+}
+
+/* PAGE HEADER */
+.page-header {
+    display: flex; align-items: center; gap: 18px;
+    background: var(--navy);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(27, 58, 87, 0.18);
+}
+
+.header-icon {
+    width: 52px; height: 52px; border-radius: 13px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.breadcrumb {
+    display: block; font-size: 10px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.55); margin-bottom: 4px;
+}
+
+.page-header h1 {
+    margin: 0 0 4px; font-size: 24px; font-weight: 800;
+    color: #fff; letter-spacing: -0.3px;
+}
+
+.page-header p {
+    margin: 0; font-size: 13px; color: rgba(255, 255, 255, 0.7);
+}
+
+.header-text {
+    flex: 1;
+}
+
+.btn-header-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-header-action:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+/* TABS */
+.management-tabs {
+    display: flex; gap: 8px; margin-bottom: 24px;
+}
+
+.tab-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-mid);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background: #f8fafc;
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.tab-btn.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+}
+
+/* TAB CONTENT */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* GRIDS */
+.users-grid, .activity-grid {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(27, 58, 87, 0.06);
+}
+
+.users-header, .activity-header {
+    background: #f8fafc;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+.users-header h3, .activity-header h3 {
+    margin: 0; font-size: 15px; font-weight: 700; color: var(--navy);
+}
+
+.users-count, .activity-count {
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+    background: rgba(46, 134, 193, 0.08);
+    padding: 4px 8px; border-radius: 4px;
+}
+
+/* TABLES */
+.users-table, .activity-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table thead, .activity-table thead {
+    background: #f8fafc;
+}
+
+.users-table th, .activity-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+}
+
+.users-table td, .activity-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+
+.user-row:hover {
+    background: #f8fafc;
+}
+
+.user-name {
+    font-weight: 700; color: var(--navy);
+}
+
+.user-role {
+    text-align: center;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase;
+}
+
+.role-admin { background: #eff6ff; color: #2e86c1; }
+.role-user { background: #f3f4f6; color: #6b7280; }
+
+.user-actions {
+    text-align: center;
+}
+
+.table-user-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px; font-weight: 700;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.2s;
+    color: var(--text-mid);
+}
+
+.promote-btn:hover {
+    background: #dcfce7; border-color: var(--green); color: #15803d;
+}
+
+.demote-btn:hover {
+    background: #fee2e2; border-color: var(--red); color: #991b1b;
+}
+
+.delete-btn {
+    color: #991b1b;
+    border-color: #fecdd3;
+    background: #fff1f2;
+}
+
+.delete-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #7f1d1d;
+}
+
+.delete-mode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.delete-mode-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 12px 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--navy);
+}
+
+.delete-mode-option:hover,
+.delete-mode-option.selected {
+    border-color: var(--blue);
+    background: #eff6ff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.delete-mode-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.delete-mode-option small {
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.delete-confirm {
+    background: var(--red);
+    border-color: var(--red);
+}
+
+.delete-confirm:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.delete-confirm:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.activity-user { font-weight: 700; color: var(--navy); }
+.activity-date, .activity-completed { font-size: 12px; color: var(--text-muted); }
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-badge.completed { background: #dcfce7; color: #15803d; }
+.status-badge.pending { background: #fef3c7; color: #92400e; }
+.status-badge.approved { background: #dcfce7; color: #15803d; }
+.status-badge.rejected { background: #fee2e2; color: #991b1b; }
+.status-badge.inactive, .status-badge.archived { background: #f3f4f6; color: #374151; }
+.status-badge.deleted { background: #e5e7eb; color: #111827; }
+
+.current-account-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    color: var(--border); margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0; font-size: 14px;
+}
+
+/* PENDING SIGNUPS */
+.pending-grid {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.pending-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.pending-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--navy);
+}
+
+.pending-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: #f8fafc;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pending-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.pending-card:hover {
+    background: #f0f6ff;
+    border-color: var(--blue);
+}
+
+.pending-info {
+    flex: 1;
+}
+
+.pending-name {
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.pending-email {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.pending-date {
+    font-size: 11px;
+    color: #999;
+}
+
+.pending-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-approve, .btn-reject {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-approve {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.btn-approve:hover {
+    background: #bbf7d0;
+    transform: translateY(-1px);
+}
+
+.btn-reject {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-reject:hover {
+    background: #fecdd3;
+    transform: translateY(-1px);
+}
+
+.badge {
+    display: inline-block;
+    background: var(--red);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+}
+
+/* ROLE CHANGE MODAL */
+.role-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+.role-modal-backdrop.open {
+    display: flex;
+}
+
+.role-modal {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 480px;
+    width: 90%;
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.role-modal-header {
+    background: linear-gradient(135deg, var(--navy) 0%, #0f2b45 100%);
+    padding: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    color: white;
+}
+
+.role-modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fbbf24;
+}
+
+.role-modal-icon i {
+    width: 24px;
+    height: 24px;
+}
+
+.role-modal-header h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.role-modal-header p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+.role-modal-content {
+    padding: 24px;
+}
+
+.role-modal-content p {
+    margin: 0 0 16px;
+    color: var(--navy);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.role-modal-info {
+    background: #f8fafc;
+    padding: 14px;
+    border-radius: 10px;
+    border-left: 4px solid var(--blue);
+    font-size: 13px;
+    color: var(--navy);
+    margin-top: 12px;
+}
+
+.role-modal-info strong {
+    display: block;
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.role-modal-actions {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.role-modal-cancel,
+.role-modal-confirm {
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.role-modal-cancel {
+    background: #f8fafc;
+    color: var(--text-mid);
+}
+
+.role-modal-cancel:hover {
+    background: #e2e8f0;
+    border-color: var(--border);
+}
+
+.role-modal-confirm {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+}
+
+.role-modal-confirm:hover {
+    background: #1e5a96;
+    border-color: #1e5a96;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46, 134, 193, 0.3);
+}
+</style>
+
+<script>
+// URL-backed tabs support direct fragments, refresh and normal browser history.
+const managementTab={{ active_tab|default('users')|tojson }};
+function navigateManagementTab(tab,replace=false){
+ if(!['users','pending','activity'].includes(tab))return;
+ const url=new URL(location.href);url.searchParams.set('tab',tab);url.searchParams.delete('page');url.searchParams.delete('user_id');if(tab==='activity'){url.searchParams.delete('role');url.searchParams.delete('status');}if(tab==='pending')url.searchParams.delete('status');url.hash=tab;
+ if(replace)location.replace(url.href);else location.assign(url.href);
+}
+const requestedTab=location.hash.slice(1);
+if(['users','pending','activity'].includes(requestedTab)&&requestedTab!==managementTab)navigateManagementTab(requestedTab,true);
+document.querySelectorAll('.tab-btn').forEach(button=>button.addEventListener('click',()=>navigateManagementTab(button.dataset.tab)));
+window.addEventListener('hashchange',()=>{const tab=location.hash.slice(1);if(tab!==managementTab)navigateManagementTab(tab,true);});
+
+let pendingRoleChange = { userId: null, role: null };
+let pendingDeleteAction = { userId: null, username: null, mode: null };
+
+function promoteUser(userId, username) {
+    pendingRoleChange = { userId, role: 'admin' };
+    
+    const modal = document.getElementById('roleModal');
+    const title = document.getElementById('roleModalTitle');
+    const subtitle = document.getElementById('roleModalSubtitle');
+    const message = document.getElementById('roleModalMessage');
+    const info = document.getElementById('roleModalInfo');
+    const icon = document.getElementById('roleModalIcon');
+    
+    title.textContent = 'Promote User';
+    subtitle.textContent = 'Grant admin privileges';
+    icon.style.borderColor = '#fbbf24';
+    message.textContent = `Are you sure you want to promote '${uiEscape(username)}' to administrator? They will have full system access.`;
+    info.innerHTML = `<strong>After promotion:</strong>
+The user must log out and log back in to activate their new admin privileges.`;
+    
+    modal.classList.add('open');
+}
+
+function demoteUser(userId, username) {
+    pendingRoleChange = { userId, role: 'user' };
+    
+    const modal = document.getElementById('roleModal');
+    const title = document.getElementById('roleModalTitle');
+    const subtitle = document.getElementById('roleModalSubtitle');
+    const message = document.getElementById('roleModalMessage');
+    const info = document.getElementById('roleModalInfo');
+    const icon = document.getElementById('roleModalIcon');
+    
+    title.textContent = 'Demote User';
+    subtitle.textContent = 'Revoke admin privileges';
+    icon.style.borderColor = '#ef4444';
+    message.textContent = `Are you sure you want to demote '${uiEscape(username)}' to regular user? They will lose admin access.`;
+    info.innerHTML = `<strong>After demotion:</strong>
+The user will be unable to access admin features. They must log out and log back in.`;
+    
+    modal.classList.add('open');
+}
+
+function closeRoleModal() {
+    document.getElementById('roleModal').classList.remove('open');
+    pendingRoleChange = { userId: null, role: null };
+}
+
+function openUserDeleteModal(userId, username) {
+    pendingDeleteAction = { userId, username, mode: null };
+
+    const modal = document.getElementById('deleteUserModal');
+    const title = document.getElementById('deleteModalTitle');
+    const subtitle = document.getElementById('deleteModalSubtitle');
+    const message = document.getElementById('deleteModalMessage');
+    const info = document.getElementById('deleteModalInfo');
+    const confirm = document.getElementById('deleteModalConfirm');
+    const icon = document.getElementById('deleteModalIcon');
+    const header = modal.querySelector('.delete-header');
+
+    title.textContent = 'Delete User';
+    subtitle.textContent = 'Choose a deletion mode';
+    message.textContent = `Choose how to remove '${uiEscape(username)}' from the system.`;
+    info.innerHTML = '<strong>Select an option:</strong> Soft delete revokes access without removing the record. Hard delete permanently removes the user.';
+    header.style.background = 'linear-gradient(135deg, var(--navy) 0%, #0f2b45 100%)';
+    icon.style.borderColor = '#f59e0b';
+    icon.innerHTML = '<i data-lucide="trash-2"></i>';
+    confirm.disabled = true;
+    confirm.textContent = 'Select a mode';
+    confirm.classList.remove('delete-confirm-ready');
+
+    document.querySelectorAll('.delete-mode-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+
+    modal.classList.add('open');
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function selectDeleteMode(mode) {
+    pendingDeleteAction.mode = mode;
+    const info = document.getElementById('deleteModalInfo');
+    const confirm = document.getElementById('deleteModalConfirm');
+    const username = pendingDeleteAction.username;
+    const isSoft = mode === 'soft';
+
+    document.querySelectorAll('.delete-mode-option').forEach(option => {
+        option.classList.toggle('selected', option.dataset.mode === mode);
+    });
+
+    if (isSoft) {
+        info.innerHTML = `<strong>Soft delete:</strong> This will set '${uiEscape(username)}' to inactive and revoke access. The account can be restored later by an administrator.`;
+        confirm.textContent = 'Revoke Access';
+    } else {
+        info.innerHTML = `<strong>Hard delete:</strong> This permanently removes '${uiEscape(username)}' from the database and cannot be undone. Continue only if you are certain.`;
+        confirm.textContent = 'Delete Permanently';
+    }
+
+    confirm.disabled = false;
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteUserModal').classList.remove('open');
+    pendingDeleteAction = { userId: null, username: null, mode: null };
+    document.querySelectorAll('.delete-mode-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    const confirm = document.getElementById('deleteModalConfirm');
+    confirm.disabled = true;
+    confirm.textContent = 'Select a mode';
+}
+
+async function confirmDeleteUser() {
+    const { userId, mode } = pendingDeleteAction;
+    if (!userId || !mode) return;
+
+    const confirmBtn = document.getElementById('deleteModalConfirm');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = mode === 'soft' ? 'Revoking Access...' : 'Deleting User...';
+
+    try {
+        const response = await fetch('/api/user/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, delete_mode: mode })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            window.location.reload();
+            return;
+        }
+
+        const info = document.getElementById('deleteModalInfo');
+        info.innerHTML = `<strong>Deletion failed:</strong> ${uiEscape(data.error || 'Unknown error')}`;
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = mode === 'soft' ? 'Revoke Access' : 'Delete Permanently';
+    } catch (err) {
+        console.error(err);
+        document.getElementById('deleteModalInfo').innerHTML = '<strong>Deletion failed:</strong> Unable to process the request.';
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = mode === 'soft' ? 'Revoke Access' : 'Delete Permanently';
+    }
+}
+
+async function confirmRoleChange() {
+    const { userId, role } = pendingRoleChange;
+    if (!userId || !role) return;
+    
+    const confirmBtn = document.getElementById('roleModalConfirm');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Processing...';
+    
+    try {
+        const response = await fetch('/api/user/role', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, role: role })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccessModal(role);
+        } else {
+            showErrorModal(data.error);
+        }
+    } catch (err) {
+        showErrorModal('Failed to update user role');
+        console.error(err);
+    }
+}
+
+function showSuccessModal(role) {
+    const modal = document.getElementById('roleModal');
+    const header = modal.querySelector('.role-modal-header');
+    const title = document.getElementById('roleModalTitle');
+    const subtitle = document.getElementById('roleModalSubtitle');
+    const message = document.getElementById('roleModalMessage');
+    const info = document.getElementById('roleModalInfo');
+    const icon = document.getElementById('roleModalIcon');
+    const confirm = document.getElementById('roleModalConfirm');
+    const cancel = document.querySelector('.role-modal-cancel');
+    
+    header.style.background = 'linear-gradient(135deg, var(--green) 0%, #059669 100%)';
+    icon.style.borderColor = '#10b981';
+    icon.innerHTML = '<i data-lucide="check-circle"></i>';
+    title.textContent = 'Success';
+    subtitle.textContent = 'Role updated successfully';
+    message.textContent = 'The user role has been updated. They must log out and log back in to see the changes.';
+    info.innerHTML = `<strong>Next steps:</strong>
+Notify the user to refresh their session for the changes to take effect.`;
+    confirm.textContent = 'Done';
+    confirm.style.background = 'var(--green)';
+    confirm.style.borderColor = 'var(--green)';
+    confirm.disabled = false;
+    confirm.onclick = () => { location.reload(); };
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function showErrorModal(errorMsg) {
+    const modal = document.getElementById('roleModal');
+    const header = modal.querySelector('.role-modal-header');
+    const title = document.getElementById('roleModalTitle');
+    const subtitle = document.getElementById('roleModalSubtitle');
+    const message = document.getElementById('roleModalMessage');
+    const info = document.getElementById('roleModalInfo');
+    const icon = document.getElementById('roleModalIcon');
+    const confirm = document.getElementById('roleModalConfirm');
+    
+    header.style.background = 'linear-gradient(135deg, var(--red) 0%, #b91c1c 100%)';
+    icon.style.borderColor = '#ef4444';
+    icon.innerHTML = '<i data-lucide="x-circle"></i>';
+    title.textContent = 'Error';
+    subtitle.textContent = 'Could not update role';
+    message.textContent = errorMsg;
+    info.innerHTML = '';
+    confirm.textContent = 'Try Again';
+    confirm.style.background = 'var(--red)';
+    confirm.style.borderColor = 'var(--red)';
+    confirm.disabled = false;
+    confirm.onclick = () => { closeRoleModal(); };
+    
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+// Close modal on backdrop click
+document.getElementById('roleModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'roleModal') {
+        closeRoleModal();
+    }
+});
+
+document.getElementById('deleteUserModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'deleteUserModal') {
+        closeDeleteModal();
+    }
+});
+
+async function updateUserStatus(userId, action) {
+    const actionText = action === 'approve' ? 'approve' : 'reject';
+    
+    const modal = document.getElementById('roleModal');
+    const title = document.getElementById('roleModalTitle');
+    const subtitle = document.getElementById('roleModalSubtitle');
+    const message = document.getElementById('roleModalMessage');
+    const info = document.getElementById('roleModalInfo');
+    const icon = document.getElementById('roleModalIcon');
+    const confirm = document.getElementById('roleModalConfirm');
+    const header = modal.querySelector('.role-modal-header');
+    
+    if (action === 'approve') {
+        header.style.background = 'linear-gradient(135deg, var(--green) 0%, #059669 100%)';
+        icon.style.borderColor = '#10b981';
+        icon.innerHTML = '<i data-lucide="check-circle"></i>';
+        title.textContent = 'Approve Signup';
+        subtitle.textContent = 'Grant access to system';
+        message.textContent = 'Are you sure you want to approve this user signup?';
+        info.innerHTML = `<strong>After approval:</strong>
+The user can log in to the system. Notify them through the office.`;
+        confirm.style.background = 'var(--green)';
+        confirm.style.borderColor = 'var(--green)';
+    } else {
+        header.style.background = 'linear-gradient(135deg, var(--red) 0%, #b91c1c 100%)';
+        icon.style.borderColor = '#ef4444';
+        icon.innerHTML = '<i data-lucide="x-circle"></i>';
+        title.textContent = 'Reject Signup';
+        subtitle.textContent = 'Deny access to system';
+        message.textContent = 'Are you sure you want to reject this user signup?';
+        info.innerHTML = `<strong>After rejection:</strong>
+The user cannot access the system. Notify them through the office.`;
+        confirm.style.background = 'var(--red)';
+        confirm.style.borderColor = 'var(--red)';
+    }
+    
+    confirm.textContent = 'Confirm';
+    confirm.disabled = false;
+    confirm.onclick = async () => {
+        confirm.disabled = true;
+        confirm.textContent = 'Processing...';
+        
+        try {
+            const response = await fetch(`/api/user/status/${userId}/${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                location.reload();
+            } else {
+                confirm.textContent = 'Try Again';
+                confirm.disabled = false;
+            }
+        } catch (err) {
+            confirm.textContent = 'Try Again';
+            confirm.disabled = false;
+            console.error(err);
+        }
+    };
+    
+    modal.classList.add('open');
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+</script>
+{% include 'original_pagination.html' %}
+{% endblock %}

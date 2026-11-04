@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/resident-detail.css') }}">
+<article class="resident-detail-page" aria-labelledby="residentDetailHeading">
+    <header><div><span class="report-note">Records / Resident #{{ member.id }}</span><h1 id="residentDetailHeading">{{ member.firstname }}{% if member.middlename %} {{ member.middlename }}{% endif %} {{ member.surname }}</h1><p>Resident Details · Official record, read-only</p></div>
+    <div class="header-actions"><a class="detail-action primary" href="{{ url_for('edit_member',id=member.id) }}">Edit Resident</a><a class="detail-action" href="{{ report_url('residents',scope='resident',resident_id=member.id) }}">Print Resident Information</a><a class="detail-action" href="{{ return_to }}">{{ 'Back to analytics' if return_to.startswith('/analytics') else 'Back to household' if return_to.startswith('/view_household/') else 'Back to residents' }}</a></div></header>
+    <section class="resident-detail-card"><h2>Personal Information</h2><dl>
+        {% for label,key in [('First name','firstname'),('Middle name','middlename'),('Last name','surname'),('Birthdate','birthdate'),('Age (calculated from birthdate)','age'),('Gender','gender'),('Civil status','civil_status'),('Occupation','occupation'),('Resident status','status'),('Reported registration date','registration_date'),('Reported death date','death_date')] %}
+        <div><dt>{{ label }}</dt><dd>{{ member.get(key) if member.get(key) is not none and member.get(key) != '' else 'Not recorded' }}</dd></div>{% endfor %}
+    </dl></section>
+    <section class="resident-detail-card"><h2>Household</h2>{% if household %}<dl><div><dt>Household name</dt><dd>{{ household.surname }}</dd></div><div><dt>House number</dt><dd>{{ household.house_number or 'Not recorded' }}</dd></div><div class="detail-wide"><dt>Address</dt><dd>{{ household.address or 'Not recorded' }}</dd></div></dl><a href="{{ url_for('view_household',household_id=household.id) }}">View household and members</a>{% else %}<p>Household information is unavailable. Review membership using Edit Resident.</p>{% endif %}</section>
+    {% if session.get('role') == 'admin' %}<section class="resident-detail-card"><h2>Health Information</h2><p class="report-note">Administrator-only information. Excluded from standard reports and search suggestions.</p><dl>{% for label,key in [('Mental Health Status','mental_health_status'),('Current Health Status','current_health_status')] %}<div><dt>{{ label }}</dt><dd>{{ member[key] or 'Not recorded' }}</dd></div>{% endfor %}</dl></section>{% endif %}
+</article>
+{% endblock %}

@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
+<script src="{{ url_for('static',filename='js/resident-form.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/resident-registration.css') }}">
+<script src="{{ url_for('static',filename='js/resident-registration.js') }}" defer></script>
+<div class="form-container resident-editor">
+    <div class="form-card">
+        <div class="form-header">
+            <h1>Add New Resident</h1>
+            <p>Register a new individual into the barangay database.</p>
+        </div>
+
+        <form data-record-registration="resident" action="{{ url_for('add_member') }}" method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="_submission_token" value="{{ submission_token('resident_create') }}">
+            <input type="hidden" name="household_id_fixed" value="{{ household_id if household_id else '' }}">
+
+            <fieldset class="form-section"><legend>Personal Information</legend>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" name="firstname" id="fname" value="{{ prefill.firstname if prefill else '' }}" placeholder="Enter first name" required autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Middle Name <span class="optional-label">(optional)</span></label>
+                    <input type="text" name="middlename" id="mname" value="{{ prefill.middlename if prefill else '' }}" placeholder="Enter middle name" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" name="surname" id="sname" value="{{ prefill.surname if prefill else '' }}" placeholder="Enter last name" required autocomplete="off">
+                </div>
+            </div>
+
+            <div class="form-grid dual">
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="number" name="age" id="age" aria-describedby="ageHelp" value="{{ prefill.age if prefill and prefill.age is not none else '' }}" placeholder="Age" readonly autocomplete="off">
+                    <p id="ageHelp" class="helper-text age-explanation">Age &mdash; automatically calculated from birthdate.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Birthdate</label>
+                    <input type="date" name="birthdate" id="birthdate" value="{{ prefill.birthdate if prefill else '' }}" class="stylish-date">
+                </div>
+            </div>
+
+            </fieldset><fieldset class="form-section"><legend>Demographic Details</legend>
+            <div class="form-grid dual">
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select name="gender" id="gender" required>
+                        <option value="">--Select--</option>
+                        <option value="Male" {{ 'selected' if prefill and prefill.gender == 'Male' else '' }}>Male</option>
+                        <option value="Female" {{ 'selected' if prefill and prefill.gender == 'Female' else '' }}>Female</option>
+                        <option value="Not recorded" {{ 'selected' if prefill and prefill.gender == 'Not recorded' else '' }}>Not recorded</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Civil Status</label>
+                    <select name="civil_status" id="civil_status" required>
+                        <option value="">--Select--</option>
+                        <option value="Single" {{ 'selected' if prefill and prefill.civil_status == 'Single' else '' }}>Single</option>
+                        <option value="Married" {{ 'selected' if prefill and prefill.civil_status == 'Married' else '' }}>Married</option>
+                        <option value="Widowed" {{ 'selected' if prefill and prefill.civil_status == 'Widowed' else '' }}>Widowed</option>
+                        <option value="Separated" {{ 'selected' if prefill and prefill.civil_status == 'Separated' else '' }}>Separated</option>
+                        <option value="Not recorded" {{ 'selected' if prefill and prefill.civil_status == 'Not recorded' else '' }}>Not recorded</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Occupation <span class="optional-label">(optional)</span></label>
+                <input type="text" name="occupation" id="occupation" value="{{ prefill.occupation if prefill else '' }}" placeholder="e.g. Software Developer, Student, etc." autocomplete="off">
+            </div>
+
+            </fieldset><fieldset class="form-section"><legend>Household and Resident Status</legend>
+            <div class="form-group household-field">
+                <label>Household Association</label>
+                <div style="position:relative;">
+                    <input type="text" id="householdSearch" data-record-combobox data-source="/api/report-suggestions?kind=households" data-target="householdId" data-status="householdSearchStatus" role="combobox" aria-autocomplete="list" aria-controls="suggestionsBox" aria-expanded="false" value="{{ household_name if household_name else '' }}" placeholder="Household name, house number or address" autocomplete="off" required {{ 'readonly' if household_id }}>
+                    <input type="hidden" name="household_id" id="householdId" value="{{ prefill.get('household_id','') }}"><p id="householdSearchStatus" role="status" class="helper-text">Choose an exact household.</p>
+                    <div id="suggestionsBox" role="listbox" class="record-options" hidden></div>
+                </div>
+                {% if not household_id %}
+                <p class="helper-text">
+                    Not in the list? <a href="{{ url_for('add_household') }}" id="addHHLink">Register new household</a>
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="form-group"><label for="residentStatus">Resident Status</label><select name="status" id="residentStatus">{% for status in ['Active','Deceased'] %}<option value="{{ status }}" {% if prefill.get('status','Active')==status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select></div>
+            <div class="form-group death-date-field">
+                <label for="death_date">Reported death date</label>
+                <input type="date" id="death_date" name="death_date" value="{{ (member if editing else prefill).get('death_date') or '' }}">
+                <p class="helper-text">For deceased residents only. Leave unknown dates blank. When changing to Active, clear any saved date explicitly.</p>
+            </div>
+            </fieldset><fieldset class="form-section"><legend>Health Information</legend>
+            <p class="helper-text">Optional reported information; administrator access only; up to 500 characters per field.</p>
+            <div class="form-grid dual">
+            {% for field,label in [('mental_health_status','Mental Health Status'),('current_health_status','Current Health Status')] %}
+            <div class="form-group">
+                <label for="{{ field }}">{{ label }}</label>
+                <textarea id="{{ field }}" name="{{ field }}" maxlength="500" rows="3" placeholder="Not recorded" autocomplete="off">{{ (member if editing else prefill).get(field) or '' }}</textarea>
+            </div>
+            {% endfor %}
+            </div></fieldset>
+            {% if duplicate_detected %}<p id="registrationDuplicate" class="helper-text duplicate-warning" role="alert"><label><input type="checkbox" name="confirm_duplicate" value="yes"> I reviewed the possible duplicate and confirm this is a different person.</label></p>{% else %}<div id="registrationDuplicate" hidden></div>{% endif %}
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Register Resident</button>
+                
+                {% if household_id %}
+                    <a href="{{ url_for('view_household', household_id=household_id) }}" class="btn-back">
+                        Back to Household
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('view_members') }}" class="btn-back">
+                        Back to Members List
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="errorModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon"><i data-lucide="alert-circle"></i></div>
+        <h3>Action Denied</h3>
+        <p id="errorText">{{ error }}</p>
+        <div class="modal-footer">
+            <button class="modal-btn confirm" onclick="closeErrorModal()">Got it</button>
+            <a id="registrationRecoveryLink" class="modal-btn" href="{{ url_for('view_members') }}" hidden>View Residents</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #1B3A57;
+        --accent: #3498db;
+        --bg-light: #f4f7fb;
+        --text-muted: #666;
+    }
+
+    .form-container { 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        padding: 40px 20px; 
+        min-height: 90vh; 
+        background-color: var(--bg-light);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .form-card { 
+        background: white; 
+        padding: 40px; 
+        border-radius: 15px; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
+        width: 100%; 
+        max-width: 550px; 
+        border: 1px solid #edf2f7;
+    }
+
+    .form-header { text-align: center; margin-bottom: 30px; }
+    .form-header h1 { margin: 0; color: var(--primary); font-size: 26px; font-weight: 800; }
+    .form-header p { margin: 5px 0 0; color: var(--text-muted); font-size: 14px; }
+
+    .form-grid { display: grid; gap: 15px; margin-bottom: 15px; }
+    .form-grid.dual { grid-template-columns: 1fr 1fr; }
+
+    .form-group { display: flex; flex-direction: column; margin-bottom: 18px; }
+    .form-group label { margin-bottom: 8px; font-weight: 700; color: var(--primary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .form-group input, .form-group select { 
+        width: 100%; 
+        padding: 13px 16px; 
+        border-radius: 10px; 
+        border: 2px solid #edf2f7; 
+        font-size: 15px; 
+        background-color: #fdfdfd; 
+        box-sizing: border-box; 
+        transition: all 0.3s ease; 
+    }
+
+    .form-group input:focus, .form-group select:focus { 
+        outline: none; 
+        border-color: var(--accent); 
+        background-color: #fff; 
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.1);
+    }
+
+    .form-group input[readonly] { background-color: #f1f5f9; cursor: not-allowed; color: #94a3b8; }
+
+    /* FORM ACTIONS STYLING */
+    .form-actions {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .btn-submit { 
+        width: 100%; 
+        padding: 16px; 
+        border: none; 
+        background-color: var(--primary); 
+        color: white; 
+        font-size: 16px; 
+        border-radius: 10px; 
+        cursor: pointer; 
+        font-weight: 800; 
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(27, 58, 87, 0.2);
+    }
+    .btn-submit:hover { background-color: #142d44; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(27, 58, 87, 0.3); }
+
+    .btn-back {
+        text-decoration: none;
+        color: var(--primary);
+        font-size: 14px;
+        font-weight: 700;
+        transition: all 0.2s;
+        padding: 8px;
+        opacity: 0.7;
+    }
+
+    .btn-back:hover {
+        opacity: 1;
+        text-decoration: underline;
+    }
+
+    .suggestions-box { 
+        position: absolute; 
+        top: 100%; 
+        left: 0; 
+        right: 0; 
+        background: white; 
+        border-radius: 8px; 
+        max-height: 200px; 
+        overflow-y: auto; 
+        display: none; 
+        z-index: 2000; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        border: 1px solid #eee;
+    }
+    .suggestions-box div { padding: 12px 15px; cursor: pointer; color: #333; font-size: 14px; border-bottom: 1px solid #f8f9fa; }
+    .suggestions-box div:hover { background-color: #f0f7ff; color: var(--accent); font-weight: 600; }
+
+    .helper-text { margin-top: 12px; font-size: 13px; color: var(--text-muted); text-align: center; }
+    .helper-text a { color: var(--accent); font-weight: 700; text-decoration: none; }
+    .helper-text a:hover { text-decoration: underline; }
+
+    /* Modals */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(27, 58, 87, 0.5); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-content { background: white; padding: 35px; border-radius: 15px; width: 380px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+    .modal-icon { color: #e74c3c; font-size: 45px; margin-bottom: 15px; }
+    .modal-btn.confirm { background: var(--primary); color: white; padding: 12px 35px; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; transition: 0.2s; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const hhLink = document.getElementById("addHHLink");
+    const isFixedHH = {{ 'true' if household_id else 'false' }};
+    
+    const formFields = {
+        fname: document.getElementById("fname"),
+        mname: document.getElementById("mname"),
+        sname: document.getElementById("sname"),
+        age: document.getElementById("age"),
+        birthdate: document.getElementById("birthdate"),
+        gender: document.getElementById("gender"),
+        civil_status: document.getElementById("civil_status"),
+        occupation: document.getElementById("occupation")
+    };
+
+    function updateHHLink() {
+        if (!hhLink) return;
+        hhLink.href = {{ url_for('add_household')|tojson }};
+    }
+
+    Object.values(formFields).forEach(field => {
+        field.addEventListener("input", updateHHLink);
+        field.addEventListener("change", updateHHLink); 
+    });
+    
+    updateHHLink();
+    hhLink?.addEventListener('click', e => {
+        e.preventDefault();
+        const form = hhLink.closest('form');
+        let action = form.querySelector('input[name="action"]');
+        if (!action) { action = document.createElement('input'); action.type='hidden'; action.name='action'; form.append(action); }
+        action.value='new_household';
+        HTMLFormElement.prototype.submit.call(form);
+    });
+
+    if ({{ (error or '')|tojson }}.trim() !== "None" && {{ (error or '')|tojson }}.trim() !== "") {
+        document.getElementById('errorModal').style.display = 'flex';
+    }
+});
+
+function closeErrorModal() {
+    document.getElementById('errorModal').style.display = 'none';
+}
+</script>
+{% endblock %}

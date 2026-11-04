@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barangay Information System</title>
+    <script src="{{ url_for('static',filename='js/appearance.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Local Lucide Icons - Works Offline -->
+    <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}"></script>
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
+<script src="{{ url_for('static',filename='js/record-combobox.js') }}" defer></script>
+
+<script src="{{ url_for('static',filename='js/lucide-refresh.js') }}" defer></script>
+</head>
+
+<body class="admin-workspace">
+
+<header class="top-header">
+    <div class="header-left">
+        <button id="burger-btn" aria-label="Toggle Navigation">
+            <i data-lucide="menu"></i>
+        </button>
+        <div class="brand-group">
+            <div class="brand-badge">BIS</div>
+            <h1 class="header-title">Barangay Information System</h1>
+        </div>
+    </div>
+
+    <div class="header-right">
+        {% if session.get('role') == 'admin' and request.endpoint != 'home' %}
+        <a href="/notifications" class="notification-bell" role="button" aria-expanded="false" aria-controls="notificationPanel" id="notificationBell" title="Notifications">
+            <i data-lucide="bell"></i>
+            <span class="notification-badge" id="notificationBadge">0</span>
+        </a>
+        {% endif %}
+        <a href="{{ url_for('profile') }}" class="user-pill" aria-label="My account" style="text-decoration: none; cursor: pointer;">
+            <span class="user-name">{{ session.get('username', 'Administrator') }}</span>
+            <div class="user-icon-bg">
+                <i data-lucide="user"></i>
+            </div>
+        </a>
+    </div>
+</header>
+
+<div id="sidebar-overlay"></div>
+
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-menu">
+            <li class="menu-category">Main Console</li>
+            <li>
+                <a href="{{ url_for('home') }}" class="menu-link">
+                    <i data-lucide="home"></i>
+                    <span style="margin-left: 16px;">Home</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Analytics</li>
+            <li>
+                <a href="{{ url_for('analytics', **{'as': 'admin'}) }}" class="menu-link">
+                    <i data-lucide="bar-chart-2"></i>
+                    <span style="margin-left: 16px;">Dashboard</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Data Management</li>
+            
+            <li class="dropdown" style="margin-bottom: 12px;"> 
+                <a href="javascript:void(0)" class="dropdown-toggle">
+                    <div class="menu-item-content">
+                        <i data-lucide="users"></i>
+                        <span style="margin-left: 16px;">Residents</span>
+                    </div>
+                    <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{{ url_for('view_members') }}">
+                            <i data-lucide="list"></i>
+                            <span>View Residents</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_member') }}">
+                            <i data-lucide="user-plus"></i>
+                            <span>Add Resident</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="dropdown" style="margin-bottom: 12px;">
+                <a href="javascript:void(0)" class="dropdown-toggle">
+                    <div class="menu-item-content">
+                        <i data-lucide="building-2"></i>
+                        <span style="margin-left: 16px;">Households</span>
+                    </div>
+                    <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{{ url_for('view_households') }}">
+                            <i data-lucide="list"></i>
+                            <span>View Households</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_household') }}">
+                            <i data-lucide="plus-square"></i>
+                            <span>Add Household</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu-category">Reports & Logs</li>
+            <li>
+                <a href="{{ url_for('print_reports') }}" class="menu-link">
+                    <i data-lucide="printer"></i>
+                    <span style="margin-left: 16px;">Print Reports</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('audit_log') }}" class="menu-link">
+                    <i data-lucide="shield-check"></i>
+                    <span style="margin-left: 16px;">Audit Log</span>
+                </a>
+            </li>
+
+
+
+            <li class="menu-category" style="margin-top: 20px;">Account</li>
+            <li>
+                <a href="{{ url_for('profile') }}" class="menu-link">
+                    <i data-lucide="user"></i>
+                    <span style="margin-left: 16px;">My Profile</span>
+                </a>
+            </li>
+
+            <li class="logout-section">
+                <a href="{{ url_for('logout') }}" class="menu-link logout-btn">
+                    <i data-lucide="log-out"></i>
+                    <span style="margin-left: 16px;">Sign Out</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<main id="main-content">
+<div class="office-feedback-region" aria-label="Application messages">
+    {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}{% if category in ['resident_registered','household_registered'] %}{% set registration_kind = 'resident' if category == 'resident_registered' else 'household' %}{% include 'resident_registration_success.html' %}{% else %}<div class="office-feedback {{ 'error' if category in ['danger','error'] else category if category in ['success','warning','info'] else 'info' }}" role="{{ 'alert' if category in ['danger','error','warning'] else 'status' }}"><strong>{{ 'Error' if category in ['danger','error'] else category|capitalize if category in ['success','warning','info'] else 'Information' }}</strong><span>{{ message }}</span><button type="button" data-dismiss-feedback aria-label="Dismiss message">×</button></div>{% endif %}{% endfor %}{% endwith %}
+</div>
+{% block content %}{% endblock %}
+</main>
+
+<style>
+    :root {
+        --bis-navy: #1B3A57;
+        --bright-blue: #3b82f6;
+    }
+
+    /* HEADER */
+    .top-header {
+        height: 65px;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        top: 0; width: 100%; z-index: 2500;
+    }
+
+    .header-left, .brand-group { display: flex; align-items: center; gap: 15px; }
+
+    .brand-badge {
+        background: var(--bis-navy);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 800;
+        font-size: 13px;
+    }
+
+    .header-title { color: var(--bis-navy); font-size: 18px; font-weight: 700; margin: 0; }
+
+    #burger-btn {
+        color: var(--bis-navy);
+        background: none; border: none; cursor: pointer;
+        padding: 8px; border-radius: 8px; display: flex; align-items: center;
+    }
+    #burger-btn:hover { background: #f1f5f9; }
+
+    .user-pill {
+        display: flex; align-items: center; gap: 12px;
+        background: #f1f5f9; padding: 5px 5px 5px 15px; border-radius: 50px;
+        transition: all 0.2s;
+    }
+    .user-pill:hover {
+        background: #e2e8f0;
+        box-shadow: 0 2px 8px rgba(27, 58, 87, 0.1);
+    }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--bis-navy); }
+    .user-icon-bg {
+        width: 30px; height: 30px; background: white; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; color: var(--bis-navy);
+    }
+
+    /* NOTIFICATION BELL */
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .notification-bell {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #f1f5f9;
+        color: var(--bis-navy);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .notification-bell:hover {
+        background: #e2e8f0;
+        box-shadow: 0 2px 8px rgba(27, 58, 87, 0.1);
+    }
+
+    .notification-bell i {
+        width: 20px;
+        height: 20px;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .notification-badge.hidden {
+        display: none;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        background: var(--bis-navy);
+        width: 260px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: -260px;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 2000;
+        overflow-y: auto;
+    }
+
+    .sidebar.open { left: 0 !important; }
+    .sidebar-inner { padding: 90px 12px 20px; }
+
+    .menu-category {
+        color: #94a3b8; font-size: 10px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1.2px;
+        margin: 25px 0 12px 15px;
+    }
+
+    .menu-link, .dropdown-toggle {
+        padding: 12px 16px;
+        border-radius: 8px;
+        color: #d1d5db;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        display: flex; align-items: center;
+        transition: all 0.2s;
+    }
+
+    .menu-link i, .menu-item-content i { width: 20px; }
+
+    .menu-link:hover, .dropdown-toggle:hover, .dropdown.active > .dropdown-toggle {
+        background: var(--bright-blue);
+        color: white;
+    }
+
+    .dropdown-toggle { justify-content: space-between; cursor: pointer; }
+    .menu-item-content { display: flex; align-items: center; }
+    .dropdown-icon { width: 14px !important; transition: transform 0.3s; }
+    .dropdown.active .dropdown-icon { transform: rotate(180deg); }
+
+    .submenu {
+        list-style: none; padding: 0; margin: 5px 0;
+        max-height: 0; overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+
+    .submenu li a {
+        display: flex; align-items: center;
+        padding: 10px 15px 10px 52px;
+        color: #94a3b8; font-size: 13px;
+        text-decoration: none; border-radius: 8px;
+        margin: 2px 5px;
+    }
+    .submenu li a i { width: 14px; margin-right: 12px; }
+    .submenu li a:hover { background: rgba(59, 130, 246, 0.2); color: white; }
+
+    .logout-section {
+        margin-top: 35px; padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .logout-btn:hover { background: #ef4444 !important; }
+
+    /* OVERLAY FIX */
+    #sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        display: none; 
+        z-index: 1500;
+    }
+    body.sidebar-open #sidebar-overlay { display: block; }
+
+    #main-content {
+        padding-top: 65px;
+        min-height: 100vh;
+    }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Load icons from local system
+    if (typeof loadIcons === 'function') {
+        loadIcons();
+    }
+    
+    // Also try lucide.createIcons() as fallback
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    const burgerBtn = document.getElementById('burger-btn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const body = document.body;
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('open');
+        body.classList.toggle('sidebar-open');
+        // Re-render icons when sidebar opens
+        if (typeof lucide !== 'undefined') {
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+    }
+
+    if (burgerBtn) {
+        burgerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSidebar();
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            body.classList.remove('sidebar-open');
+        });
+    }
+
+    const dropdowns = document.querySelectorAll('.dropdown > a');
+    dropdowns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const parent = btn.parentElement;
+            const submenu = parent.querySelector('.submenu');
+            parent.classList.toggle('active');
+            if (parent.classList.contains('active')) {
+                submenu.style.maxHeight = submenu.scrollHeight + "px";
+            } else {
+                submenu.style.maxHeight = "0";
+            }
+        });
+    });
+
+    // Close sidebar when clicking on a link (but not dropdown toggles)
+    const links = sidebar.querySelectorAll('a:not(.dropdown-toggle)');
+    links.forEach(link => {
+        link.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            body.classList.remove('sidebar-open');
+        });
+    });
+
+
+});
+</script>
+
+<link rel="stylesheet" href="{{ url_for('static',filename='css/report-center.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/workflow-polish.css') }}">
+{% if request.endpoint != 'home' %}<div id="notificationPanel" role="region" class="notification-panel" hidden aria-label="Notifications"></div>{% endif %}
+<script src="{{ url_for('static',filename='js/report-center.js') }}" defer></script><script src="{{ url_for('static',filename='js/workflow-polish.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/portal-admin-polish.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/controlled-admin-ui.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/workspace-refinement.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/appearance.css') }}">
+<script src="{{ url_for('static',filename='js/automatic-filters.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='css/report-builder.css') }}">
+</body>
+</html>

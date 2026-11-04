@@ -1,0 +1,17 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/resident-registration.css') }}">
+<script src="{{ url_for('static', filename='js/resident-registration.js') }}" defer></script>
+{% set is_household = registration_kind == 'household' %}
+{% set record_label = 'Household' if is_household else 'Resident' %}
+{% set destination = url_for('view_households') if is_household else url_for('view_members') %}
+<div id="recordRegistrationSuccess" class="modal-overlay registration-success-overlay" role="dialog" aria-modal="true" aria-labelledby="registrationSuccessTitle" aria-describedby="registrationSuccessDescription">
+  <div class="modal-content registration-success-content">
+    <div class="modal-icon registration-success-mark" aria-hidden="true"><i data-lucide="check-circle"></i></div>
+    <h2 id="registrationSuccessTitle">{{ record_label }} registered successfully.</h2>
+    <p id="registrationSuccessDescription">The {{ record_label|lower }} record has been saved.</p>
+    <div class="modal-footer registration-success-actions">
+        <a href="{{ destination }}" class="modal-btn primary" data-registration-primary autofocus>View {{ 'Households' if is_household else 'Residents' }}</a>
+        <button type="button" class="modal-btn secondary" data-registration-close>Close</button>
+    </div>
+  </div>
+</div>
+<noscript><div class="registration-success-fallback" role="status">{{ record_label }} registered successfully. <a href="{{ destination }}">View {{ 'Households' if is_household else 'Residents' }}</a></div></noscript>

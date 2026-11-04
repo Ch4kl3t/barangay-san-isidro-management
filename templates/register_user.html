@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="register-page">
+    <div class="page-header">
+        <div class="header-icon">
+            <i data-lucide="user-plus" style="width:26px;height:26px;"></i>
+        </div>
+        <div class="header-text">
+            <span class="breadcrumb">System / Administration</span>
+            <h1>Register New User</h1>
+            <p>Create a new user account (Admin only)</p>
+        </div>
+    </div>
+
+    <div class="register-form-container">
+        <form method="POST" class="register-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <!-- Username -->
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter username" required 
+                       minlength="3" maxlength="50" pattern="^[a-zA-Z0-9_.-]+$"
+                       title="Username can only contain letters, numbers, dots, dashes, and underscores">
+                <small>3-50 characters, letters/numbers/dots/dashes/underscores only</small>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Enter email address" required>
+                <small>For password recovery notifications</small>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="Enter password" required minlength="8"
+                           title="Password must be at least 8 characters">
+                    <button type="button" class="btn-toggle-password" onclick="togglePassword('password')">
+                        <i data-lucide="eye" style="width:18px;height:18px;"></i>
+                    </button>
+                </div>
+                <small>Minimum 8 characters for security</small>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password" required>
+                    <button type="button" class="btn-toggle-password" onclick="togglePassword('confirm_password')">
+                        <i data-lucide="eye" style="width:18px;height:18px;"></i>
+                    </button>
+                </div>
+                <small>Must match the password above</small>
+            </div>
+
+            <!-- User Role -->
+            <div class="form-group">
+                <label for="role">User Role</label>
+                <select id="role" name="role" required onchange="updateRoleDescription()">
+                    <option value="">Select a role...</option>
+                    <option value="admin">Admin (Full Access)</option>
+                    <option value="user">User (View-Only)</option>
+                </select>
+                <small id="role-description"></small>
+            </div>
+
+            <!-- Role Descriptions -->
+            <div class="role-info-box" id="role-info-admin" style="display:none;">
+                <div class="role-badge admin">ADMIN</div>
+                <div class="role-details">
+                    <strong>Full System Access:</strong>
+                    <ul>
+                        <li>Add, edit, and delete residents</li>
+                        <li>Manage households</li>
+                        <li>Generate reports</li>
+                        <li>View audit logs</li>
+                        <li>Manage user accounts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="role-info-box" id="role-info-user" style="display:none;">
+                <div class="role-badge user">USER</div>
+                <div class="role-details">
+                    <strong>View-Only Access:</strong>
+                    <ul>
+                        <li>View residents and households</li>
+                        <li>View analytics and charts</li>
+                        <li>Change own password</li>
+                        <li>Cannot add, edit, or delete data</li>
+                        <li>Cannot generate reports</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="check" style="width:16px;height:16px;"></i>
+                    Create User Account
+                </button>
+                <a href="{{ url_for('user_management') }}" class="btn-secondary">
+                    <i data-lucide="x" style="width:16px;height:16px;"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+:root {
+    --navy: #1B3A57;
+    --blue: #2e86c1;
+    --bg: #eef1f6;
+    --card: #ffffff;
+    --border: #dde3ed;
+    --text-mid: #3d5a75;
+    --text-muted: #7a93aa;
+    --green: #10b981;
+    --red: #ef4444;
+}
+
+.register-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 40px 72px;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: var(--navy);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 20px rgba(27, 58, 87, 0.18);
+}
+
+.header-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.breadcrumb {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 4px;
+}
+
+.page-header h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.3px;
+}
+
+.page-header p {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.register-form-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(27, 58, 87, 0.06);
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--navy);
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--navy);
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(46, 134, 193, 0.1);
+}
+
+.form-group small {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.password-input-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.password-input-wrapper input {
+    flex: 1;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: all 0.2s;
+}
+
+.btn-toggle-password:hover {
+    color: var(--blue);
+}
+
+.role-info-box {
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.role-badge.admin {
+    background: #eff6ff;
+    color: var(--blue);
+}
+
+.role-badge.user {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.role-details {
+    flex: 1;
+}
+
+.role-details strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--navy);
+    font-size: 13px;
+}
+
+.role-details ul {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.6;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-primary,
+.btn-secondary {
+    flex: 1;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--green);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-secondary {
+    background: var(--border);
+    color: var(--text-mid);
+}
+
+.btn-secondary:hover {
+    background: #cad4dd;
+}
+
+[data-lucide] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+</style>
+
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function updateRoleDescription() {
+    const role = document.getElementById('role').value;
+    const adminBox = document.getElementById('role-info-admin');
+    const userBox = document.getElementById('role-info-user');
+    const description = document.getElementById('role-description');
+
+    adminBox.style.display = role === 'admin' ? 'flex' : 'none';
+    userBox.style.display = role === 'user' ? 'flex' : 'none';
+
+    if (role === 'admin') {
+        description.textContent = 'Administrators have full access to all system features';
+    } else if (role === 'user') {
+        description.textContent = 'Users have view-only access and cannot modify data';
+    } else {
+        description.textContent = '';
+    }
+}
+
+// Form validation
+document.querySelector('.register-form').addEventListener('submit', function(e) {
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm_password').value;
+
+    if (password !== confirm) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+        return false;
+    }
+
+    if (password.length < 8) {
+        e.preventDefault();
+        alert('Password must be at least 8 characters!');
+        return false;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-panel">
+    <h1>My Information</h1>
+
+    <p><strong>Full Name:</strong> {{ info.firstname }} {% if info.middlename %} {{ info.middlename }} {% endif %} {{ info.surname }}</p>
+    <p><strong>Age:</strong> {{ info.age }}</p>
+    <p><strong>Gender:</strong> {{ info.gender }}</p>
+    <p><strong>Civil Status:</strong> {{ info.civil_status }}</p>
+    <p><strong>Occupation:</strong> {{ info.occupation }}</p>
+    <p><strong>Household:</strong> {{ info.household_name if info.household_name else 'N/A' }}</p>
+    <p><strong>Address:</strong> {{ info.household_address if info.household_address else 'N/A' }}</p>
+</div>
+{% endblock %}

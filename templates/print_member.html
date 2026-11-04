@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Member Details</h1>
+
+<p><strong>ID:</strong> {{ member[0] }}</p>
+<p><strong>Firstname:</strong> {{ member[1] }}</p>
+<p><strong>Middlename:</strong> {{ member[2] }}</p>
+<p><strong>Lastname:</strong> {{ member[3] }}</p>
+<p><strong>Age:</strong> {{ member[4] }}</p>
+<p><strong>Gender:</strong> {{ member[5] }}</p>
+<p><strong>Civil Status:</strong> {{ member[6] }}</p>
+<p><strong>Household:</strong> {{ member[7] if member[7] else 'N/A' }}</p>
+{% endblock %}

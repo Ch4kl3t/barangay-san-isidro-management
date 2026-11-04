@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ title }} · Barangay San Isidro</title>
+<style>@page{size:{{ 'landscape' if columns|length>6 else 'portrait' }};margin:15mm}body{font:11pt Arial,sans-serif;color:#111;margin:20px}h1{font-size:19pt;margin-bottom:4px}h2{font-size:15pt}p{line-height:1.4}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #777;padding:7px;text-align:left;vertical-align:top;overflow-wrap:anywhere}thead{display:table-header-group}tr{break-inside:avoid}small{font-size:9pt}</style></head><body>
+<h1>Barangay San Isidro</h1><p>Municipality of Bongabong, Oriental Mindoro</p><h2>{{ title }}</h2>
+<p>{{ summary }}</p><p>Date basis: {{ basis }}</p><p><small>Generated {{ generated }} · Prepared by {{ preparer }}</small></p>
+{% if scope %}<p>House {{ scope.house_number }} · {{ scope.surname }} · {{ scope.address }}</p>{% endif %}
+{% if rows %}<table><colgroup>{% for width in column_widths %}<col style="width:{{ width }}%">{% endfor %}</colgroup><thead><tr>{% for key,label in columns %}<th>{{ label }}</th>{% endfor %}</tr></thead><tbody>{% for row in rows %}<tr>{% for key,label in columns %}<td>{{ row.get(key) if row.get(key) is not none else 'Not recorded' }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>{% else %}<p>No records match the selected filters.</p>{% endif %}
+{% if rows and args.get('autoprint')=='1' %}<script>window.addEventListener('load',()=>window.print());</script>{% endif %}
+</body></html>

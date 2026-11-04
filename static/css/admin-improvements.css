@@ -1,0 +1,20 @@
+/* Scoped additions to the restored components. No global layout/reset rules. */
+.admin-resident-table .table-responsive{overflow-x:auto;max-width:100%}
+.admin-resident-table{min-width:0;max-width:100%;box-sizing:border-box}
+.admin-resident-table .table-card{min-width:0;max-width:100%}
+.admin-resident-table .header-actions{flex-wrap:wrap}
+.admin-resident-table table{min-width:1450px}
+.admin-resident-table .admin-health-cell{min-width:180px;max-width:260px;white-space:normal;overflow-wrap:anywhere;line-height:1.55}
+.admin-health-cell details summary{cursor:pointer}.admin-health-cell summary span{display:block;color:#1b3a57;text-decoration:underline}.admin-health-cell details p{white-space:pre-wrap}
+.resident-editor.form-container{padding:28px 20px;display:block}
+.resident-editor .form-card{max-width:1040px;width:100%;box-sizing:border-box;margin:0 auto}
+.resident-editor .form-grid,.resident-editor .form-grid.dual{grid-template-columns:repeat(2,minmax(0,1fr))}
+.resident-editor .form-section{border:0;padding:0;margin:0 0 26px;min-width:0}
+.resident-editor .form-section legend{font-size:16px;font-weight:750;color:#1b3a57;margin:0 0 18px;padding:0 0 9px;border-bottom:1px solid #e2e8f0;width:100%}
+.resident-editor .form-group{min-width:0}.resident-editor .form-group input,.resident-editor select,.resident-editor textarea{box-sizing:border-box;width:100%}
+.resident-editor .form-group textarea{font:inherit;font-size:14px;padding:12px 15px;border:1px solid #e2e8f0;border-radius:10px;resize:vertical;min-height:84px;background:#f8fafc;color:#334155}
+.resident-editor .helper-text{text-align:left;font-size:12px;line-height:1.5;margin-top:7px}
+.resident-editor .household-field{grid-column:1/-1}.resident-editor .duplicate-warning{padding:12px;border:1px solid #d4a047;border-radius:8px;background:#fffbeb}
+.resident-editor [hidden]{display:none!important}
+@media(max-width:640px){.resident-editor .form-grid,.resident-editor .form-grid.dual{grid-template-columns:1fr}.resident-editor .form-card{padding:24px 18px}.resident-editor .form-actions{flex-wrap:wrap}}
+@media(max-width:640px){.admin-resident-table .header{flex-wrap:wrap;gap:14px}.admin-resident-table.page-container{padding:20px 12px}.admin-resident-table .info-grid{grid-template-columns:1fr}.admin-resident-table .header-actions a{padding:10px 14px}}

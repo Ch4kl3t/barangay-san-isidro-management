@@ -1,0 +1,599 @@
+{% extends "user_base.html" %}
+
+{% block content %}
+<div class="home-wrapper">
+
+    <!-- ══════════════════════════════════
+         WELCOME BANNER
+    ══════════════════════════════════ -->
+    <div class="welcome-banner">
+        <div class="banner-left">
+            <span class="system-tag">
+                <span class="system-tag-dot"></span>
+                Community Registry System
+            </span>
+            <h1>Community Directory</h1>
+            <p>Explore resident and household information in your barangay.</p>
+            <div class="banner-quick-links">
+                <a href="{{ url_for('user_view_members') }}" class="banner-btn">
+                    <i data-lucide="users" class="menu-icon"></i>
+                    <span>View Residents</span>
+                </a>
+                <a href="{{ url_for('user_view_households') }}" class="banner-btn banner-btn-ghost">
+                    <i data-lucide="home" style="width:14px;height:14px;"></i>
+                    View Households
+                </a>
+                <a href="{{ url_for('analytics', **{'as': 'user'}) }}" class="banner-btn banner-btn-ghost">
+                    <i data-lucide="bar-chart-2" style="width:14px;height:14px;"></i>
+                    Statistics
+                </a>
+            </div>
+        </div>
+        <div class="banner-right">
+            <div class="datetime-block">
+                <div id="live-clock"></div>
+                <div id="live-day"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         SEARCH
+    ══════════════════════════════════ -->
+    <div class="search-panel" style="position: relative; z-index: 100;">
+        <div class="search-panel-inner">
+            <div class="search-icon-wrap">
+                <i data-lucide="search" style="width:18px;height:18px;"></i>
+            </div>
+            <input
+                type="text"
+                id="searchBox"
+                placeholder="Search residents or household surnames..."
+                autocomplete="off"
+            />
+            <span class="search-hint-badge">Quick Search</span>
+        </div>
+        <div id="suggestions" class="search-results"></div>
+    </div>
+
+    <div id="searchResultsContainer" class="panel" style="display: none; margin-bottom: 32px; overflow-x: auto;">
+        <div class="card-header">
+            <i data-lucide="search" style="width:18px;height:18px;color: var(--accent);"></i>
+            <h2>Search Results</h2>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+            <thead>
+                <tr style="text-align: left; border-bottom: 2px solid #e2e8f0; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <th style="padding: 12px;">Type</th>
+                    <th style="padding: 12px;">Name / Surname</th>
+                    <th style="padding: 12px;">Details</th>
+                    <th style="padding: 12px; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+        </table>
+    </div>
+
+    <!-- ══════════════════════════════════
+         STAT CARDS
+    ══════════════════════════════════ -->
+    <div class="stats-wrapper">
+        <div class="stat-card accent-primary" data-stat="total">
+            <div class="stat-icon">
+                <i data-lucide="users" style="width:28px;height:28px;"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-label">Total Residents</div>
+                <div class="stat-value">{{ total_residents }}</div>
+                <div class="stat-sub">Registered individuals</div>
+            </div>
+        </div>
+
+        <div class="stat-card accent-info">
+            <div class="stat-icon">
+                <i data-lucide="home" style="width:28px;height:28px;"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-label">Total Households</div>
+                <div class="stat-value">{{ total_households }}</div>
+                <div class="stat-sub">Registered families</div>
+            </div>
+        </div>
+
+        <div class="stat-card accent-success">
+            <div class="stat-icon">
+                <i data-lucide="smile" style="width:28px;height:28px;"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-label">Active Records</div>
+                <div class="stat-value">{{ active_residents }}</div>
+                <div class="stat-sub">Community members</div>
+            </div>
+        </div>
+
+        <div class="stat-card accent-warning">
+            <div class="stat-icon">
+                <i data-lucide="bar-chart-2" style="width:28px;height:28px;"></i>
+            </div>
+            <div class="stat-body">
+                <div class="stat-label">Demographics</div>
+                <div class="stat-value">Diverse</div>
+                <div class="stat-sub">View in Statistics</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         INFO SECTION
+    ══════════════════════════════════ -->
+    <div class="info-grid" style="margin-top: 40px;">
+        <div class="info-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="info-card-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 15px;">
+                <i data-lucide="book-open" style="width:20px;height:20px;margin-right:10px;"></i>
+                <h3 style="color: white; margin: 0;">How to Use</h3>
+            </div>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: 10px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;margin-right:8px;vertical-align:middle;"></i>
+                    Browse all residents and their information
+                </li>
+                <li style="margin-bottom: 10px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;margin-right:8px;vertical-align:middle;"></i>
+                    View household details and member lists
+                </li>
+                <li style="margin-bottom: 10px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;margin-right:8px;vertical-align:middle;"></i>
+                    Access community statistics and demographics
+                </li>
+                <li style="margin-bottom: 0;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;margin-right:8px;vertical-align:middle;"></i>
+                    Update your profile information
+                </li>
+            </ul>
+        </div>
+
+        <div class="info-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+            <div class="info-card-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 15px;">
+                <i data-lucide="bell" style="width:20px;height:20px;margin-right:10px;"></i>
+                <h3 style="color: white; margin: 0;">Information</h3>
+            </div>
+            <p style="margin: 0; line-height: 1.6;">
+                This is a read-only directory of your barangay community. All information displayed here is maintained by the community administrator. For inquiries or corrections, please contact your barangay office.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .home-wrapper {
+        padding: 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .welcome-banner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+        align-items: center;
+    }
+
+    .system-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 16px;
+    }
+
+    .system-tag-dot {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+    }
+
+    .banner-left h1 {
+        font-size: 42px;
+        font-weight: 800;
+        color: #1B3A57;
+        margin: 0 0 12px;
+    }
+
+    .banner-left p {
+        font-size: 16px;
+        color: #64748b;
+        margin: 0 0 24px;
+        line-height: 1.5;
+    }
+
+    .banner-quick-links {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .banner-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: white;
+        border: 2px solid #1B3A57;
+        color: #1B3A57;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .banner-btn:hover {
+        background: #1B3A57;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(27, 58, 87, 0.15);
+    }
+
+    .banner-btn-ghost {
+        background: transparent;
+        border-color: transparent;
+        color: #64748b;
+    }
+
+    .banner-btn-ghost:hover {
+        background: rgba(27, 58, 87, 0.1);
+        color: #1B3A57;
+    }
+
+    .datetime-block {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 32px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+    }
+
+    .search-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 32px;
+    }
+
+    .search-panel-inner {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        gap: 12px;
+    }
+
+    .search-icon-wrap {
+        color: #94a3b8;
+    }
+
+    .search-panel-inner input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 14px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .search-hint-badge {
+        font-size: 11px;
+        background: #f1f5f9;
+        color: #64748b;
+        padding: 4px 8px;
+        border-radius: 4px;
+        white-space: nowrap;
+    }
+
+    .stats-wrapper {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        display: flex;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: white;
+    }
+
+    .accent-primary .stat-icon {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .accent-info .stat-icon {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .accent-success .stat-icon {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .accent-warning .stat-icon {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #94a3b8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #1B3A57;
+        margin-bottom: 4px;
+    }
+
+    .stat-sub {
+        font-size: 12px;
+        color: #cbd5e1;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .info-card-header {
+        display: flex;
+        align-items: center;
+    }
+
+    .info-card-header h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+        color: #1B3A57;
+    }
+
+    @media (max-width: 768px) {
+        .welcome-banner {
+            grid-template-columns: 1fr;
+        }
+
+        .banner-left h1 {
+            font-size: 32px;
+        }
+
+        .stats-wrapper {
+            grid-template-columns: 1fr;
+        }
+
+        .home-wrapper {
+            padding: 20px;
+        }
+    }
+
+    /* User pages use the same visual language as the admin console. */
+    .home-wrapper {
+        margin: 40px auto;
+        padding: 0 30px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .welcome-banner {
+        background: transparent;
+        gap: 32px;
+        margin-bottom: 32px;
+    }
+
+    .banner-left h1 {
+        color: #1B3A57;
+        font-size: 34px;
+        letter-spacing: 0;
+    }
+
+    .system-tag {
+        color: #64748b;
+        letter-spacing: 0.5px;
+    }
+
+    .system-tag-dot {
+        background: #10b981;
+    }
+
+    .datetime-block {
+        background: #1B3A57;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(27, 58, 87, 0.12);
+    }
+
+    .search-panel,
+    .panel,
+    .stat-card,
+    .info-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .stat-card {
+        align-items: center;
+        border-left: 5px solid #1B3A57;
+        padding: 24px;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(27, 58, 87, 0.08);
+    }
+
+    .stat-icon,
+    .accent-primary .stat-icon,
+    .accent-info .stat-icon,
+    .accent-success .stat-icon,
+    .accent-warning .stat-icon {
+        background: #eff6ff;
+        color: #2e86c1;
+        border-radius: 12px;
+    }
+
+    .accent-info { border-left-color: #d97706; }
+    .accent-info .stat-icon { background: #fffbeb; color: #d97706; }
+    .accent-success { border-left-color: #10b981; }
+    .accent-success .stat-icon { background: #f0fdf4; color: #16a34a; }
+    .accent-warning { border-left-color: #3498db; }
+
+    .stat-value {
+        color: #1e293b;
+        font-size: 26px;
+    }
+
+    .stat-sub {
+        color: #64748b;
+    }
+
+    .info-card,
+    .info-card[style] {
+        background: white !important;
+        color: #334155 !important;
+    }
+
+    .info-card-header,
+    .info-card-header[style] {
+        border-bottom-color: #e2e8f0 !important;
+    }
+
+    .info-card h3,
+    .info-card h3[style] {
+        color: #1B3A57 !important;
+    }
+
+    .info-card li,
+    .info-card p,
+    .info-card p[style] {
+        color: #334155 !important;
+    }
+
+    .banner-btn {
+        border-radius: 10px;
+        border-color: #1B3A57;
+    }
+
+    .banner-btn:not(.banner-btn-ghost) {
+        background: #1B3A57;
+        color: white;
+    }
+
+    .banner-btn-ghost {
+        background: white;
+        border-color: #e2e8f0;
+        color: #1B3A57;
+    }
+
+    .banner-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(27, 58, 87, 0.14);
+    }
+</style>
+
+<script>
+    // Initialize live clock
+    function updateDateTime() {
+        const now = new Date();
+        const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        const day = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('live-clock').textContent = time;
+        document.getElementById('live-day').textContent = day;
+    }
+
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+
+    // Search functionality
+    const searchBox = document.getElementById('searchBox');
+    const resultsContainer = document.getElementById('searchResultsContainer');
+    const resultsBody = document.getElementById('resultsBody');
+    const suggestionsDiv = document.getElementById('suggestions');
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[char]));
+
+    searchBox.addEventListener('input', async (e) => {
+        const query = e.target.value.trim();
+        if (!query) {
+            suggestionsDiv.innerHTML = '';
+            resultsContainer.style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/search_residents?q=${encodeURIComponent(query)}`);
+            const results = await response.json();
+            
+            if (results.length > 0) {
+                resultsContainer.style.display = 'block';
+                resultsBody.innerHTML = results.map(r => `
+                    <tr>
+                        <td style="padding: 12px;">${escapeHtml(r.type)}</td>
+                        <td style="padding: 12px;">${escapeHtml(r.name)}</td>
+                        <td style="padding: 12px;">${escapeHtml(r.details)}</td>
+                        <td style="padding: 12px; text-align: right;">
+                            <a href="${escapeHtml(r.url)}" style="background: #ecfdf5; color: #059669; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: 700; text-decoration: none;">View</a>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                resultsContainer.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+        }
+    });
+
+    // Initialize lucide icons
+    if (typeof lucide !== 'undefined') {
+        setTimeout(() => lucide.createIcons(), 100);
+    }
+</script>
+{% endblock %}
