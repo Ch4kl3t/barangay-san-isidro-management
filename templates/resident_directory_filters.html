@@ -1,13 +1,7 @@
-<form method="get" class="directory-filter-grid" aria-label="Resident directory filters">
-  <input type="hidden" name="page_size" value="{{ page_size }}">
-  {% for key in ['search','q','resident_id'] %}{% if request.args.get(key) %}<input type="hidden" name="{{ key }}" value="{{ request.args[key] }}">{% endif %}{% endfor %}
-  <label for="directoryStatus">Status<select name="status" id="directoryStatus"><option value="">Active and deceased</option>{% for v in ['Active','Deceased'] %}<option value="{{ v }}" {{ 'selected' if request.args.get('status')==v }}>{{ v }}</option>{% endfor %}</select></label>
-  <label for="directoryGender">Gender<select name="gender" id="directoryGender"><option value="">All genders</option>{% for v in ['Male','Female','Not recorded'] %}<option value="{{ v }}" {{ 'selected' if request.args.get('gender')==v }}>{{ v }}</option>{% endfor %}</select></label>
-  <label for="directoryAgeMin">Minimum age<input name="age_min" id="directoryAgeMin" type="number" min="0" max="130" value="{{ request.args.get('age_min','') }}"></label>
-  <label for="directoryAgeMax">Maximum age<input name="age_max" id="directoryAgeMax" type="number" min="0" max="130" value="{{ request.args.get('age_max','') }}"></label>
-  <label for="directoryHousehold">Household<select name="household_id" id="directoryHousehold"><option value="">All households</option>{% for h in filter_households %}<option value="{{ h.id }}" {{ 'selected' if request.args.get('household_id')==h.id|string }}>{{ h.surname }} · House {{ h.house_number or 'Not recorded' }}</option>{% endfor %}</select></label>
-  <label for="directoryCivil">Civil status<select name="civil_status" id="directoryCivil"><option value="">All civil statuses</option>{% for v in ['Single','Married','Widowed','Separated','Not recorded'] %}<option value="{{ v }}" {{ 'selected' if request.args.get('civil_status')==v }}>{{ v }}</option>{% endfor %}</select></label>
-  {% for key in ['month','year','date_from','date_to','date_basis','scope'] %}{% if request.args.get(key) %}<input type="hidden" name="{{ key }}" value="{{ request.args[key] }}">{% endif %}{% endfor %}
-  <div class="directory-filter-actions"><button type="submit" class="btn-submit">Apply Filters</button><a href="{{ url_for('view_members') }}" class="btn-back">Reset Filters</a></div>
-  <p class="filter-state" role="status">{% if request.args.get('status') or request.args.get('gender') or request.args.get('age_min') or request.args.get('age_max') or request.args.get('household_id') or request.args.get('civil_status') %}Filters applied to {{ total }} matching residents.{% else %}All statuses, genders, ages, households and civil statuses.{% endif %} Ages for deceased residents use their recorded death date.</p>
+<form method="get" class="compact-directory-toolbar" aria-label="Resident directory search and filters">
+ <input type="hidden" name="page_size" value="{{ page_size }}">
+ <div class="search-wrapper"><label class="sr-only" for="member-search">Resident name or ID</label><input type="search" name="search" id="member-search" value="{{ keyword }}" placeholder="Resident name or ID" autocomplete="off"><div id="member-suggestions" class="suggestions-panel" hidden></div></div>
+ <label for="directoryGender">Gender<select name="gender" id="directoryGender"><option value="">All</option>{% for value in ['Male','Female'] %}<option value="{{ value }}" {{ 'selected' if request.args.get('gender')==value }}>{{ value }}</option>{% endfor %}</select></label>
+ <label for="directoryStatus">Status<select name="status" id="directoryStatus"><option value="">All</option>{% for value in ['Active','Deceased'] %}<option value="{{ value }}" {{ 'selected' if request.args.get('status')==value }}>{{ value }}</option>{% endfor %}</select></label>
+ <button type="submit">Search</button><a href="{{ url_for('view_members') }}">Clear</a>
 </form>

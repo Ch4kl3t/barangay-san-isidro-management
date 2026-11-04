@@ -5,6 +5,14 @@ migration, seed import, credential change, deployment or push performed.
 The owner's 30 households / 120 residents / 110 active / 10 deceased inventory
 is owner-reported evidence. It was not independently queried here.
 
+Follow-up after owner-reported deployment of `89c74ed`: compact directory search
+toolbars, independent 10-row Analytics pages with full-set totals/charts, clearer
+optional head controls, and early background/CSS loading are prepared. The exact
+application candidate passed 94 focused tests (6.28 seconds), Python syntax and
+JavaScript syntax checks. Live hosted visual acceptance remains to be performed;
+no database connection, migration or deployment occurred. `RELEASE-FILES.txt` now
+lists the 18 paths for this follow-up. Optional 007 remains unapplied and unverified.
+
 ## Immediate application release: no migration required
 
 Release the interface, filters, age/pagination fixes, safe feedback and workflow changes
@@ -24,7 +32,7 @@ directory and independently passed the same 72 tests (2.96 seconds), Python synt
 and all JavaScript syntax checks. No ignored or unrelated workspace file was needed.
 The temporary candidate was removed after verification.
 
-`RELEASE-FILES.txt` is the exact 49-path commit allowlist. It includes the refinement,
+The original `89c74ed` release contained 49 approved paths. It included the refinement,
 focused self-contained tests, inert optional SQL/tests for future validation, and prior
 safety changes retiring nine obsolete connection/bootstrap helpers and three legacy
 schema scripts. The existing administrator-only user-deletion regression is included.

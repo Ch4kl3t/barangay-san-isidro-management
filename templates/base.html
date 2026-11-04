@@ -1,156 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barangay Information System</title>
+{% include 'early_paint.html' %}
     <script src="{{ url_for('static',filename='js/appearance.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+
     <!-- Local Lucide Icons - Works Offline -->
-    <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}"></script>
+    <script src="{{ url_for('static', filename='icons/lucide-icons.js') }}" defer></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
 <script src="{{ url_for('static',filename='js/record-combobox.js') }}" defer></script>
 
 <script src="{{ url_for('static',filename='js/lucide-refresh.js') }}" defer></script>
-</head>
-
-<body class="admin-workspace">
-
-<header class="top-header">
-    <div class="header-left">
-        <button id="burger-btn" aria-label="Toggle Navigation">
-            <i data-lucide="menu"></i>
-        </button>
-        <div class="brand-group">
-            <div class="brand-badge">BIS</div>
-            <h1 class="header-title">Barangay Information System</h1>
-        </div>
-    </div>
-
-    <div class="header-right">
-        <a href="{{ url_for('profile') }}" class="user-pill" aria-label="My account" style="text-decoration: none; cursor: pointer;">
-            <span class="user-name">{{ session.get('username', 'Administrator') }}</span>
-            <div class="user-icon-bg">
-                <i data-lucide="user"></i>
-            </div>
-        </a>
-    </div>
-</header>
-
-<div id="sidebar-overlay"></div>
-
-<nav class="sidebar" id="sidebar">
-    <div class="sidebar-inner">
-        <ul class="sidebar-menu">
-            <li class="menu-category">Main Console</li>
-            <li>
-                <a href="{{ url_for('home') }}" class="menu-link">
-                    <i data-lucide="home"></i>
-                    <span style="margin-left: 16px;">Home</span>
-                </a>
-            </li>
-
-            <li class="menu-category">Analytics</li>
-            <li>
-                <a href="{{ url_for('analytics', **{'as': 'admin'}) }}" class="menu-link">
-                    <i data-lucide="bar-chart-2"></i>
-                    <span style="margin-left: 16px;">Dashboard</span>
-                </a>
-            </li>
-
-            <li class="menu-category">Data Management</li>
-            
-            <li class="dropdown" style="margin-bottom: 12px;"> 
-                <a href="javascript:void(0)" class="dropdown-toggle">
-                    <div class="menu-item-content">
-                        <i data-lucide="users"></i>
-                        <span style="margin-left: 16px;">Residents</span>
-                    </div>
-                    <i data-lucide="chevron-down" class="dropdown-icon"></i>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a href="{{ url_for('view_members') }}">
-                            <i data-lucide="list"></i>
-                            <span>View Residents</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('add_member') }}">
-                            <i data-lucide="user-plus"></i>
-                            <span>Add Resident</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="dropdown" style="margin-bottom: 12px;">
-                <a href="javascript:void(0)" class="dropdown-toggle">
-                    <div class="menu-item-content">
-                        <i data-lucide="building-2"></i>
-                        <span style="margin-left: 16px;">Households</span>
-                    </div>
-                    <i data-lucide="chevron-down" class="dropdown-icon"></i>
-                </a>
-                <ul class="submenu">
-                    <li>
-                        <a href="{{ url_for('view_households') }}">
-                            <i data-lucide="list"></i>
-                            <span>View Households</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('add_household') }}">
-                            <i data-lucide="plus-square"></i>
-                            <span>Add Household</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="menu-category">Reports & Logs</li>
-            <li>
-                <a href="{{ url_for('print_reports') }}" class="menu-link">
-                    <i data-lucide="printer"></i>
-                    <span style="margin-left: 16px;">Print Reports</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url_for('audit_log') }}" class="menu-link">
-                    <i data-lucide="shield-check"></i>
-                    <span style="margin-left: 16px;">Audit Log</span>
-                </a>
-            </li>
-
-
-
-            <li class="menu-category" style="margin-top: 20px;">Account</li>
-            <li>
-                <a href="{{ url_for('profile') }}" class="menu-link">
-                    <i data-lucide="user"></i>
-                    <span style="margin-left: 16px;">My Profile</span>
-                </a>
-            </li>
-
-            <li class="logout-section">
-                <a href="{{ url_for('logout') }}" class="menu-link logout-btn">
-                    <i data-lucide="log-out"></i>
-                    <span style="margin-left: 16px;">Sign Out</span>
-                </a>
-            </li>
-        </ul>
-    </div>
-</nav>
-
-<main id="main-content">
-<div class="office-feedback-region" aria-label="Application messages">
-    {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}{% if category in ['resident_registered','household_registered'] %}{% set registration_kind = 'resident' if category == 'resident_registered' else 'household' %}{% include 'resident_registration_success.html' %}{% else %}<div class="office-feedback {{ 'error' if category in ['danger','error'] else category if category in ['success','warning','info'] else 'info' }}" role="{{ 'alert' if category in ['danger','error','warning'] else 'status' }}"><strong>{{ 'Error' if category in ['danger','error'] else category|capitalize if category in ['success','warning','info'] else 'Information' }}</strong><span>{{ message }}</span><button type="button" data-dismiss-feedback aria-label="Dismiss message">×</button></div>{% endif %}{% endfor %}{% endwith %}
-</div>
-{% block content %}{% endblock %}
-</main>
-
+<link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <style>
     :root {
         --bis-navy: #1B3A57;
@@ -335,7 +201,7 @@
         height: 100%;
         background: rgba(0, 0, 0, 0.4);
         backdrop-filter: blur(2px);
-        display: none; 
+        display: none;
         z-index: 1500;
     }
     body.sidebar-open #sidebar-overlay { display: block; }
@@ -345,6 +211,153 @@
         min-height: 100vh;
     }
 </style>
+{% block page_styles %}{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/report-center.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/workflow-polish.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/portal-admin-polish.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/controlled-admin-ui.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/workspace-refinement.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/appearance.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/report-builder.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/defense-refinement.css') }}">
+</head>
+
+<body class="admin-workspace">
+
+<header class="top-header">
+    <div class="header-left">
+        <button id="burger-btn" aria-label="Toggle Navigation">
+            <i data-lucide="menu"></i>
+        </button>
+        <div class="brand-group">
+            <div class="brand-badge">BIS</div>
+            <h1 class="header-title">Barangay Information System</h1>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <a href="{{ url_for('profile') }}" class="user-pill" aria-label="My account" style="text-decoration: none; cursor: pointer;">
+            <span class="user-name">{{ session.get('username', 'Administrator') }}</span>
+            <div class="user-icon-bg">
+                <i data-lucide="user"></i>
+            </div>
+        </a>
+    </div>
+</header>
+
+<div id="sidebar-overlay"></div>
+
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+        <ul class="sidebar-menu">
+            <li class="menu-category">Main Console</li>
+            <li>
+                <a href="{{ url_for('home') }}" class="menu-link">
+                    <i data-lucide="home"></i>
+                    <span style="margin-left: 16px;">Home</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Analytics</li>
+            <li>
+                <a href="{{ url_for('analytics', **{'as': 'admin'}) }}" class="menu-link">
+                    <i data-lucide="bar-chart-2"></i>
+                    <span style="margin-left: 16px;">Dashboard</span>
+                </a>
+            </li>
+
+            <li class="menu-category">Data Management</li>
+
+            <li class="dropdown" style="margin-bottom: 12px;">
+                <a href="javascript:void(0)" class="dropdown-toggle">
+                    <div class="menu-item-content">
+                        <i data-lucide="users"></i>
+                        <span style="margin-left: 16px;">Residents</span>
+                    </div>
+                    <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{{ url_for('view_members') }}">
+                            <i data-lucide="list"></i>
+                            <span>View Residents</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_member') }}">
+                            <i data-lucide="user-plus"></i>
+                            <span>Add Resident</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="dropdown" style="margin-bottom: 12px;">
+                <a href="javascript:void(0)" class="dropdown-toggle">
+                    <div class="menu-item-content">
+                        <i data-lucide="building-2"></i>
+                        <span style="margin-left: 16px;">Households</span>
+                    </div>
+                    <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href="{{ url_for('view_households') }}">
+                            <i data-lucide="list"></i>
+                            <span>View Households</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('add_household') }}">
+                            <i data-lucide="plus-square"></i>
+                            <span>Add Household</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu-category">Reports & Logs</li>
+            <li>
+                <a href="{{ url_for('print_reports') }}" class="menu-link">
+                    <i data-lucide="printer"></i>
+                    <span style="margin-left: 16px;">Print Reports</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('audit_log') }}" class="menu-link">
+                    <i data-lucide="shield-check"></i>
+                    <span style="margin-left: 16px;">Audit Log</span>
+                </a>
+            </li>
+
+
+
+            <li class="menu-category" style="margin-top: 20px;">Account</li>
+            <li>
+                <a href="{{ url_for('profile') }}" class="menu-link">
+                    <i data-lucide="user"></i>
+                    <span style="margin-left: 16px;">My Profile</span>
+                </a>
+            </li>
+
+            <li class="logout-section">
+                <a href="{{ url_for('logout') }}" class="menu-link logout-btn">
+                    <i data-lucide="log-out"></i>
+                    <span style="margin-left: 16px;">Sign Out</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<main id="main-content">
+<div class="office-feedback-region" aria-label="Application messages">
+    {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}{% if category in ['resident_registered','household_registered'] %}{% set registration_kind = 'resident' if category == 'resident_registered' else 'household' %}{% include 'resident_registration_success.html' %}{% else %}<div class="office-feedback {{ 'error' if category in ['danger','error'] else category if category in ['success','warning','info'] else 'info' }}" role="{{ 'alert' if category in ['danger','error','warning'] else 'status' }}"><strong>{{ 'Error' if category in ['danger','error'] else category|capitalize if category in ['success','warning','info'] else 'Information' }}</strong><span>{{ message }}</span><button type="button" data-dismiss-feedback aria-label="Dismiss message">×</button></div>{% endif %}{% endfor %}{% endwith %}
+</div>
+{% block content %}{% endblock %}
+</main>
+
+
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -352,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof loadIcons === 'function') {
         loadIcons();
     }
-    
+
     // Also try lucide.createIcons() as fallback
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -414,15 +427,15 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static',filename='css/report-center.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/workflow-polish.css') }}">
+
 <script src="{{ url_for('static',filename='js/report-center.js') }}" defer></script><script src="{{ url_for('static',filename='js/workflow-polish.js') }}" defer></script>
-<link rel="stylesheet" href="{{ url_for('static',filename='css/portal-admin-polish.css') }}">
-<link rel="stylesheet" href="{{ url_for('static',filename='css/controlled-admin-ui.css') }}">
-<link rel="stylesheet" href="{{ url_for('static',filename='css/workspace-refinement.css') }}">
-<link rel="stylesheet" href="{{ url_for('static',filename='css/appearance.css') }}">
+
+
+
+
 <script src="{{ url_for('static',filename='js/automatic-filters.js') }}" defer></script>
-<link rel="stylesheet" href="{{ url_for('static',filename='css/report-builder.css') }}">
-<link rel="stylesheet" href="{{ url_for('static',filename='css/defense-refinement.css') }}">
+
+
 <script src="{{ url_for('static',filename='js/defense-refinement.js') }}" defer></script>
 </body>
 </html>

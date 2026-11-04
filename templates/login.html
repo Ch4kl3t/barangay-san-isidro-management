@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% include 'early_paint.html' %}
     <title>Login - Barangay Management System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
     <script src="{{ url_for('static', filename='js/appearance.js') }}"></script>
@@ -43,7 +44,6 @@
             width: 420px;
             max-width: 90%;
             text-align: center;
-            animation: fadeIn 0.5s ease-out;
         }
 
         .login-header {
@@ -222,8 +222,9 @@
     </style>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="{{ url_for('static',filename='js/ui_bridge.js') }}" defer></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/login-lovable.css') }}">
+
 <script src="{{ url_for('static', filename='js/login-lovable.js') }}" defer></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login-lovable.css') }}">
 </head>
 <body class="login-experience">
 <main class="login-layout">

@@ -326,10 +326,13 @@ def test_directory_filter_controls_are_server_rendered_and_preserve_active_value
         elif query.startswith('SELECT id,surname,house_number FROM households'):role_store.rows=list(role_store.homes.values())
     role_store.execute=execute
     html=client.get('/view_members?status=Active&gender=Female&age_min=20&age_max=40&household_id=1&civil_status=Single&search=Fictional').text
-    assert 'Resident directory filters' in html and 'Filters applied to 1' in html
-    for name in ['status','gender','age_min','age_max','household_id','civil_status']:
+    assert 'Resident directory search and filters' in html and '1 matching' in html
+    for name in ['status','gender']:
         assert 'name="'+name+'"' in html
-    assert 'value="20"' in html and 'value="40"' in html and 'Reset Filters' in html
+    for name in ['age_min','age_max','household_id','civil_status']:
+        toolbar=html.split('aria-label="Resident directory search and filters"',1)[1].split('</form>',1)[0]
+        assert 'name="'+name+'"' not in toolbar
+    assert '>Clear</a>' in html
     assert 'PRIVATE HEALTH SENTINEL' not in html and 'data-label' not in html  # Added progressively by JS.
     assert not any('mental_health_status' in q for q,p in role_store.executed)
 

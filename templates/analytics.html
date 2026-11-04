@@ -1,315 +1,9 @@
 {% extends "user_base.html" if session.get('role') == 'user' else "base.html" %}
 
-{% block content %}
+{% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/analytics-improvements.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/search-analytics-refinement.css') }}">
-<div class="analytics-wrapper admin-ui-consistency admin-page-shell" data-no-table-expand>
-
-    <!-- Top Bar -->
-    <div class="top-bar admin-page-header">
-        <div class="top-bar-left">
-            <span class="admin-page-eyebrow">Records / Analytics</span>
-            <h1 class="page-title">Analytics <span class="page-title-accent">Dashboard</span></h1>
-            <p class="page-subtitle">Comprehensive statistics and demographic analysis of your barangay.</p>
-        </div>
-        <div class="top-bar-right">
-            <div class="datetime-pill">
-                <i data-lucide="clock" style="width:13px;height:13px;"></i>
-                <span id="live-clock"></span>
-                <span class="datetime-sep">·</span>
-                <span id="live-day"></span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Metric Cards -->
-    <p id="dashboardScope" role="status">Resident totals include Active and Deceased. Household totals include empty homes. Apply filters below.</p>
-<div class="metrics-row">
-        <div class="metric-card metric-dark stat-btn active" data-stat="total">
-            <div class="metric-card-bg-icon"><i data-lucide="users" style="width:72px;height:72px;"></i></div>
-            <div class="metric-label">Total Residents</div>
-            <div class="metric-value" id="statTotal">—</div>
-            <div class="metric-sub">Matching Active + Deceased residents</div>
-        </div>
-        <div class="metric-card metric-light stat-btn" data-stat="male">
-            <div class="metric-card-bg-icon"><i data-lucide="user" style="width:72px;height:72px;"></i></div>
-            <div class="metric-label">Male</div>
-            <div class="metric-value" id="statMale">—</div>
-            <div class="metric-sub">Registered males</div>
-        </div>
-        <div class="metric-card metric-light stat-btn" data-stat="female">
-            <div class="metric-card-bg-icon"><i data-lucide="user" style="width:72px;height:72px;"></i></div>
-            <div class="metric-label">Female</div>
-            <div class="metric-value" id="statFemale">—</div>
-            <div class="metric-sub">Registered females</div>
-        </div>
-        <div class="metric-card metric-light stat-btn" data-stat="deceased">
-            <div class="metric-card-bg-icon"><i data-lucide="alert-circle" style="width:72px;height:72px;"></i></div>
-            <div class="metric-label">Deceased</div>
-            <div class="metric-value" id="statDeceased">—</div>
-            <div class="metric-sub">Deceased within resident filters</div>
-        </div>
-    </div>
-
-    <!-- Filter Bar -->
-    <div class="filter-bar-card">
-        <div class="filter-bar-inner">
-            <div class="filter-bar-group">
-                <span class="filter-bar-label">
-                    <i data-lucide="filter"></i>
-                    Filters
-                </span>
-                <div class="filter-inline">
-                    <label>Trend by</label>
-                    <div class="select-wrapper">
-                        <select id="filterEvent"><option value="registered">Registered date</option><option value="death">Reported death date</option><option value="deleted">Deletion event date</option></select><input type="hidden" id="filterActivity" value="registered"><input type="hidden" id="filterDateBasis" value="registered">
-                        <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
-                    </div>
-                </div>
-                <div class="filter-inline">
-                    <label>Gender</label>
-                    <div class="select-wrapper">
-                        <select id="filterGender">
-                            <option value="">All Genders</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                        </select>
-                        <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
-                    </div>
-                </div>
-                <div class="filter-inline">
-                    <label>Status</label>
-                    <div class="select-wrapper">
-                        <select id="filterStatus">
-                            <option value="">All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Deceased">Deceased</option>
-                        </select>
-                        <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
-                    </div>
-                </div>
-                <div class="filter-inline">
-                    <label>Event month</label>
-                    <div class="select-wrapper">
-                        <select id="filterMonth">
-                            <option value="">All Months</option>
-                            <option value="01">January</option>
-                            <option value="02">February</option>
-                            <option value="03">March</option>
-                            <option value="04">April</option>
-                            <option value="05">May</option>
-                            <option value="06">June</option>
-                            <option value="07">July</option>
-                            <option value="08">August</option>
-                            <option value="09">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
-                        <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
-                    </div>
-                </div>
-<div class="filter-inline"><label for="filterYear">Year</label><div class="select-wrapper"><input id="filterYear" type="number" min="1900" max="2200" placeholder="All years" aria-label="Trend year, blank for all years"></div></div>
-            </div>
-            <div class="filter-bar-actions">
-                <button id="applyFilters" class="btn-apply" hidden>
-                    <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
-                    Retry loading
-                </button>
-                <button id="resetFilters" class="btn-reset">
-                    <i data-lucide="x" style="width:13px;height:13px;"></i>
-                    Reset Filters
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resident Statistics Line Chart — full width -->
-    <div class="chart-card">
-        <div class="chart-card-header">
-            <div class="chart-title-group">
-                <h2 class="chart-card-title" id="chartTitle">Total Residents Statistics</h2>
-                <p class="chart-card-sub" id="chartSub">Monthly registration breakdown — deceased uses date marked deceased</p>
-            </div>
-            <div class="chart-stat-tabs" id="chartStatTabs">
-                <button class="chart-stat-tab active" data-stat="total">Total</button>
-                <button class="chart-stat-tab" data-stat="male">Male</button>
-                <button class="chart-stat-tab" data-stat="female">Female</button>
-                <button class="chart-stat-tab" data-stat="deceased">Deceased</button>
-            </div>
-        </div>
-        <div class="chart-body chart-body-wide">
-            <canvas id="mainLineChart"></canvas>
-        </div>
-        <div class="chart-legend">
-            <span class="legend-item">
-                <span class="legend-line" id="legendLine"></span>
-                <span id="legendLabel">Total Residents</span>
-            </span>
-            <span class="legend-item">
-                <span class="legend-line legend-dashed"></span>
-                No comparison data
-            </span>
-        </div>
-    </div>
-
-    <!-- Resident Details Table — full width, below chart -->
-    <div class="table-card">
-        <div class="table-card-header">
-            <span class="table-title-icon">
-                <i data-lucide="list" style="width:16px;height:16px;"></i>
-            </span>
-            <div class="table-header-text">
-                <h2>Resident Details</h2>
-                <p>Registration · death date · household · address</p>
-            </div>
-        </div>
-        <div class="table-scroll">
-            <table id="detailsTable">
-                <thead>
-                    <tr>
-                        <th>Full Name</th>
-                        <th>Age</th>
-                        <th>Gender</th>
-                        <th>Status</th>
-                        <th>Household</th>
-                        <th>Birthdate</th>
-                        <th>Registered</th>
-                        <th>Date of Death</th>
-                        <th>Address</th>
-                    </tr>
-                </thead>
-                <tbody id="detailsTableBody">
-                    <tr>
-                        <td colspan="9" class="table-empty">
-                            <i data-lucide="loader" style="width:18px;height:18px;"></i>
-                            Loading data...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ═══════════════════════════════════
-         HOUSEHOLD ANALYTICS SECTION
-    ════════════════════════════════════ -->
-    <div class="section-divider">
-        <span class="section-divider-label">
-            <i data-lucide="home" style="width:13px;height:13px;"></i>
-            Household Analytics
-        </span>
-    </div>
-
-    <!-- Household Stat Cards -->
-    <div class="metrics-row">
-        <div class="metric-card metric-dark household-card" data-household-card="total" role="button" tabindex="0" aria-pressed="false">
-            <div class="metric-card-bg-icon"><i data-lucide="home" style="width:72px;height:72px;"></i></div>
-            <div class="metric-label">Total Households</div>
-            <div class="metric-value" id="hhTotal">—</div>
-            <div class="metric-sub">Unique households</div>
-        </div>
-        <div class="metric-card metric-light household-card" data-household-card="average" role="button" tabindex="0" aria-pressed="false">
-            <div class="metric-card-bg-icon"><i data-lucide="users" style="width:72px;height:72px;"></i></div>
-            <div class="metric-label">Avg Members</div>
-            <div class="metric-value" id="hhAvg">—</div>
-            <div class="metric-sub">Per household</div>
-        </div>
-        <div class="metric-card metric-light household-card" data-household-card="largest" role="button" tabindex="0" aria-pressed="false">
-            <div class="metric-card-bg-icon"><i data-lucide="star" style="width:72px;height:72px;"></i></div>
-            <div class="metric-label">Largest Household</div>
-            <div class="metric-value" id="hhLargestCount">—</div>
-            <div class="metric-sub" id="hhLargestName">members</div>
-        </div>
-        <div class="metric-card metric-light household-card" data-household-card="single" role="button" tabindex="0" aria-pressed="false">
-            <div class="metric-card-bg-icon"><i data-lucide="user-check" style="width:72px;height:72px;"></i></div>
-            <div class="metric-label">Single-Member</div>
-            <div class="metric-value" id="hhSingle">—</div>
-            <div class="metric-sub">Households with 1 member</div>
-        </div>
-    </div>
-
-    <!-- Household Bar Chart (full width) -->
-    <div class="chart-card">
-        <div class="chart-card-header">
-            <div class="chart-title-group">
-                <h2 class="chart-card-title" id="householdChartTitle">Active residents per household</h2>
-                <p class="chart-card-sub">Top households by selected count; empty homes remain in the full breakdown below</p>
-            </div>
-            <div class="hh-header-right">
-                <div class="select-wrapper">
-                    <select id="filterHousehold">
-                        <option value="">All Households</option>
-                    </select>
-                    <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
-                </div>
-                <div class="select-wrapper">
-                    <select id="filterHouseholdMonth">
-                        <option value="">All Registration Months</option>
-                        <option value="01">January</option>
-                        <option value="02">February</option>
-                        <option value="03">March</option>
-                        <option value="04">April</option>
-                        <option value="05">May</option>
-                        <option value="06">June</option>
-                        <option value="07">July</option>
-                        <option value="08">August</option>
-                        <option value="09">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                    </select>
-                    <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
-                </div>
-                <div class="chart-stat-tabs">
-                    <button class="chart-stat-tab hh-tab" data-hh="members">All recorded members</button>
-                    <button class="chart-stat-tab active hh-tab" data-hh="active">Active residents</button>
-                    <button class="chart-stat-tab hh-tab" data-hh="deceased">Deceased</button>
-                </div>
-            </div>
-        </div>
-        <div class="hh-chart-controls"><label for="householdOrientation" hidden>Chart orientation <select id="householdOrientation"><option value="y">Horizontal</option></select></label><label for="householdLimit">Households shown <select id="householdLimit"><option>10</option><option>20</option></select></label><label for="filterHouseholdYear">Household registration year <input id="filterHouseholdYear" type="number" min="1900" max="2200" placeholder="All years"></label></div><p id="householdChartScope" class="chart-card-sub" style="padding:0 24px" aria-live="polite"></p><div class="chart-body chart-body-hh">
-            <canvas id="householdBarChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Household Details Table (full width) -->
-    <div class="table-card">
-        <div class="table-card-header">
-            <span class="table-title-icon">
-                <i data-lucide="home" style="width:16px;height:16px;"></i>
-            </span>
-            <div class="table-header-text">
-                <h2>Household Breakdown</h2>
-                <p>All households · member counts · registration date · demographics</p>
-            </div>
-        </div>
-        <div class="table-scroll">
-            <table id="hhTable">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Household Name</th>
-                        <th>House No.</th>
-                        <th>Address</th>
-                        <th>Total Members</th>
-                        <th>Active</th>
-                        <th>Deceased</th>
-                        <th>Male</th>
-                        <th>Female</th>
-                        <th>Registered</th>
-                    </tr>
-                </thead>
-                <tbody id="hhTableBody">
-                    <tr><td colspan="10" class="table-empty">Loading...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-</div><!-- .analytics-wrapper -->
-
 <style>
 html, body {
     margin: 0; padding: 0;
@@ -604,8 +298,321 @@ body > #main {
     .metric-value { font-size: 28px; }
 }
 </style>
+{% endblock %}
+{% block content %}
+
+
+
+<div class="analytics-wrapper admin-ui-consistency admin-page-shell" data-no-table-expand>
+
+    <!-- Top Bar -->
+    <div class="top-bar admin-page-header">
+        <div class="top-bar-left">
+            <span class="admin-page-eyebrow">Records / Analytics</span>
+            <h1 class="page-title">Analytics <span class="page-title-accent">Dashboard</span></h1>
+            <p class="page-subtitle">Comprehensive statistics and demographic analysis of your barangay.</p>
+        </div>
+        <div class="top-bar-right">
+            <div class="datetime-pill">
+                <i data-lucide="clock" style="width:13px;height:13px;"></i>
+                <span id="live-clock"></span>
+                <span class="datetime-sep">·</span>
+                <span id="live-day"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <p id="dashboardScope" role="status">Resident totals include Active and Deceased. Household totals include empty homes. Apply filters below.</p>
+<div class="metrics-row">
+        <div class="metric-card metric-dark stat-btn active" data-stat="total">
+            <div class="metric-card-bg-icon"><i data-lucide="users" style="width:72px;height:72px;"></i></div>
+            <div class="metric-label">Total Residents</div>
+            <div class="metric-value" id="statTotal">—</div>
+            <div class="metric-sub">Matching Active + Deceased residents</div>
+        </div>
+        <div class="metric-card metric-light stat-btn" data-stat="male">
+            <div class="metric-card-bg-icon"><i data-lucide="user" style="width:72px;height:72px;"></i></div>
+            <div class="metric-label">Male</div>
+            <div class="metric-value" id="statMale">—</div>
+            <div class="metric-sub">Registered males</div>
+        </div>
+        <div class="metric-card metric-light stat-btn" data-stat="female">
+            <div class="metric-card-bg-icon"><i data-lucide="user" style="width:72px;height:72px;"></i></div>
+            <div class="metric-label">Female</div>
+            <div class="metric-value" id="statFemale">—</div>
+            <div class="metric-sub">Registered females</div>
+        </div>
+        <div class="metric-card metric-light stat-btn" data-stat="deceased">
+            <div class="metric-card-bg-icon"><i data-lucide="alert-circle" style="width:72px;height:72px;"></i></div>
+            <div class="metric-label">Deceased</div>
+            <div class="metric-value" id="statDeceased">—</div>
+            <div class="metric-sub">Deceased within resident filters</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar-card">
+        <div class="filter-bar-inner">
+            <div class="filter-bar-group">
+                <span class="filter-bar-label">
+                    <i data-lucide="filter"></i>
+                    Filters
+                </span>
+                <div class="filter-inline">
+                    <label>Trend by</label>
+                    <div class="select-wrapper">
+                        <select id="filterEvent"><option value="registered">Registered date</option><option value="death">Reported death date</option><option value="deleted">Deletion event date</option></select><input type="hidden" id="filterActivity" value="registered"><input type="hidden" id="filterDateBasis" value="registered">
+                        <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
+                    </div>
+                </div>
+                <div class="filter-inline">
+                    <label>Gender</label>
+                    <div class="select-wrapper">
+                        <select id="filterGender">
+                            <option value="">All Genders</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                        <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
+                    </div>
+                </div>
+                <div class="filter-inline">
+                    <label>Status</label>
+                    <div class="select-wrapper">
+                        <select id="filterStatus">
+                            <option value="">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Deceased">Deceased</option>
+                        </select>
+                        <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
+                    </div>
+                </div>
+                <div class="filter-inline">
+                    <label>Event month</label>
+                    <div class="select-wrapper">
+                        <select id="filterMonth">
+                            <option value="">All Months</option>
+                            <option value="01">January</option>
+                            <option value="02">February</option>
+                            <option value="03">March</option>
+                            <option value="04">April</option>
+                            <option value="05">May</option>
+                            <option value="06">June</option>
+                            <option value="07">July</option>
+                            <option value="08">August</option>
+                            <option value="09">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                        <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
+                    </div>
+                </div>
+<div class="filter-inline"><label for="filterYear">Year</label><div class="select-wrapper"><input id="filterYear" type="number" min="1900" max="2200" placeholder="All years" aria-label="Trend year, blank for all years"></div></div>
+            </div>
+            <div class="filter-bar-actions">
+                <button id="applyFilters" class="btn-apply" hidden>
+                    <i data-lucide="refresh-cw" style="width:13px;height:13px;"></i>
+                    Retry loading
+                </button>
+                <button id="resetFilters" class="btn-reset">
+                    <i data-lucide="x" style="width:13px;height:13px;"></i>
+                    Reset Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resident Statistics Line Chart — full width -->
+    <div class="chart-card">
+        <div class="chart-card-header">
+            <div class="chart-title-group">
+                <h2 class="chart-card-title" id="chartTitle">Total Residents Statistics</h2>
+                <p class="chart-card-sub" id="chartSub">Monthly registration breakdown — deceased uses date marked deceased</p>
+            </div>
+            <div class="chart-stat-tabs" id="chartStatTabs">
+                <button class="chart-stat-tab active" data-stat="total">Total</button>
+                <button class="chart-stat-tab" data-stat="male">Male</button>
+                <button class="chart-stat-tab" data-stat="female">Female</button>
+                <button class="chart-stat-tab" data-stat="deceased">Deceased</button>
+            </div>
+        </div>
+        <div class="chart-body chart-body-wide">
+            <canvas id="mainLineChart"></canvas>
+        </div>
+        <div class="chart-legend">
+            <span class="legend-item">
+                <span class="legend-line" id="legendLine"></span>
+                <span id="legendLabel">Total Residents</span>
+            </span>
+            <span class="legend-item">
+                <span class="legend-line legend-dashed"></span>
+                No comparison data
+            </span>
+        </div>
+    </div>
+
+    <!-- Resident Details Table — full width, below chart -->
+    <div class="table-card">
+        <div class="table-card-header">
+            <span class="table-title-icon">
+                <i data-lucide="list" style="width:16px;height:16px;"></i>
+            </span>
+            <div class="table-header-text">
+                <h2>Resident Details</h2>
+                <p>Registration · death date · household · address</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table id="detailsTable">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Status</th>
+                        <th>Household</th>
+                        <th>Birthdate</th>
+                        <th>Registered</th>
+                        <th>Date of Death</th>
+                        <th>Address</th>
+                    </tr>
+                </thead>
+                <tbody id="detailsTableBody">
+                    <tr>
+                        <td colspan="9" class="table-empty">
+                            <i data-lucide="loader" style="width:18px;height:18px;"></i>
+                            Loading data...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div><nav class="analytics-pagination" id="residentsPagination" aria-label="residents table pages"><button type="button" data-direction="-1" disabled>Previous</button><span role="status">Page 1 of 1 · 0 matching records</span><button type="button" data-direction="1" disabled>Next</button></nav>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         HOUSEHOLD ANALYTICS SECTION
+    ════════════════════════════════════ -->
+    <div class="section-divider">
+        <span class="section-divider-label">
+            <i data-lucide="home" style="width:13px;height:13px;"></i>
+            Household Analytics
+        </span>
+    </div>
+
+    <!-- Household Stat Cards -->
+    <div class="metrics-row">
+        <div class="metric-card metric-dark household-card" data-household-card="total" role="button" tabindex="0" aria-pressed="false">
+            <div class="metric-card-bg-icon"><i data-lucide="home" style="width:72px;height:72px;"></i></div>
+            <div class="metric-label">Total Households</div>
+            <div class="metric-value" id="hhTotal">—</div>
+            <div class="metric-sub">Unique households</div>
+        </div>
+        <div class="metric-card metric-light household-card" data-household-card="average" role="button" tabindex="0" aria-pressed="false">
+            <div class="metric-card-bg-icon"><i data-lucide="users" style="width:72px;height:72px;"></i></div>
+            <div class="metric-label">Avg Members</div>
+            <div class="metric-value" id="hhAvg">—</div>
+            <div class="metric-sub">Per household</div>
+        </div>
+        <div class="metric-card metric-light household-card" data-household-card="largest" role="button" tabindex="0" aria-pressed="false">
+            <div class="metric-card-bg-icon"><i data-lucide="star" style="width:72px;height:72px;"></i></div>
+            <div class="metric-label">Largest Household</div>
+            <div class="metric-value" id="hhLargestCount">—</div>
+            <div class="metric-sub" id="hhLargestName">members</div>
+        </div>
+        <div class="metric-card metric-light household-card" data-household-card="single" role="button" tabindex="0" aria-pressed="false">
+            <div class="metric-card-bg-icon"><i data-lucide="user-check" style="width:72px;height:72px;"></i></div>
+            <div class="metric-label">Single-Member</div>
+            <div class="metric-value" id="hhSingle">—</div>
+            <div class="metric-sub">Households with 1 member</div>
+        </div>
+    </div>
+
+    <!-- Household Bar Chart (full width) -->
+    <div class="chart-card">
+        <div class="chart-card-header">
+            <div class="chart-title-group">
+                <h2 class="chart-card-title" id="householdChartTitle">Active residents per household</h2>
+                <p class="chart-card-sub">Top households by selected count; empty homes remain in the full breakdown below</p>
+            </div>
+            <div class="hh-header-right">
+                <div class="select-wrapper">
+                    <select id="filterHousehold">
+                        <option value="">All Households</option>
+                    </select>
+                    <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
+                </div>
+                <div class="select-wrapper">
+                    <select id="filterHouseholdMonth">
+                        <option value="">All Registration Months</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
+                </div>
+                <div class="chart-stat-tabs">
+                    <button class="chart-stat-tab hh-tab" data-hh="members">All recorded members</button>
+                    <button class="chart-stat-tab active hh-tab" data-hh="active">Active residents</button>
+                    <button class="chart-stat-tab hh-tab" data-hh="deceased">Deceased</button>
+                </div>
+            </div>
+        </div>
+        <div class="hh-chart-controls"><label for="householdOrientation" hidden>Chart orientation <select id="householdOrientation"><option value="y">Horizontal</option></select></label><label for="householdLimit">Households shown <select id="householdLimit"><option>10</option><option>20</option></select></label><label for="filterHouseholdYear">Household registration year <input id="filterHouseholdYear" type="number" min="1900" max="2200" placeholder="All years"></label></div><p id="householdChartScope" class="chart-card-sub" style="padding:0 24px" aria-live="polite"></p><div class="chart-body chart-body-hh">
+            <canvas id="householdBarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Household Details Table (full width) -->
+    <div class="table-card">
+        <div class="table-card-header">
+            <span class="table-title-icon">
+                <i data-lucide="home" style="width:16px;height:16px;"></i>
+            </span>
+            <div class="table-header-text">
+                <h2>Household Breakdown</h2>
+                <p>All households · member counts · registration date · demographics</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table id="hhTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Household Name</th>
+                        <th>House No.</th>
+                        <th>Address</th>
+                        <th>Total Members</th>
+                        <th>Active</th>
+                        <th>Deceased</th>
+                        <th>Male</th>
+                        <th>Female</th>
+                        <th>Registered</th>
+                    </tr>
+                </thead>
+                <tbody id="hhTableBody">
+                    <tr><td colspan="10" class="table-empty">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div><nav class="analytics-pagination" id="householdsPagination" aria-label="households table pages"><button type="button" data-direction="-1" disabled>Previous</button><span role="status">Page 1 of 1 · 0 matching records</span><button type="button" data-direction="1" disabled>Next</button></nav>
+    </div>
+
+</div><!-- .analytics-wrapper -->
+
+
 
 <!-- Chart.js -->
+<script src="{{ url_for('static',filename='js/analytics-pagination.js') }}"></script>
 <script>
 (function () {
     var s = document.createElement('script');
@@ -959,12 +966,12 @@ const officeValues={id:'officeValues',afterDatasetsDraw(chart,args,settings){
  ctx.restore();}};
 function renderHouseholdTable() {
     const tbody = document.getElementById('hhTableBody');
-    const rows=householdComparison(activeHHTab);
+    const rows=Object.entries(buildHouseholdMap(dashData?.households||[],[]));
     if (!rows.length) { tbody.innerHTML = `<tr><td colspan="10" class="table-empty">No households qualify for this comparison.</td></tr>`; return; }
     tbody.innerHTML = rows.map(([name, v], i) => {
         const registered = v.registered ? fmtDate(v.registered) : '<span class="td-na">—</span>';
         return `<tr>
-            <td class="hh-rank">${i + 1}</td>
+            <td class="hh-rank">${(dashData.pagination.households.page-1)*10+i+1}</td>
             <td class="hh-name-cell">${analyticsRecordLink(v.label,v.detail_url,'household')}</td>
             <td class="td-date">${uiEscape(v.house_number || 'N/A')}</td>
             <td class="td-date">${uiEscape(v.address || '—')}</td>
@@ -1032,15 +1039,18 @@ function renderTable(residents) {
 
 /* ═══════════════════════════ SWITCH STAT ═══════════════════════════════════ */
 function switchStat(stat){
+ analyticsPages.residents=1;
  activeStat=stat;
  document.getElementById('filterGender').value=stat==='male'?'Male':stat==='female'?'Female':'';
  document.getElementById('filterStatus').value=stat==='deceased'?'Deceased':'';
  if(stat==='deceased'&&document.getElementById('filterEvent').value!=='deleted')document.getElementById('filterEvent').value='death';
+ saveAnalyticsPages();
  loadDashboard();
 }
 
 /* ═══════════════════════════ LOAD DASHBOARD ════════════════════════════════ */
 async function loadDashboard() {
+    document.querySelectorAll('.analytics-pagination button').forEach(button=>button.disabled=true);
     for(const id of ['filterYear','filterHouseholdYear']){const field=document.getElementById(id);if(!field.checkValidity()){dashboardAbort?.abort();dashboardRequestSeq++;dashboardLoaded=false;document.getElementById('dashboardScope').textContent='Year incomplete or invalid. Showing the last valid results. Enter 1900 to 2200, or clear it for all years.';return;}}
     document.getElementById('applyFilters').hidden=true;
     const requestSeq = ++dashboardRequestSeq;
@@ -1053,7 +1063,7 @@ async function loadDashboard() {
     document.querySelectorAll('.stat-btn').forEach(c=>{const active=c.dataset.stat===activeStat;c.classList.toggle('active',active);c.setAttribute('aria-pressed',String(active));});
     document.querySelectorAll('#chartStatTabs button').forEach(c=>c.classList.toggle('active',c.dataset.stat===activeStat));
     const f=getFilters();
-    const url = `/api/dashboard?activity=${encodeURIComponent(f.activity)}&gender=${encodeURIComponent(f.gender)}&status=${encodeURIComponent(f.status)}&month=${encodeURIComponent(f.month)}&date_from=${encodeURIComponent(f.dateFrom)}&date_to=${encodeURIComponent(f.dateTo)}&household=${encodeURIComponent(f.household)}&household_month=${encodeURIComponent(f.householdMonth)}&household_from=${encodeURIComponent(f.householdFrom)}&household_to=${encodeURIComponent(f.householdTo)}&year=${encodeURIComponent(f.year)}&date_basis=${encodeURIComponent(f.dateBasis)}&household_year=${encodeURIComponent(f.householdYear)}`;
+    const url = `/api/dashboard?activity=${encodeURIComponent(f.activity)}&gender=${encodeURIComponent(f.gender)}&status=${encodeURIComponent(f.status)}&month=${encodeURIComponent(f.month)}&date_from=${encodeURIComponent(f.dateFrom)}&date_to=${encodeURIComponent(f.dateTo)}&household=${encodeURIComponent(f.household)}&household_month=${encodeURIComponent(f.householdMonth)}&household_from=${encodeURIComponent(f.householdFrom)}&household_to=${encodeURIComponent(f.householdTo)}&year=${encodeURIComponent(f.year)}&date_basis=${encodeURIComponent(f.dateBasis)}&household_year=${encodeURIComponent(f.householdYear)}&residents_page=${analyticsPages.residents}&households_page=${analyticsPages.households}&household_metric=${activeHHTab}&household_group=${householdCard}`;
     try {
         dashboardDebug('[DEBUG-FRONTEND] loadDashboard: Fetching from', url);
         const res = await fetch(url,{signal:dashboardAbort.signal});
@@ -1065,7 +1075,7 @@ async function loadDashboard() {
         dashboardTrace('[DEBUG-FRONTEND] raw API response:', dashData);
         dashboardDebug('[DEBUG-FRONTEND] loadDashboard: Response received:', dashData);
         const stats = dashData.stats || {};
-        document.getElementById('dashboardScope').textContent=`Resident matches: ${stats.total} (Active ${stats.active}, Deceased ${stats.deceased}). ${dashData.date_basis}. Year: ${f.year||'all years'}. Household scope: ${f.household||'all IDs'} (both sections). Household registration filters apply separately. ${dashData.residents_sample?'Resident details show a sample of 50; totals and charts use all matches.':''}`;
+        document.getElementById('dashboardScope').textContent=`Resident matches: ${stats.total} (Active ${stats.active}, Deceased ${stats.deceased}). ${dashData.date_basis}. Year: ${f.year||'all years'}. Household scope: ${f.household||'all IDs'} (both sections). Household registration filters apply separately. Tables show 10 records per page; totals and charts use all matches.`;
         dashboardDebug('[DEBUG-FRONTEND] Stats:', stats);
         dashboardDebug('[DEBUG-FRONTEND] Residents count:', dashData.residents?.length || 0);
         dashboardDebug('[DEBUG-FRONTEND] Households count:', dashData.households?.length || 0);
@@ -1076,7 +1086,7 @@ async function loadDashboard() {
         document.getElementById('statFemale').textContent   = stats.female   ?? '—';
         document.getElementById('statDeceased').textContent = stats.deceased ?? '—';
         allResidents   = dashData.residents || [];
-        allHouseholds  = dashData.households || [];
+        allHouseholds  = dashData.household_summary || [];
         builtMonthData = buildMonthlyFromResidents(allResidents);
         dashboardDebug('[DEBUG-FRONTEND] builtMonthData:', builtMonthData);
         hhMap          = buildHouseholdMap(allHouseholds, allResidents);
@@ -1087,15 +1097,16 @@ async function loadDashboard() {
         renderHouseholdChart(activeHHTab);
         renderHouseholdTable();
         renderTable(allResidents);
+        updateAnalyticsPages(dashData.pagination);
     } catch (err) {
         if(err.name==='AbortError'||requestSeq!==dashboardRequestSeq)return;
         document.getElementById('dashboardScope').textContent='Could not load selected filters. Retry loading or change a filter.';
         document.getElementById('applyFilters').hidden=false;
         for(const id of ['statTotal','statMale','statFemale','statDeceased'])document.getElementById(id).textContent='?';
         lineChart?.destroy();lineChart=null;hhBarChart?.destroy();hhBarChart=null;
-        console.error('Dashboard load error:', err);
+        document.getElementById('hhTableBody').innerHTML='<tr><td colspan="10">Unable to load households. Use Retry loading.</td></tr>';
         document.getElementById('detailsTableBody').innerHTML =
-            `<tr><td colspan="9" class="table-empty" style="color:#c0392b;">Failed to load data — check console.</td></tr>`;
+            `<tr><td colspan="9" class="table-empty" style="color:#c0392b;">Unable to load records. Use Retry loading.</td></tr>`;
     }
 }
 
@@ -1112,10 +1123,9 @@ function updateClock() {
 document.addEventListener('DOMContentLoaded', () => {
     const filterIds=['filterEvent','filterGender','filterStatus','filterMonth','filterYear','filterHouseholdYear','filterHousehold','filterHouseholdMonth'];
     const restoreFilters=()=>{const params=new URLSearchParams(location.search);for(const id of filterIds){const field=document.getElementById(id),value=params.get(id)|| (id==='filterEvent'?'registered':'');if(id==='filterHousehold'&&value&&!Array.from(field.options).some(o=>o.value===value))field.add(new Option('Selected household #'+value,value));field.value=value;}};
-    const rememberFilters=()=>{const next=new URL(location.href);for(const id of filterIds){const value=document.getElementById(id).value;if(value&&(id!=='filterEvent'||value!=='registered'))next.searchParams.set(id,value);else next.searchParams.delete(id);}if(next.href!==location.href)history.pushState(null,'',next);};
-    restoreFilters();window.addEventListener('popstate',()=>{restoreFilters();loadDashboard();});
+    restoreFilters();restoreAnalyticsPages();window.addEventListener('popstate',()=>{restoreFilters();restoreAnalyticsPages();loadDashboard();});
     let filterTimer;
-    const applyAutomatic=()=>{clearTimeout(filterTimer);if(filterIds.some(id=>!document.getElementById(id).checkValidity())){loadDashboard();return;}rememberFilters();loadDashboard();};
+    const applyAutomatic=()=>{clearTimeout(filterTimer);if(filterIds.some(id=>!document.getElementById(id).checkValidity())){loadDashboard();return;}analyticsPages.residents=analyticsPages.households=1;saveAnalyticsPages();loadDashboard();};
     for(const id of filterIds){const field=document.getElementById(id);field.addEventListener(field.type==='number'?'input':'change',()=>{clearTimeout(filterTimer);filterTimer=setTimeout(applyAutomatic,field.type==='number'?450:0);});}
     setInterval(updateClock, 1000);
     updateClock();
@@ -1136,13 +1146,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.hh-tab').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             activeHHTab = btn.dataset.hh;
-            updateHouseholdStats();renderHouseholdChart(activeHHTab);renderHouseholdTable();
+            analyticsPages.households=1;saveAnalyticsPages();loadDashboard();
         })
     );
 
     for(const id of ['householdLimit'])document.getElementById(id).addEventListener('change',()=>renderHouseholdChart(activeHHTab));
-    document.querySelectorAll('[data-household-card]').forEach(card=>card.addEventListener('click',()=>{householdCard=card.dataset.householdCard;updateHouseholdStats();renderHouseholdChart(activeHHTab);renderHouseholdTable();}));
+    document.querySelectorAll('[data-household-card]').forEach(card=>card.addEventListener('click',()=>{householdCard=card.dataset.householdCard;analyticsPages.households=1;saveAnalyticsPages();loadDashboard();}));
     document.querySelectorAll('.stat-btn,[data-household-card]').forEach(card=>{card.tabIndex=0;card.setAttribute('role','button');card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();card.click();}});});
+    installAnalyticsPages();
     document.getElementById('applyFilters').addEventListener('click', loadDashboard);
     document.getElementById('resetFilters').addEventListener('click', () => {
         ['filterGender', 'filterStatus', 'filterMonth', 'filterYear','filterHouseholdYear','filterHousehold', 'filterHouseholdMonth']
@@ -1150,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('filterActivity').value = 'registered';
         document.getElementById('filterDateBasis').value='registered';document.getElementById('filterEvent').value='registered';householdCard='total';
         document.getElementById('filterHousehold').value = '';
-        rememberFilters();
+        analyticsPages.residents=analyticsPages.households=1;saveAnalyticsPages();
         loadDashboard();
     });
 });

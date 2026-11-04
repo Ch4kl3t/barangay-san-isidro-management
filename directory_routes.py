@@ -33,8 +33,6 @@ def directory(kind):
         with transaction() as cursor:
             cursor.execute("SELECT COUNT(*) FILTER(WHERE status<>'Deceased') AS active,COUNT(*) FILTER(WHERE status='Deceased') AS deceased FROM "+query,params)
             counts=cursor.fetchone() or {}
-            cursor.execute('SELECT id,surname,house_number FROM households ORDER BY surname,id')
-            context['filter_households']=cursor.fetchall()
         context.update(members=rows,active_residents=counts.get('active',sum(r.get('status')!='Deceased' for r in rows)),
                        deceased_residents=counts.get('deceased',sum(r.get('status')=='Deceased' for r in rows)))
         template='view_members.html' if g.identity['role']=='admin' else 'user_view_members.html'

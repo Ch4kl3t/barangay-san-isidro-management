@@ -1,5 +1,7 @@
 {% if roles_enabled %}
-<div class="household-role-fields">
+<div class="household-role-fields" id="householdRoles">
+ <h2>Household role</h2>
+ <p class="helper-text">Choose the household first. Save this resident form to update their relationship or designate them as head.</p>
  <input type="hidden" name="household_roles_present" value="yes">
  {% set home_head=household_heads.get((member if editing else prefill).get('household_id','')|string,{}) %}
  <input type="hidden" name="head_assignment" value="{{ (member if editing else prefill).get('head_assignment',home_head.get('assignment','none')) }}">

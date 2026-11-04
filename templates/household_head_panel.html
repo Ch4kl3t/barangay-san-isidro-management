@@ -1,6 +1,7 @@
 <section class="household-head-panel" aria-labelledby="headHeading">
  <div><h2 id="headHeading">Household head</h2><p>{% if head %}{% if head.resident_id is none %}Resident no longer available{% else %}{{ head.firstname or '' }} {{ head.surname or '' }}{% endif %} · Resident #{{ head.resident_id_record }}{% if head.status=='Deceased' %} <strong class="status-badge deceased">Deceased — reassignment needed</strong>{% endif %}{% else %}Not designated. An administrator must explicitly select a resident.{% endif %}</p></div>
- <details id="headAssignment"><summary>{{ 'Reassign or clear household head' if head else 'Designate household head' }}</summary>
+ <p><a href="{{ url_for('add_member',household_id=household.id) }}#householdRoles">Add a resident and optionally designate them as head</a>. To update an existing member’s relationship, use Edit in the resident row.</p>
+ <details id="headAssignment"><summary>{{ 'Manage head: reassign or clear' if head else 'Assign an existing member as head' }}</summary>
   <p>Only an active member of this household can be newly designated. Existing residents and historical decisions are preserved. Relationships must be recorded for the new head; old labels are not copied.</p>
   <form method="post" action="{{ url_for('set_household_head',household_id=household.id) }}" data-confirm-message="Save this household-head decision? Existing records are preserved. Relationships for a different head will remain in history and must be recorded again.">
    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="head_assignment" value="{{ head_assignment }}">
