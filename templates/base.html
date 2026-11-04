@@ -30,12 +30,6 @@
     </div>
 
     <div class="header-right">
-        {% if session.get('role') == 'admin' and request.endpoint != 'home' %}
-        <a href="/notifications" class="notification-bell" role="button" aria-expanded="false" aria-controls="notificationPanel" id="notificationBell" title="Notifications">
-            <i data-lucide="bell"></i>
-            <span class="notification-badge" id="notificationBadge">0</span>
-        </a>
-        {% endif %}
         <a href="{{ url_for('profile') }}" class="user-pill" aria-label="My account" style="text-decoration: none; cursor: pointer;">
             <span class="user-name">{{ session.get('username', 'Administrator') }}</span>
             <div class="user-icon-bg">
@@ -421,7 +415,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <link rel="stylesheet" href="{{ url_for('static',filename='css/report-center.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='css/workflow-polish.css') }}">
-{% if request.endpoint != 'home' %}<div id="notificationPanel" role="region" class="notification-panel" hidden aria-label="Notifications"></div>{% endif %}
 <script src="{{ url_for('static',filename='js/report-center.js') }}" defer></script><script src="{{ url_for('static',filename='js/workflow-polish.js') }}" defer></script>
 <link rel="stylesheet" href="{{ url_for('static',filename='css/portal-admin-polish.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/controlled-admin-ui.css') }}">
@@ -429,5 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
 <link rel="stylesheet" href="{{ url_for('static',filename='css/appearance.css') }}">
 <script src="{{ url_for('static',filename='js/automatic-filters.js') }}" defer></script>
 <link rel="stylesheet" href="{{ url_for('static',filename='css/report-builder.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/defense-refinement.css') }}">
+<script src="{{ url_for('static',filename='js/defense-refinement.js') }}" defer></script>
 </body>
 </html>

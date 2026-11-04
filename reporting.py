@@ -11,7 +11,7 @@ from docx.oxml.ns import qn
 from database import transaction
 from privacy import RESIDENT_SQL, audit_value
 from office_time import today as office_today,local_timestamp,now_local
-from validation import age_on
+from validation import resident_age
 from search_terms import add_search
 
 ACTIONS = {'ADD','UPDATE','DELETE','SIGNUP','LOGIN','LOGIN_DENIED','PASSWORD_RESET_REQUEST',
@@ -109,7 +109,7 @@ def report_query(kind, args, health_columns=()):
         if args.get('gender'):
             if args['gender'] not in {'Male','Female','Not recorded'}:
                 raise ValueError('Invalid gender')
-            clauses.append('gender=%s')
+            clauses.append("COALESCE(gender,'Not recorded')=%s" if args['gender']=='Not recorded' else 'gender=%s')
             params.append(args['gender'])
         if args.get('status'):
             if args['status'] not in {'Active','Deceased'}:
@@ -121,13 +121,13 @@ def report_query(kind, args, health_columns=()):
                 add_search(clauses,params,"CONCAT_WS(' ',id::text,firstname,middlename,surname,household_name)",args[search_key])
         if args.get('civil_status'):
             if args['civil_status'] not in {'Single','Married','Widowed','Separated','Not recorded'}:raise ValueError('Invalid civil status')
-            clauses.append('civil_status=%s');params.append(args['civil_status'])
+            clauses.append("COALESCE(civil_status,'Not recorded')=%s" if args['civil_status']=='Not recorded' else 'civil_status=%s');params.append(args['civil_status'])
         ages=[]
         for key,op in [('age_min','>='),('age_max','<=')]:
             if args.get(key) not in {None,''}:
                 try:number=int(args[key]);assert 0<=number<=130
                 except (ValueError,TypeError,AssertionError):raise ValueError('Age must be an integer from 0 to 130') from None
-                clauses.append("DATE_PART('year',AGE(%s::date,birthdate))"+op+'%s');params.extend([office_today(),number]);ages.append(number)
+                clauses.append("DATE_PART('year',AGE(CASE WHEN status='Deceased' THEN death_date ELSE %s::date END,birthdate))"+op+'%s');params.extend([office_today(),number]);ages.append(number)
         if len(ages)==2 and ages[0]>ages[1]:raise ValueError('Minimum age must not exceed maximum age')
         order = 'surname,firstname,id'
         basis = 'Reported death date; unknown dates excluded only when a period is selected' if date_basis=='death' else 'Registered date; unknown legacy dates excluded only when a period is selected'
@@ -209,7 +209,7 @@ def rows_for(kind, args, limit=None, offset=0, *, health_columns=()):
             for row in rows:row['created_at_display']=local_timestamp(row.get('created_at'))
         if kind=='residents':
             for row in rows:
-                try:row['age']=age_on(row.get('birthdate'))
+                try:row['age']=resident_age(row)
                 except ValueError:row['age']=None
     return rows,total,basis
 

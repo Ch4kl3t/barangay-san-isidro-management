@@ -51,9 +51,10 @@
         </div>
 
         </div>
-        <p class="registry-scroll-note">All resident fields and actions are available below. On narrow screens, scroll horizontally or use Details.</p>
+        {% include 'resident_directory_filters.html' %}
+        <p class="registry-scroll-note">Age is current age for active residents and age at death when recorded. Health information is available in Resident Details.</p>
         <div class="table-responsive" tabindex="0" role="region" aria-label="Resident directory table">
-            <table class="registry-table"><colgroup><col style="width:48px"><col style="width:280px"><col style="width:116px"><col style="width:64px"><col style="width:90px"><col style="width:116px"><col style="width:170px"><col style="width:210px"><col style="width:100px"><col style="width:220px"><col style="width:220px"><col style="width:210px"></colgroup>
+            <table class="registry-table"><colgroup><col style="width:48px"><col style="width:280px"><col style="width:116px"><col style="width:64px"><col style="width:90px"><col style="width:116px"><col style="width:170px"><col style="width:210px"><col style="width:100px"><col style="width:210px"></colgroup>
                 <thead>
                     <tr>
                         <th style="width: 50px;">#</th>
@@ -65,7 +66,6 @@
                         <th>Occupation</th>
                         <th>Household</th>
                         <th>Status</th>
-                        <th>Mental Health Status</th><th>Current Health Status</th>
                         <th style="text-align: center; width: 160px;">Actions</th>
                     </tr>
                 </thead>
@@ -74,10 +74,10 @@
                     <tr class="resident-row">
                         <td class="id-cell">{{ loop.index }}</td>
                         <td class="resident-name"><div class="registry-person"><span class="registry-initials" aria-hidden="true" data-initials="{{ (member.firstname or '')[:1] }}{{ (member.surname or '')[:1] }}"></span><div class="name-container"><span class="primary-name">{{ member['surname'] }}, {{ member['firstname'] }} {{ member['middlename'] or '' }}</span> <small class="record-secondary">Resident #{{ member.id }}</small></div></div></td>
-                        <td><span class="birth-text">{{ member['birthdate'] }}</span></td>
-                        <td><span class="age-badge">{{ member['age'] }}</span></td>
-                        <td><span class="gender-text">{{ member['gender'] }}</span></td>
-                        <td>{{ member['civil_status'] }}</td>
+                        <td><span class="birth-text">{{ member['birthdate'] or 'Not recorded' }}</span></td>
+                        <td><span class="age-badge">{{ member['age'] if member['age'] is not none else 'Not recorded' }}</span></td>
+                        <td><span class="gender-text">{{ member['gender'] or 'Not recorded' }}</span></td>
+                        <td>{{ member['civil_status'] or 'Not recorded' }}</td>
                         <td><span class="occ-text">{{ member['occupation'] if member['occupation'] else 'N/A' }}</span></td>
                         <td>
                             {% if member.household_id %}
@@ -93,7 +93,6 @@
                                 {{ member.status or 'Active' }}
                             </span>
                         </td>
-                        {% include 'health_cells.html' %}
                         <td class="actions">
                             <a class="btn edit-btn" href="{{ resident_url(member.id) }}">View Details</a><a class="btn edit-btn" href="{{ url_for('edit_member', id=member['id']) }}">Edit</a><a class="btn edit-btn" href="{{ report_url('residents',scope='resident',resident_id=member.id) }}">Print</a>
                             <a class="btn delete-btn" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member['id']) }}', this)">Delete</a>
@@ -101,7 +100,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="12" style="text-align: center; padding: 40px; color: #64748b;">No records found.</td>
+                        <td colspan="10" style="text-align: center; padding: 40px; color: #64748b;">No residents match these filters. Reset Filters or register a resident.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

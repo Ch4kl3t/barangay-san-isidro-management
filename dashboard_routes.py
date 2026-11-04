@@ -4,7 +4,7 @@ from database import transaction
 from reporting import report_query, period, positive_id
 from privacy import audit_value
 from office_time import today as office_today
-from validation import age_on
+from validation import resident_age
 
 
 def analytics():
@@ -103,7 +103,7 @@ def api_dashboard():
                 cursor.execute('SELECT * FROM '+query+' ORDER BY surname,firstname,id LIMIT 50',params)
                 residents=cursor.fetchall()
                 for resident in residents:
-                    try:resident['age']=age_on(resident.get('birthdate'))
+                    try:resident['age']=resident_age(resident)
                     except ValueError:resident['age']=None
             hhargs={k:v for k,v in args.items() if k in {'household_id'}}
             hhargs['month']=args.get('household_month','')

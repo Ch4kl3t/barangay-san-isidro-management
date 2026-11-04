@@ -1,0 +1,13 @@
+<section class="household-head-panel" aria-labelledby="headHeading">
+ <div><h2 id="headHeading">Household head</h2><p>{% if head %}{% if head.resident_id is none %}Resident no longer available{% else %}{{ head.firstname or '' }} {{ head.surname or '' }}{% endif %} · Resident #{{ head.resident_id_record }}{% if head.status=='Deceased' %} <strong class="status-badge deceased">Deceased — reassignment needed</strong>{% endif %}{% else %}Not designated. An administrator must explicitly select a resident.{% endif %}</p></div>
+ <details id="headAssignment"><summary>{{ 'Reassign or clear household head' if head else 'Designate household head' }}</summary>
+  <p>Only an active member of this household can be newly designated. Existing residents and historical decisions are preserved. Relationships must be recorded for the new head; old labels are not copied.</p>
+  <form method="post" action="{{ url_for('set_household_head',household_id=household.id) }}" data-confirm-message="Save this household-head decision? Existing records are preserved. Relationships for a different head will remain in history and must be recorded again.">
+   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="head_assignment" value="{{ head_assignment }}">
+   <label for="headResident">Household head<select name="head_resident_id" id="headResident"><option value="">Leave household unassigned</option>{% for m in head_choices %}<option value="{{ m.id }}" {{ 'selected' if head and head.resident_id==m.id }}>{{ m.firstname }} {{ m.middlename or '' }} {{ m.surname }} · Resident #{{ m.id }}</option>{% endfor %}</select></label>
+   <label for="headReason">Reason for designation or reassignment<input name="head_reason" id="headReason" required minlength="3" maxlength="300" autocomplete="off"></label>
+   <button class="btn-submit" type="submit">Save Head Designation</button>
+  </form>
+ </details>
+ {% if head_history %}<details><summary>Designation history</summary><ul>{% for item in head_history %}<li>Resident #{{ item.resident_id_record }} · {{ 'Previous designation' if item.ended_at else 'Current designation' }} · {{ item.reason }}{% if item.relationships %}<ul>{% for relation in item.relationships %}<li>Resident #{{ relation.resident_id_record }}: {{ relation.relationship }}</li>{% endfor %}</ul>{% endif %}</li>{% endfor %}</ul><p>Latest eight decisions. Earlier decisions remain preserved in the database and audit history.</p></details>{% endif %}
+</section>

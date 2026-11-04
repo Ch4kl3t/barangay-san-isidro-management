@@ -55,6 +55,7 @@ def create_app(overrides=None):
         route(path,name,getattr(record_routes,name),('admin',),methods)
     route('/analytics','analytics',dashboard_routes.analytics,('admin',))
     route('/api/dashboard','api_dashboard',dashboard_routes.api_dashboard,('admin',))
+    route('/households/<int:household_id>/head','set_household_head',record_routes.set_household_head,('admin',),('POST',))
     for kind,path,name in [('residents','/print_all_members','print_all_members'),
                            ('households','/print_households_report','print_households_report'),
                            ('audit','/print_audit_logs_report','print_audit_logs_report')]:

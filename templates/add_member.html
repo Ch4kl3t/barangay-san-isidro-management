@@ -37,7 +37,7 @@
                 <div class="form-group">
                     <label>Age</label>
                     <input type="number" name="age" id="age" aria-describedby="ageHelp" value="{{ prefill.age if prefill and prefill.age is not none else '' }}" placeholder="Age" readonly autocomplete="off">
-                    <p id="ageHelp" class="helper-text age-explanation">Age &mdash; automatically calculated from birthdate.</p>
+                    <p id="ageHelp" class="helper-text age-explanation">Calculated from birthdate; for deceased residents, age at the recorded death date.</p>
                 </div>
 
                 <div class="form-group">
@@ -91,6 +91,7 @@
                 {% endif %}
             </div>
 
+            {% include 'household_role_fields.html' %}
             <div class="form-group"><label for="residentStatus">Resident Status</label><select name="status" id="residentStatus">{% for status in ['Active','Deceased'] %}<option value="{{ status }}" {% if prefill.get('status','Active')==status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select></div>
             <div class="form-group death-date-field">
                 <label for="death_date">Reported death date</label>
@@ -98,7 +99,7 @@
                 <p class="helper-text">For deceased residents only. Leave unknown dates blank. When changing to Active, clear any saved date explicitly.</p>
             </div>
             </fieldset><fieldset class="form-section"><legend>Health Information</legend>
-            <p class="helper-text">Optional reported information; administrator access only; up to 500 characters per field.</p>
+            <p class="helper-text">Optional reported information; administrator access only; up to 500 characters per field. Blank means not recorded. Use “Not assessed” only when no assessment was made; record “No condition reported” only when explicitly reported. Do not infer a diagnosis.</p>
             <div class="form-grid dual">
             {% for field,label in [('mental_health_status','Mental Health Status'),('current_health_status','Current Health Status')] %}
             <div class="form-group">

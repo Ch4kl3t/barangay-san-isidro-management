@@ -1,0 +1,68 @@
+/* Shared, scoped refinements. Existing navy identity and appearance tokens remain. */
+.admin-workspace #main-content :is(.page-container,.audit-page,.resident-detail-page){width:min(100%,1560px);box-sizing:border-box}
+.admin-workspace :is(.header-actions,.actions,.form-actions){flex-wrap:wrap;align-items:center}
+.admin-workspace :is(button,a,input,select,textarea,summary):focus-visible{outline:3px solid var(--office-focus);outline-offset:3px}
+.admin-workspace :is(.form-group input,.form-group select,.form-group textarea){box-sizing:border-box;max-width:100%;min-height:44px}
+.admin-workspace .helper-text{font-size:13px;line-height:1.6;color:var(--office-muted)}
+.modern-directory.admin-resident-table:not(.household-detail-directory) .registry-card table.registry-table{min-width:1360px}
+.modern-directory.households-directory .registry-card table.registry-table{min-width:660px;table-layout:fixed}
+.modern-directory.households-directory .registry-table th:nth-child(1){width:13%!important}
+.modern-directory.households-directory .registry-table th:nth-child(2){width:23%}
+.modern-directory.households-directory .registry-table th:nth-child(3){width:31%}
+.modern-directory.households-directory .registry-table th:nth-child(4){width:9%}
+.modern-directory.households-directory .registry-table th:nth-child(5){width:24%!important}
+.modern-directory.households-directory .registry-table .actions{display:table-cell;text-align:center;white-space:normal}
+.modern-directory.households-directory .registry-table .actions a{display:inline-block;padding:7px 9px;margin:3px 1px}
+.modern-directory.household-detail-directory .registry-card table.registry-table{min-width:760px;table-layout:auto}
+.household-detail-directory .registry-table th:first-child{width:30%}
+.household-detail-directory .registry-table .actions{display:table-cell;min-width:200px}
+.household-detail-directory .registry-table .actions a{display:inline-block;margin:3px 0}
+.household-head-panel{border:1px solid var(--office-border);border-radius:12px;background:var(--office-surface);color:var(--office-text);padding:20px 24px;margin:0 0 24px}
+.household-head-panel h2{font-size:18px;margin:0 0 8px;color:var(--office-text)}
+.household-head-panel p,.household-head-panel li{font-size:13px;line-height:1.6;color:var(--office-muted)}
+.household-head-panel details{padding:10px 0;border-top:1px solid var(--office-border)}
+.household-head-panel summary{cursor:pointer;font-weight:650;color:var(--office-link);padding:5px 0}
+.household-head-panel form{display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end;margin-top:16px}
+.household-head-panel label,.directory-filter-grid>label{display:grid;gap:7px;font-size:12px;font-weight:650;color:var(--office-text)}
+.household-head-panel :is(input,select),.directory-filter-grid :is(input,select){width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid var(--office-border);border-radius:8px;background:var(--office-surface);color:var(--office-text);font:inherit;box-sizing:border-box}
+.household-head-panel button,.directory-filter-actions button{min-height:44px;width:auto;padding:10px 16px;margin:0}
+.household-role-fields{border:1px solid var(--office-border);padding:16px;border-radius:10px;margin:12px 0 20px;background:var(--office-surface)}
+.household-role-fields .head-choice{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.6;margin-bottom:12px;color:var(--office-text)}
+.household-role-fields input[type=checkbox]{width:18px;min-height:18px;flex-shrink:0;margin-top:3px}
+.directory-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:20px;border-bottom:1px solid var(--office-border);background:var(--office-surface)}
+.directory-filter-actions{grid-column:1/-1;display:flex;align-items:center;gap:18px}
+.household-directory-filters{grid-template-columns:minmax(180px,1fr) 2fr;align-items:end}
+.household-directory-filters .directory-filter-actions{grid-column:auto}
+.directory-filter-grid .filter-state{grid-column:1/-1;margin:0;font-size:12px;color:var(--office-muted);line-height:1.6}
+.audit-page .audit-filter-row{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;align-items:end!important}
+.audit-page .audit-filter-row>label{display:grid;gap:7px;min-width:0}
+.audit-page .audit-filter-row :is(input,select){min-width:0;width:100%;min-height:44px;box-sizing:border-box}
+.audit-page .audit-filter-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px}
+.admin-workspace .report-fields{align-items:start;gap:16px}
+.admin-workspace .report-fields>div{min-width:0}
+.admin-workspace .report-fields :is(input,select){width:100%;box-sizing:border-box;min-height:44px}
+.office-feedback-dialog{position:fixed;inset:0;margin:auto;max-height:calc(100dvh - 32px);overflow:auto;max-width:min(520px,calc(100vw - 32px));width:100%;border:1px solid var(--office-border);border-radius:14px;padding:24px;background:var(--office-surface);color:var(--office-text);box-sizing:border-box}
+.office-feedback-dialog::backdrop{background:#10273cb8}
+.office-feedback-dialog h2{font-size:20px;margin:0 0 12px;color:var(--office-text)}
+.office-feedback-dialog p{white-space:pre-line;font-size:14px;line-height:1.65;color:var(--office-text)}
+.office-feedback-dialog .dialog-actions{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:20px}
+.office-feedback-dialog button,.office-feedback-dialog a{display:inline-block;border:1px solid var(--office-border);border-radius:8px;padding:10px 16px;font:inherit;cursor:pointer;background:var(--office-raised);color:var(--office-link);text-decoration:none}
+.office-feedback-dialog .dialog-primary{background:var(--office-action);color:#fff}
+html[data-theme=dark] .office-feedback-dialog :is(h2,p){color:var(--office-text)!important}
+html[data-theme=dark] .office-feedback-dialog .dialog-primary{background:var(--office-action)!important;color:#fff!important}
+@media(max-width:900px){.household-head-panel form{grid-template-columns:1fr}.directory-filter-grid,.audit-page .audit-filter-row{grid-template-columns:repeat(2,minmax(0,1fr))!important}.modern-directory>.info-grid{flex-wrap:wrap}.modern-directory>.info-grid>.info-item{min-width:160px}}
+@media(max-width:560px){.directory-filter-grid,.audit-page .audit-filter-row{grid-template-columns:1fr!important}.household-head-panel{padding:16px}.modern-directory .registry-card>.registry-toolbar:has(.search-panel){grid-template-columns:1fr}.modern-directory .registry-toolbar .search-wrapper{display:block}.modern-directory .registry-toolbar .directory-search-actions{margin-top:10px;flex-wrap:wrap}.households-directory .header-actions{gap:8px}.households-directory .header-actions a{padding:10px 12px}}
+@media(max-width:600px){
+ .modern-directory.admin-resident-table:not(.household-detail-directory) .registry-card table.registry-table{min-width:700px}
+ .modern-directory.admin-resident-table:not(.household-detail-directory) .registry-table :is(th,td){display:table-cell!important}
+ .modern-directory.admin-resident-table:not(.household-detail-directory) .registry-table :is(th,td):not([colspan]):is(:nth-child(1),:nth-child(3),:nth-child(6),:nth-child(7),:nth-child(8)){display:none!important}
+ :is(.household-detail-directory,.households-directory) .registry-card table.registry-table{display:block;min-width:0!important;width:100%;table-layout:auto}
+ :is(.household-detail-directory,.households-directory) .registry-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ :is(.household-detail-directory,.households-directory) .registry-table tbody{display:block}
+ :is(.household-detail-directory,.households-directory) .registry-table tbody>tr:not(.row-details){display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid var(--office-border)}
+ :is(.household-detail-directory,.households-directory) .registry-card table.registry-table tbody>tr:not(.row-details)>td{display:block!important;min-width:0!important;width:auto!important;position:static;box-sizing:border-box;white-space:normal}
+ :is(.household-detail-directory,.households-directory) .registry-table td[data-label]::before{content:attr(data-label);display:block;font-size:11px;color:var(--office-muted);margin-bottom:6px}
+ :is(.household-detail-directory,.households-directory) .registry-table :is(td.name-cell,td.household-name,td.address-cell,td.actions,td.no-data){grid-column:1/-1}
+ .household-detail-directory .registry-table .actions .mobile-row-details{display:none!important}
+ .household-directory-filters .directory-filter-actions{grid-column:1/-1}
+}

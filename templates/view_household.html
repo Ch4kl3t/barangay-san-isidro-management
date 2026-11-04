@@ -3,12 +3,12 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/directory-tables.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
 
-<div class="page-container admin-resident-table modern-directory">
+<div class="page-container admin-resident-table modern-directory household-detail-directory">
     {% if household %}
     <div class="header">
         <div class="title-group">
             <span class="breadcrumb">Registry / Household Details</span>
-            <h1>{{ household.get('surname', 'N/A') }} Family</h1>
+            <h1>{{ household.get('surname', 'N/A') }} Household</h1>
         </div>
         <div class="header-actions">
             <a href="{{ url_for('add_member', household_id=household.id) }}" class="btn-action btn-add">
@@ -35,22 +35,19 @@
         </div>
     </div>
 
+    {% if roles_enabled %}{% include 'household_head_panel.html' %}{% endif %}
     <div class="table-card registry-card">
         <div class="registry-toolbar"><div class="registry-heading"><div><h2>Household residents</h2><p>Residents in this household</p></div><span class="registry-count">{{ total }} matching</span></div></div>
-        <p class="registry-scroll-note">Scroll horizontally to see all fields and actions.</p>
+        <p class="registry-scroll-note">Personal details and health information are available in each resident's details view.</p>
         <div class="table-responsive" tabindex="0" role="region" aria-label="Household residents table">
-            <table class="registry-table"><colgroup><col style="width:48px"><col style="width:280px"><col style="width:116px"><col style="width:64px"><col style="width:90px"><col style="width:116px"><col style="width:170px"><col style="width:100px"><col style="width:220px"><col style="width:220px"><col style="width:210px"></colgroup>
+            <table class="registry-table">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>Full Name</th>
-                        <th>Birthdate</th> 
                         <th>Age</th>
                         <th>Gender</th>
-                        <th>Civil Status</th>
-                        <th>Occupation</th>
+                        <th>Relationship to head</th>
                         <th>Status</th> 
-                        <th>Mental Health Status</th><th>Current Health Status</th>
                         <th style="text-align: center;">Actions</th> 
                     </tr>
                 </thead>
@@ -58,15 +55,12 @@
                 {% if members %}
                     {% for member in members %}
                     <tr>
-                        <td>{{ loop.index }}</td>
                         <td class="name-cell">
                             <div class="registry-person"><span class="registry-initials" aria-hidden="true" data-initials="{{ (member.firstname or '')[:1] }}{{ (member.surname or '')[:1] }}"></span><div class="name-container"><span class="primary-name">{{ member.get('surname', '') }}, {{ member.get('firstname', '') }} {{ member.get('middlename') or '' }}</span> <small class="record-secondary">Resident #{{ member.id }}</small></div></div>
                         </td>
-                        <td>{{ member.get('birthdate', '') }}</td> 
-                        <td>{{ member.get('age', 'N/A') }}</td>
-                        <td>{{ member.get('gender', 'N/A') }}</td>
-                        <td>{{ member.get('civil_status', 'N/A') }}</td>
-                        <td>{{ member.get('occupation', 'N/A') }}</td>
+                        <td>{{ member.age if member.age is not none else 'Not recorded' }}{% if member.status=='Deceased' and member.age is not none %}<small class="record-secondary">At death</small>{% endif %}</td>
+                        <td>{{ member.get('gender') or 'Not recorded' }}</td>
+                        <td>{{ member.get('relationship_to_head') or 'Not recorded' }}</td>
                         <td>
                             {% if member.status == 'Deceased' %}
                                 <span class="status-badge deceased">Deceased</span>
@@ -74,7 +68,6 @@
                                 <span class="status-badge active">Active</span>
                             {% endif %}
                         </td>
-                        {% include 'health_cells.html' %}
                         <td class="actions">
                             <a class="btn-table edit" href="{{ resident_url(member.id) }}">View Details</a><a class="btn-table edit" href="{{ url_for('edit_member', id=member.get('id'), household_id=household.id) }}" title="Edit">Edit</a>
                             <a class="btn-table delete" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member.get('id'), household_id=household.id) }}', this)" title="Delete">Delete</a>
@@ -82,7 +75,7 @@
                     </tr>
                     {% endfor %}
                 {% else %}
-                    <tr><td colspan="11" class="no-data">No members registered in this household yet.</td></tr>
+                    <tr><td colspan="6" class="no-data">No residents are registered yet. Use Add Member; a head can be designated after registration.</td></tr>
                 {% endif %}
                 </tbody>
             </table>

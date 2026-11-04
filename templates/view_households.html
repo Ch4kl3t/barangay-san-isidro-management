@@ -24,8 +24,8 @@
             <p>{{ total }} Households</p>
         </div>
         <div class="info-item accent-success">
-            <label>Database Status</label>
-            <p>Live / Active</p>
+            <label>Membership</label>
+            <p>Households may start without residents</p>
         </div>
     </div>
 
@@ -44,7 +44,8 @@
         </div>
 
         </div>
-        <p class="registry-scroll-note">Scroll horizontally to see all fields and actions.</p>
+        <form method="get" class="directory-filter-grid household-directory-filters" aria-label="Household directory filters"><input type="hidden" name="page_size" value="{{ page_size }}">{% for key in ['search','q','household_id','gender','status','month','year','date_from','date_to'] %}{% if request.args.get(key) %}<input type="hidden" name="{{ key }}" value="{{ request.args[key] }}">{% endif %}{% endfor %}<label for="householdMembershipFilter">Membership<select id="householdMembershipFilter" name="empty"><option value="">All households</option><option value="empty" {{ 'selected' if request.args.get('empty')=='empty' }}>Without residents</option><option value="nonempty" {{ 'selected' if request.args.get('empty')=='nonempty' }}>With residents</option></select></label><div class="directory-filter-actions"><button type="submit" class="btn-submit">Apply Filters</button><a href="{{ url_for('view_households') }}" class="btn-back">Reset Filters</a></div></form>
+        <p class="registry-scroll-note">Open a household to view its residents and designate its head.</p>
         <div class="table-responsive" tabindex="0" role="region" aria-label="Household directory table">
             <table class="registry-table">
                 <thead>
@@ -70,7 +71,7 @@
                             <span class="member-badge">{{ household.member_count }}</span>
                         </td>
                         <td class="actions">
-                            <a class="btn edit-btn" href="{{ url_for('view_household', household_id=household.id) }}">View Members</a>
+                            <a class="btn edit-btn" href="{{ url_for('view_household', household_id=household.id) }}">View</a>
                             <a class="btn edit-btn" href="{{ url_for('edit_household', id=household.id) }}">Edit</a>
                             <a class="btn delete-btn" href="javascript:void(0)" onclick="showDeleteModal('{{ url_for('delete_household', id=household.id) }}', {{ household.surname|tojson|forceescape }}, {{ household.member_count|int }})">Delete</a>
                         </td>
