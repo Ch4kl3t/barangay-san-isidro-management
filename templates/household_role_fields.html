@@ -1,0 +1,18 @@
+{% if roles_enabled %}
+<div class="household-role-fields" id="householdRoles">
+ <h2>Household role</h2>
+ <p class="helper-text">Choose one role for this resident. A household head must be active.</p>
+ <input type="hidden" name="household_roles_present" value="yes">
+ {% set home_head=household_heads.get((member if editing else prefill).get('household_id','')|string,{}) %}
+ <input type="hidden" name="head_assignment" value="{{ (member if editing else prefill).get('head_assignment',home_head.get('assignment','none')) }}">
+ {% set resident=(member if editing else prefill) %}{% set is_current_head=editing and home_head.get('resident_id') is not none and home_head.get('resident_id')|string==resident.get('id')|string %}
+ <p id="householdHeadHint" class="helper-text">Current head: {{ home_head.get('name') or 'Not designated' }}{% if home_head.get('resident_id') %} (Resident #{{ home_head.get('resident_id') }}){% endif %}.</p>
+ <fieldset class="resident-role-options"><legend>Resident role</legend>
+  <label><input type="radio" name="head_role" value="member" {{ 'checked' if resident.get('head_role','head' if is_current_head else 'member')=='member' }}> Household member</label>
+  <label><input type="radio" name="head_role" value="head" {{ 'checked' if resident.get('head_role','head' if is_current_head else 'member')=='head' }} {{ 'disabled' if resident.get('status','Active')=='Deceased' and not is_current_head }}> Household head</label>
+ </fieldset>
+ {% if resident.get('status','Active')=='Deceased' and not is_current_head %}<p class="helper-text" role="status">Head designation is unavailable because this resident is deceased. Only an active household member can be designated.</p>{% endif %}
+ <div class="form-group"><label for="relationshipToHead">Relationship to household head <span class="optional-label">(optional)</span></label><input name="relationship_to_head" id="relationshipToHead" maxlength="80" value="{{ resident.get('relationship_to_head','') if resident.get('relationship_to_head') not in [None,'Head'] else '' }}" placeholder="e.g., spouse, daughter, sibling, non-relative" autocomplete="off"><p class="helper-text">Leave unknown relationships blank. Review this value when changing the household head; it is never copied to a new head.</p></div>
+ <script type="application/json" id="householdHeadOptions">{{ household_heads|tojson }}</script>
+</div>
+{% endif %}

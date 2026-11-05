@@ -1,0 +1,51 @@
+/* Household-head presentation reuses the shared surfaces, actions and focus palette. */
+.household-head-panel.head-card{padding:22px 24px;border-radius:12px;border:1px solid var(--office-border);background:var(--office-surface);color:var(--office-text)}
+.head-card-summary{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.head-card-identity{min-width:0}
+.household-head-panel .head-card-identity h2{font-size:14px;font-weight:650;margin:0 0 8px;color:var(--office-muted)}
+.household-head-panel .head-card-name{margin:0;font-size:21px;font-weight:650;line-height:1.4;color:var(--office-text);overflow-wrap:anywhere}
+.head-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;font-size:12px;color:var(--office-muted)}
+.household-head-panel .head-card-description{margin:8px 0 0;font-size:13px;line-height:1.6;color:var(--office-muted)}
+.head-card-actions{flex-shrink:0}.head-card-actions:empty{display:none}
+.head-designation-badge{display:inline-flex;align-items:center;border-radius:6px;border:1px solid var(--office-border);padding:3px 8px;font-size:11px;font-weight:600;line-height:1.5;background:var(--office-raised);color:var(--office-link)}
+.head-card .head-action,.head-management-dialog .head-action{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:44px;max-width:100%;width:auto;margin:0;padding:10px 16px;border:1px solid var(--office-border);border-radius:8px;background:var(--office-raised);color:var(--office-link);font-family:inherit;font-size:13px;font-weight:600;line-height:20px;text-decoration:none;cursor:pointer}
+.head-card .head-action-primary,.head-management-dialog .head-action-primary{background:var(--office-action)!important;color:#fff!important;border-color:var(--office-action)}
+.head-card .head-action:hover,.head-management-dialog .head-action:hover{filter:brightness(1.08)}
+.head-card :is(summary,button,a):focus-visible,.head-management-dialog :is(button,select,textarea):focus-visible{outline:3px solid var(--office-focus);outline-offset:3px}
+.household-head-panel .head-editor-fallback{padding:16px 0 0;border:0}
+.head-editor-fallback[hidden],.head-management-dialog [hidden]{display:none!important}
+.head-editor-fallback>summary::-webkit-details-marker{display:none}
+.head-editor-fallback>summary::marker{content:''}
+dialog.office-feedback-dialog.head-management-dialog{width:min(560px,calc(100vw - 32px));max-width:560px;max-height:calc(100dvh - 32px);padding:0;overflow:auto;border-radius:12px}
+.head-dialog-header{padding:22px 24px 18px;border-bottom:1px solid var(--office-border)}
+.head-eyebrow{display:block;font-size:11px;font-weight:650;letter-spacing:.04em;color:var(--office-muted);margin-bottom:8px}
+.head-dialog-header h2{font-size:20px;line-height:1.4;margin:0 0 8px;color:var(--office-text)}
+.head-dialog-header p{margin:0;font-size:13px;line-height:1.6;color:var(--office-muted)}
+.head-management-dialog .head-management-form,.household-head-panel .head-management-form{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start;margin:0;padding:22px 24px}
+.head-field{display:grid;gap:7px;min-width:0}
+.head-field label{font-size:12px;font-weight:650;color:var(--office-text)}
+.head-management-form :is(select,textarea){display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid var(--office-border);border-radius:8px;background:var(--office-surface);color:var(--office-text);font-family:inherit;font-size:14px;line-height:1.5}
+.head-management-form textarea{resize:vertical}
+.head-field .head-field-help{font-size:12px;line-height:1.5;color:var(--office-muted);margin:0}
+.head-dialog-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:4px}
+.head-review-view{padding:22px 24px}
+.head-review-list{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0}
+.head-review-list>div{min-width:0}.head-review-reason{grid-column:1/-1}
+.head-review-list dt{font-size:12px;font-weight:650;color:var(--office-muted);margin-bottom:6px}
+.head-review-list dd{margin:0;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--office-text)}
+.head-review-view .head-review-note{font-size:13px;line-height:1.6;color:var(--office-muted);padding:12px;border-radius:8px;background:var(--office-raised);margin:20px 0}
+.head-management-dialog button:disabled{opacity:.6;cursor:wait}
+.household-head-panel .head-history{padding:12px 0 0;border:0;border-top:1px solid var(--office-border);margin-top:18px}
+.household-head-panel .head-history>summary{font-size:12px;font-weight:600;padding:5px 0;color:var(--office-link)}
+.head-history-content{padding-top:12px}.head-history-content h3{font-size:14px;font-weight:650;margin:0 0 12px}
+.head-history-list{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.head-history-entry{padding:14px 16px;border:1px solid var(--office-border);border-radius:8px;background:var(--office-raised)}
+.head-history-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:13px}
+.head-history-top strong{font-weight:600;overflow-wrap:anywhere}
+.household-head-panel .head-history-meta{font-size:11px;color:var(--office-muted);line-height:1.6;margin:6px 0 0}
+.household-head-panel .head-history-reason{font-size:13px;color:var(--office-text);line-height:1.6;margin:10px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.household-head-panel .head-history-relationships{padding:8px 0 0;border:0}.head-history-relationships summary{font-size:11px}
+.household-head-panel .head-history-footnote{font-size:11px;line-height:1.6;margin:10px 0 0;color:var(--office-muted)}
+html[data-theme=dark] .head-card :is(.head-card-description,.head-history-meta,.head-history-footnote),html[data-theme=dark] .head-management-dialog :is(.head-eyebrow,.head-field-help,dt,#headDialogDescription){color:var(--office-muted)!important}
+html[data-theme=dark] .head-card .head-designation-badge{color:var(--office-link)!important}
+@media(max-width:600px){.household-head-panel.head-card{padding:18px}.head-card-summary{align-items:flex-start;flex-direction:column;gap:14px}.head-card-actions{width:100%}.head-card-actions .head-action{width:100%}.head-card-name{font-size:19px}.head-dialog-header,.head-review-view{padding:18px}.head-management-dialog .head-management-form,.household-head-panel .head-management-form{padding:18px}.head-review-list{grid-template-columns:minmax(0,1fr)}.head-dialog-actions .head-action{flex:1 1 auto}.head-history-entry{padding:12px}.head-history-top{align-items:flex-start;flex-direction:column}}

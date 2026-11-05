@@ -1,129 +1,10 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/directory-tables.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/search-analytics-refinement.css') }}">
-<script src="{{ url_for('static',filename='js/directory-report-links.js') }}" defer></script>
 <link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
-<div class="page-container admin-resident-table modern-directory admin-ui-consistency admin-page-shell">
-    <div class="header admin-page-header">
-        <div class="title-group">
-            <span class="breadcrumb">Records / Overview</span>
-            <h1>Residents</h1>
-        </div>
-        <div class="header-actions">
-            <a class="btn-print-all" href="{{ report_url('residents') }}">
-                <i data-lucide="printer" style="width:16px;height:16px;"></i>
-                Print Options
-            </a>
-            <a href="{{ url_for('add_member') }}" class="btn-add-member">
-                <span class="icon">+</span> Add Resident
-            </a>
-        </div>
-    </div>
-
-    <div class="info-grid">
-        <div class="info-item accent-primary">
-            <label>Active Residents</label>
-            <p>{{ active_residents }} Residents</p>
-        </div>
-        <div class="info-item accent-danger">
-            <label>Deceased Residents</label>
-            <p>{{ deceased_residents }} Residents</p>
-        </div>
-        <div class="info-item accent-success">
-            <label>All matching residents</label>
-            <p>{{ total }} Active + Deceased</p>
-        </div>
-    </div>
-
-    <div class="table-card registry-card">
-        <div class="registry-toolbar"><div class="registry-heading"><div><h2>Resident directory</h2><p>Official resident records</p></div><span class="registry-count">{{ total }} matching</span></div>
-        <div class="search-panel">
-            <div class="search-wrapper">
-                <input type="text" 
-                       id="member-search" aria-label="Search residents by name or resident ID"
-                       placeholder="Name or resident ID; Enter to apply"
-                       autocomplete="off">
-                <div id="member-suggestions" class="suggestions-panel"></div>
-            </div>
-        </div>
-
-        </div>
-        <p class="registry-scroll-note">All resident fields and actions are available below. On narrow screens, scroll horizontally or use Details.</p>
-        <div class="table-responsive" tabindex="0" role="region" aria-label="Resident directory table">
-            <table class="registry-table"><colgroup><col style="width:48px"><col style="width:280px"><col style="width:116px"><col style="width:64px"><col style="width:90px"><col style="width:116px"><col style="width:170px"><col style="width:210px"><col style="width:100px"><col style="width:220px"><col style="width:220px"><col style="width:210px"></colgroup>
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Full Name</th>
-                        <th>Birthdate</th>
-                        <th style="width: 80px;">Age</th> 
-                        <th style="width: 100px;">Gender</th> 
-                        <th>Civil Status</th>
-                        <th>Occupation</th>
-                        <th>Household</th>
-                        <th>Status</th>
-                        <th>Mental Health Status</th><th>Current Health Status</th>
-                        <th style="text-align: center; width: 160px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="members-table">
-                    {% for member in members %}
-                    <tr class="resident-row">
-                        <td class="id-cell">{{ loop.index }}</td>
-                        <td class="resident-name"><div class="registry-person"><span class="registry-initials" aria-hidden="true" data-initials="{{ (member.firstname or '')[:1] }}{{ (member.surname or '')[:1] }}"></span><div class="name-container"><span class="primary-name">{{ member['surname'] }}, {{ member['firstname'] }} {{ member['middlename'] or '' }}</span> <small class="record-secondary">Resident #{{ member.id }}</small></div></div></td>
-                        <td><span class="birth-text">{{ member['birthdate'] }}</span></td>
-                        <td><span class="age-badge">{{ member['age'] }}</span></td>
-                        <td><span class="gender-text">{{ member['gender'] }}</span></td>
-                        <td>{{ member['civil_status'] }}</td>
-                        <td><span class="occ-text">{{ member['occupation'] if member['occupation'] else 'N/A' }}</span></td>
-                        <td>
-                            {% if member.household_id %}
-                                <a href="{{ url_for('view_household', household_id=member.household_id) }}" class="household-link">
-                                    {{ member.household_name if member.household_name else 'View' }}<small class="record-secondary">House {{ member.household_number or 'Not recorded' }}</small>
-                                </a>
-                            {% else %}
-                                <span class="no-household">Unassigned</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="status-badge {{ 'deceased' if member.status == 'Deceased' else 'active' }}">
-                                {{ member.status or 'Active' }}
-                            </span>
-                        </td>
-                        {% include 'health_cells.html' %}
-                        <td class="actions">
-                            <a class="btn edit-btn" href="{{ resident_url(member.id) }}">View Details</a><a class="btn edit-btn" href="{{ url_for('edit_member', id=member['id']) }}">Edit</a><a class="btn edit-btn" href="{{ report_url('residents',scope='resident',resident_id=member.id) }}">Print</a>
-                            <a class="btn delete-btn" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member['id']) }}', this)">Delete</a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="12" style="text-align: center; padding: 40px; color: #64748b;">No records found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <footer class="registry-footer"><span class="registry-footer-count">{{ total }} matching records</span>{% include 'original_pagination.html' %}</footer>
-    </div>
-</div>
-
-<div id="deleteModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-icon"><i data-lucide="alert-circle"></i></div>
-        <h3>Confirm Deletion</h3>
-        <p>Permanently delete <strong id="deleteTarget">this resident record</strong>? This action cannot be undone.</p>
-        <div class="modal-footer">
-            <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
-            <a id="confirmDeleteBtn" href="#" class="modal-btn confirm">Delete Record</a>
-        </div>
-    </div>
-</div>
-
-
 <style>
     :root {
         --primary: #1B3A57;
@@ -140,9 +21,9 @@
     .breadcrumb { font-size: 12px; color: var(--secondary); text-transform: uppercase; font-weight: 600; }
 
     .header-actions { display: flex; gap: 12px; }
-    .btn-add-member, .btn-print-all { 
-        display: flex; align-items: center; gap: 8px; padding: 12px 24px; 
-        border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; 
+    .btn-add-member, .btn-print-all {
+        display: flex; align-items: center; gap: 8px; padding: 12px 24px;
+        border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600;
         transition: all 0.2s ease; border: none; cursor: pointer;
     }
     .btn-add-member { background: var(--primary); color: white; }
@@ -153,7 +34,7 @@
     .accent-primary { border-left: 5px solid var(--primary); }
     .accent-success { border-left: 5px solid var(--success); }
     .accent-danger { border-left: 5px solid var(--danger); }
-    
+
     .info-item label { display: block; font-size: 12px; color: var(--secondary); font-weight: 600; margin-bottom: 8px; }
     .info-item p { margin: 0; font-size: 20px; font-weight: 700; color: #1e293b; }
 
@@ -177,7 +58,7 @@
 
     /* Yellow Highlight Styling */
     mark {
-        background: #fef08a; 
+        background: #fef08a;
         color: #1e293b;
         padding: 0 2px;
         border-radius: 2px;
@@ -188,11 +69,11 @@
     table { width: 100%; border-collapse: collapse; min-width: 1100px; }
     th { background: #f8fafc; color: var(--secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; padding: 18px 24px; text-align: left; }
     td { padding: 18px 24px; font-size: 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-    
+
     .status-badge { padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
     .status-badge.active { background: #dcfce7; color: #166534; }
     .status-badge.deceased { background: #fee2e2; color: #991b1b; }
-    
+
     .actions { display: flex; gap: 10px; }
     .btn { padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
     .edit-btn { background: #f1f5f9; color: var(--primary); border: 1px solid #e2e8f0; }
@@ -204,9 +85,9 @@
     .print-filter-modal .modal-icon, .print-filter-modal h3, .print-filter-modal > p { text-align: center; }
     .modal-icon { font-size: 50px; margin-bottom: 20px; }
     .modal-footer { display: flex; gap: 12px; margin-top: 35px; }
-    
-    .modal-btn { 
-        flex: 1; padding: 14px; border: none; border-radius: 12px; 
+
+    .modal-btn {
+        flex: 1; padding: 14px; border: none; border-radius: 12px;
         font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px;
         display: flex; align-items: center; justify-content: center; text-decoration: none;
     }
@@ -256,6 +137,121 @@
         .filter-grid { grid-template-columns: 1fr; gap: 0; }
     }
 </style>
+{% endblock %}
+{% block content %}
+
+
+<script src="{{ url_for('static',filename='js/directory-report-links.js') }}" defer></script>
+
+
+<div class="page-container admin-resident-table modern-directory admin-ui-consistency admin-page-shell">
+    <div class="header admin-page-header">
+        <div class="title-group">
+            <span class="breadcrumb">Records / Overview</span>
+            <h1>Residents</h1>
+        </div>
+        <div class="header-actions">
+            <a class="btn-print-all" href="{{ report_url('residents') }}">
+                <i data-lucide="printer" style="width:16px;height:16px;"></i>
+                Print Options
+            </a>
+            <a href="{{ url_for('add_member') }}" class="btn-add-member">
+                <span class="icon">+</span> Add Resident
+            </a>
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item accent-primary">
+            <label>Active Residents</label>
+            <p>{{ active_residents }} Residents</p>
+        </div>
+        <div class="info-item accent-danger">
+            <label>Deceased Residents</label>
+            <p>{{ deceased_residents }} Residents</p>
+        </div>
+        <div class="info-item accent-success">
+            <label>All matching residents</label>
+            <p>{{ total }} Active + Deceased</p>
+        </div>
+    </div>
+
+    <div class="table-card registry-card">
+        <div class="registry-toolbar"><div class="registry-heading"><div><h2>Resident directory</h2><p>Official resident records</p></div><span class="registry-count">{{ total }} matching</span></div>
+        {% include 'resident_directory_filters.html' %}
+        </div>
+        <p class="registry-scroll-note">Age is current age for active residents and age at death when recorded. Health information is available in Resident Details.</p>
+        <div class="table-responsive" tabindex="0" role="region" aria-label="Resident directory table">
+            <table class="registry-table"><colgroup><col style="width:48px"><col style="width:280px"><col style="width:116px"><col style="width:64px"><col style="width:90px"><col style="width:116px"><col style="width:170px"><col style="width:210px"><col style="width:100px"><col style="width:210px"></colgroup>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Full Name</th>
+                        <th>Birthdate</th>
+                        <th style="width: 80px;">Age</th>
+                        <th style="width: 100px;">Gender</th>
+                        <th>Civil Status</th>
+                        <th>Occupation</th>
+                        <th>Household</th>
+                        <th>Status</th>
+                        <th style="text-align: center; width: 160px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="members-table">
+                    {% for member in members %}
+                    <tr class="resident-row">
+                        <td class="id-cell">{{ loop.index }}</td>
+                        <td class="resident-name"><div class="registry-person"><span class="registry-initials" aria-hidden="true" data-initials="{{ (member.firstname or '')[:1] }}{{ (member.surname or '')[:1] }}"></span><div class="name-container"><span class="primary-name">{{ member['surname'] }}, {{ member['firstname'] }} {{ member['middlename'] or '' }}</span> <small class="record-secondary">Resident #{{ member.id }}</small></div></div></td>
+                        <td><span class="birth-text">{{ member['birthdate'] or 'Not recorded' }}</span></td>
+                        <td><span class="age-badge">{{ member['age'] if member['age'] is not none else 'Not recorded' }}</span></td>
+                        <td><span class="gender-text">{{ member['gender'] or 'Not recorded' }}</span></td>
+                        <td>{{ member['civil_status'] or 'Not recorded' }}</td>
+                        <td><span class="occ-text">{{ member['occupation'] if member['occupation'] else 'N/A' }}</span></td>
+                        <td>
+                            {% if member.household_id %}
+                                <a href="{{ url_for('view_household', household_id=member.household_id) }}" class="household-link">
+                                    {{ member.household_name if member.household_name else 'View' }}<small class="record-secondary">House {{ member.household_number or 'Not recorded' }}</small>
+                                </a>
+                            {% else %}
+                                <span class="no-household">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge {{ 'deceased' if member.status == 'Deceased' else 'active' }}">
+                                {{ member.status or 'Active' }}
+                            </span>
+                        </td>
+                        <td class="actions">
+                            <a class="btn edit-btn" href="{{ resident_url(member.id) }}">View Details</a><a class="btn edit-btn" href="{{ url_for('edit_member', id=member['id']) }}">Edit</a><a class="btn edit-btn" href="{{ report_url('residents',scope='resident',resident_id=member.id) }}">Print</a>
+                            <a class="btn delete-btn" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member['id']) }}', this)">Delete</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 40px; color: #64748b;">No residents match these filters. Reset Filters or register a resident.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <footer class="registry-footer"><span class="registry-footer-count">{{ total }} matching records</span>{% include 'original_pagination.html' %}</footer>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon"><i data-lucide="alert-circle"></i></div>
+        <h3>Confirm Deletion</h3>
+        <p>Permanently delete <strong id="deleteTarget">this resident record</strong>? This action cannot be undone.</p>
+        <div class="modal-footer">
+            <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
+            <a id="confirmDeleteBtn" href="#" class="modal-btn confirm">Delete Record</a>
+        </div>
+    </div>
+</div>
+
+
+
 
 <script>
 

@@ -1,0 +1,8 @@
+{# Render immediately, before external styles/scripts; never hide page content. #}
+<meta name="color-scheme" content="dark light">
+<style id="early-paint">
+html{background:#0c1522;color:#e0e9f5;color-scheme:dark}
+html[data-theme=light]{background:#f8fafc;color:#1e293b;color-scheme:light}
+html body{background:inherit}
+html[data-theme=dark] body{background:#0c1522!important}
+</style>

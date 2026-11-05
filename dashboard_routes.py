@@ -4,11 +4,19 @@ from database import transaction
 from reporting import report_query, period, positive_id
 from privacy import audit_value
 from office_time import today as office_today
-from validation import age_on
+from validation import resident_age
 
 
 def analytics():
     return render_template('analytics.html')
+
+
+def table_page(value,total):
+    pages=max(1,(total+9)//10)
+    try:page=int(value or 1)
+    except (ValueError,TypeError):page=1
+    page=max(1,min(page,pages))
+    return dict(page=page,pages=pages,total=total,page_size=10)
 
 
 def api_dashboard():
@@ -82,7 +90,9 @@ def api_dashboard():
                     for key,match in [('total',True),('male',row['gender']=='Male'),('female',row['gender']=='Female'),('deceased',row['status']=='Deceased')]:
                         if match:month_series[key][m]+=1;daily_series[key][d]+=1
                     row['registration_date']=row['deleted_at']
-                residents=residents[:50]
+                resident_paging=table_page(args.get('residents_page'),len(residents))
+                start=(resident_paging['page']-1)*10
+                residents=residents[start:start+10]
                 basis='Deletion event timestamp; unknown legacy events cannot be reconstructed without an audit snapshot'
             else:
                 cursor.execute("SELECT COUNT(*) AS total,COUNT(*) FILTER(WHERE gender='Male') AS male,COUNT(*) FILTER(WHERE gender='Female') AS female,COUNT(*) FILTER(WHERE status='Deceased') AS deceased FROM "+query,params)
@@ -100,12 +110,15 @@ def api_dashboard():
                         index=row.get('month')
                         if index and 1<=index<=length:target['deceased'][index-1]=row['total']
                 monthly=month_series['total']
-                cursor.execute('SELECT * FROM '+query+' ORDER BY surname,firstname,id LIMIT 50',params)
+                resident_paging=table_page(args.get('residents_page'),stats['total'])
+                cursor.execute('SELECT * FROM '+query+' ORDER BY surname,firstname,id LIMIT %s OFFSET %s',
+                               [*params,10,(resident_paging['page']-1)*10])
                 residents=cursor.fetchall()
                 for resident in residents:
-                    try:resident['age']=age_on(resident.get('birthdate'))
+                    try:resident['age']=resident_age(resident)
                     except ValueError:resident['age']=None
-            hhargs={k:v for k,v in args.items() if k in {'household_id'}}
+            hhargs={k:v for k,v in args.items() if k in {'household_id','household_search','household_size','composition'}}
+            if hhargs.get('household_search'):hhargs['search']=hhargs.pop('household_search')
             hhargs['month']=args.get('household_month','')
             hhargs['year']=args.get('household_year','')
             hhargs['date_from']=args.get('household_from','')
@@ -113,20 +126,62 @@ def api_dashboard():
             # Resident filters do not imply household registration filters.
             hhargs.pop('status',None);hhargs.pop('gender',None)
             hquery,hparams,_,_=report_query('households',hhargs)
-            cursor.execute('SELECT * FROM '+hquery+' ORDER BY surname,id',hparams)
-            households=cursor.fetchall()
+            # Full compact aggregates feed charts/cards; full table rows are paged.
+            cursor.execute('SELECT id,surname,house_number,address,member_count,active_count,deceased_count,male_members,female_members,designated_head_id FROM '+hquery+' ORDER BY surname,id',hparams)
+            household_summary=cursor.fetchall()
+            import household_roles
+            roles_enabled=False
+            if callable(getattr(cursor,'fetchone',None)):
+                try:roles_enabled=household_roles.available(cursor)
+                except (IndexError,AttributeError,TypeError):roles_enabled=False
+            if roles_enabled:
+                cursor.execute('SELECT household_id,MAX(resident_id) AS resident_id FROM household_head_assignments WHERE ended_at IS NULL GROUP BY household_id')
+                heads={str(row['household_id']):row.get('resident_id') for row in cursor.fetchall()}
+                for row in household_summary:row['designated_head_id']=heads.get(str(row['id']))
+            if args.get('head_status'):
+                if args['head_status'] not in {'with','without'}:raise ValueError('Invalid household-head status')
+                wants_head=args['head_status']=='with'
+                household_summary=[row for row in household_summary if bool(row.get('designated_head_id'))==wants_head]
+            resident_year_column='death_date' if args.get('date_basis')=='death' or args.get('report_type')=='deceased' else 'registration_date'
+            cursor.execute('SELECT DISTINCT EXTRACT(YEAR FROM '+resident_year_column+')::int AS year FROM household WHERE '+resident_year_column+' IS NOT NULL ORDER BY year')
+            resident_years=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
+            cursor.execute("SELECT DISTINCT EXTRACT(YEAR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila'))::int AS year FROM households WHERE created_at IS NOT NULL ORDER BY year")
+            household_years=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
+            if args.get('year') and args['year'] not in resident_years:raise ValueError('Choose a year present in the selected resident date field')
+            if args.get('household_year') and args['household_year'] not in household_years:raise ValueError('Choose a household registration year present in the data')
+            metric={'members':'member_count','active':'active_count','deceased':'deceased_count'}.get(args.get('household_metric','members'))
+            group=args.get('household_group','total')
+            if metric is None or group not in {'total','average','largest','single'}:
+                raise ValueError('Invalid household comparison')
+            maximum=max((row.get(metric,0) for row in household_summary),default=0)
+            selection=maximum if group=='largest' else 1 if group=='single' else None
+            total=sum(row.get(metric,0)==selection for row in household_summary) if selection is not None else len(household_summary)
+            household_paging=table_page(args.get('households_page'),total)
+            where=(' WHERE '+metric+'=%s') if selection is not None else ''
+            qualifying=[row for row in household_summary if selection is None or row.get(metric)==selection]
+            qualifying.sort(key=lambda row:(-row.get(metric,0),row.get('id',0)))
+            start=(household_paging['page']-1)*10
+            selected_households=qualifying[start:start+10]
+            selected_ids=[row['id'] for row in selected_households]
+            if selected_ids:
+                cursor.execute('SELECT * FROM '+hquery+' WHERE id=ANY(%s) ORDER BY '+metric+' DESC,id LIMIT %s OFFSET %s',
+                               [*hparams,selected_ids,10,0])
+                households=cursor.fetchall()
+            else:households=[]
+            head_by_id={str(row['id']):row.get('designated_head_id') for row in selected_households}
+            for row in households:row['designated_head_id']=head_by_id.get(str(row['id']))
         for row in residents:
             if activity!='deleted' and g.identity['role']=='admin':
                 from urllib.parse import urlencode
                 from record_navigation import resident_url
-                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear')] if args.get(key)}
+                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
                 if args.get('date_basis')=='death':navigation['filterEvent']='death'
                 row['detail_url']=resident_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
             row['household']=row.get('household_name',row.get('household'))
             row['date_of_death']=row.get('death_date')
             for field in ['registration_date','birthdate','death_date','date_of_death','status_recorded_at']:
                 if hasattr(row.get(field),'isoformat'):row[field]=row[field].isoformat()
-        for row in households:
+        for row in households+household_summary:
             from flask import url_for
             row['detail_url']=url_for('view_household',household_id=row['id'])
             row.update(household_name=row.get('surname'),members=row.get('member_count',0),active=row.get('active_count',0),
@@ -140,7 +195,9 @@ def api_dashboard():
         days=(29 if int(month_value)==2 and not args.get('year') else calendar.monthrange(int(args.get('year') or office_today().year),int(month_value))[1]) if month_value and month_value!='year' else 31
         stats['active']=stats['total']-stats['deceased']
         return jsonify(stats=stats,residents=audit_value(residents),households=audit_value(households),date_basis=basis,
-                       residents_sample=stats['total']>50,monthly=monthly,activity=activity,
+                       residents_sample=False,monthly=monthly,activity=activity,
+                       household_summary=audit_value(household_summary),resident_years=resident_years,household_years=household_years,
+                       pagination=dict(residents=resident_paging,households=household_paging),
                        monthData=series(month_series,labels),dailyData=series(daily_series,[str(i) for i in range(1,days+1)]))
     except ValueError as exc:
         return jsonify(error=str(exc)),400

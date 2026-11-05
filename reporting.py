@@ -11,7 +11,7 @@ from docx.oxml.ns import qn
 from database import transaction
 from privacy import RESIDENT_SQL, audit_value
 from office_time import today as office_today,local_timestamp,now_local
-from validation import age_on
+from validation import resident_age
 from search_terms import add_search
 
 ACTIONS = {'ADD','UPDATE','DELETE','SIGNUP','LOGIN','LOGIN_DENIED','PASSWORD_RESET_REQUEST',
@@ -22,6 +22,35 @@ TARGETS = {'Resident','Household','User','System'}
 def period(args, column, allow_time=False):
     """Only source-owned column names may be passed here."""
     clauses, params = [], []
+    if allow_time and args.get('audit_period'):
+        from calendar import monthrange
+        from datetime import timedelta
+        choice=args.get('audit_period')
+        today=office_today();start=end=None
+        if choice=='today':start=end=today
+        elif choice=='this_month':start=date(today.year,today.month,1);end=today
+        elif choice=='last_month':
+            year,month=(today.year-1,12) if today.month==1 else (today.year,today.month-1)
+            start=date(year,month,1);end=date(year,month,monthrange(year,month)[1])
+        elif choice=='specific_month':
+            value=str(args.get('audit_month',''))
+            try:
+                if len(value)!=7 or value[4]!='-' or not value[:4].isdigit() or not value[5:].isdigit():raise ValueError()
+                year,month=map(int,value.split('-'));assert 1900<=year<=2200 and 1<=month<=12
+                start=date(year,month,1);end=date(year,month,monthrange(year,month)[1])
+            except (ValueError,AssertionError):raise ValueError('Choose a valid audit month and year') from None
+        elif choice=='specific_year':
+            value=str(args.get('audit_year',''))
+            try:
+                if len(value)!=4 or not value.isdigit():raise ValueError()
+                year=int(value);assert 1900<=year<=2200
+                start=date(year,1,1);end=date(year,12,31)
+            except (ValueError,AssertionError):raise ValueError('Enter a four-digit audit year') from None
+        elif choice!='all':raise ValueError('Choose a valid audit time period')
+        if start:
+            clauses.append(f'{column}>=%s');params.append(start)
+            clauses.append(f'{column}<(%s::date + INTERVAL \'1 day\')');params.append(end)
+        return clauses,params
     month, year = args.get('month',''), args.get('year','')
     if month == 'year':
         month, year = '', year or str(office_today().year)
@@ -36,6 +65,7 @@ def period(args, column, allow_time=False):
         params.append(number)
     if year:
         try:
+            if not str(year).isdigit() or len(str(year))!=4:raise ValueError()
             number = int(year)
             if not 1900 <= number <= 2200:
                 raise ValueError()
@@ -109,7 +139,7 @@ def report_query(kind, args, health_columns=()):
         if args.get('gender'):
             if args['gender'] not in {'Male','Female','Not recorded'}:
                 raise ValueError('Invalid gender')
-            clauses.append('gender=%s')
+            clauses.append("COALESCE(gender,'Not recorded')=%s" if args['gender']=='Not recorded' else 'gender=%s')
             params.append(args['gender'])
         if args.get('status'):
             if args['status'] not in {'Active','Deceased'}:
@@ -121,13 +151,13 @@ def report_query(kind, args, health_columns=()):
                 add_search(clauses,params,"CONCAT_WS(' ',id::text,firstname,middlename,surname,household_name)",args[search_key])
         if args.get('civil_status'):
             if args['civil_status'] not in {'Single','Married','Widowed','Separated','Not recorded'}:raise ValueError('Invalid civil status')
-            clauses.append('civil_status=%s');params.append(args['civil_status'])
+            clauses.append("COALESCE(civil_status,'Not recorded')=%s" if args['civil_status']=='Not recorded' else 'civil_status=%s');params.append(args['civil_status'])
         ages=[]
         for key,op in [('age_min','>='),('age_max','<=')]:
             if args.get(key) not in {None,''}:
                 try:number=int(args[key]);assert 0<=number<=130
                 except (ValueError,TypeError,AssertionError):raise ValueError('Age must be an integer from 0 to 130') from None
-                clauses.append("DATE_PART('year',AGE(%s::date,birthdate))"+op+'%s');params.extend([office_today(),number]);ages.append(number)
+                clauses.append("DATE_PART('year',AGE(CASE WHEN status='Deceased' THEN death_date ELSE %s::date END,birthdate))"+op+'%s');params.extend([office_today(),number]);ages.append(number)
         if len(ages)==2 and ages[0]>ages[1]:raise ValueError('Minimum age must not exceed maximum age')
         order = 'surname,firstname,id'
         basis = 'Reported death date; unknown dates excluded only when a period is selected' if date_basis=='death' else 'Registered date; unknown legacy dates excluded only when a period is selected'
@@ -137,7 +167,8 @@ def report_query(kind, args, health_columns=()):
             COUNT(h.id) FILTER(WHERE COALESCE(h.status,'Active')<>'Deceased') AS active_count,
             COUNT(h.id) FILTER(WHERE h.status='Deceased') AS deceased_count,
             COUNT(h.id) FILTER(WHERE h.gender='Male') AS male_members,
-            COUNT(h.id) FILTER(WHERE h.gender='Female') AS female_members
+            COUNT(h.id) FILTER(WHERE h.gender='Female') AS female_members,
+            NULL::integer AS designated_head_id
             FROM households hh LEFT JOIN household h ON h.household_id=hh.id
             GROUP BY hh.id'''
         column, order, basis = "(registration_date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila')",'surname,id','Household-created date in Philippine time; historical provenance may be unknown'
@@ -151,6 +182,15 @@ def report_query(kind, args, health_columns=()):
         if args.get('empty'):
             if args['empty'] not in {'empty','nonempty'}:raise ValueError('Invalid household membership selection')
             clauses.append('member_count=0' if args['empty']=='empty' else 'member_count>0')
+        if args.get('household_size'):
+            bounds={'1-2':(1,2),'3-4':(3,4),'5-6':(5,6),'7+':(7,None)}
+            if args['household_size'] not in bounds:raise ValueError('Invalid household size')
+            low,high=bounds[args['household_size']]
+            clauses.append('member_count>=%s');params.append(low)
+            if high is not None:clauses.append('member_count<=%s');params.append(high)
+        if args.get('composition'):
+            if args['composition'] not in {'active','deceased'}:raise ValueError('Invalid resident composition')
+            clauses.append('active_count>0' if args['composition']=='active' else 'deceased_count>0')
         member_clauses=[];member_params=[]
         for key,allowed in [('gender',{'Male','Female','Not recorded'}),('status',{'Active','Deceased'})]:
             if args.get(key):
@@ -209,7 +249,7 @@ def rows_for(kind, args, limit=None, offset=0, *, health_columns=()):
             for row in rows:row['created_at_display']=local_timestamp(row.get('created_at'))
         if kind=='residents':
             for row in rows:
-                try:row['age']=age_on(row.get('birthdate'))
+                try:row['age']=resident_age(row)
                 except ValueError:row['age']=None
     return rows,total,basis
 

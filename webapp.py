@@ -27,7 +27,15 @@ def create_app(overrides=None):
     app.session_interface.salt=app.config['SESSION_SIGNING_SALT']
     app.teardown_appcontext(database.cleanup)
     app.before_request(security.protect_request)
-    app.after_request(security.response_headers)
+    def presentation_headers(response):
+        response=security.response_headers(response)
+        # Only these public, versioned icons are cacheable; private pages remain no-store.
+        if (request.endpoint=='static' and response.status_code in {200,304}
+                and (request.view_args or {}).get('filename') in {
+                    'icons/favicon.svg','icons/favicon-32.png','icons/favicon.ico'}):
+            response.headers['Cache-Control']='public, max-age=86400'
+        return response
+    app.after_request(presentation_headers)
     app.jinja_env.globals['csrf_token'] = security.csrf_token
     app.jinja_env.globals['submission_token'] = record_routes.submission_token
 
@@ -55,6 +63,7 @@ def create_app(overrides=None):
         route(path,name,getattr(record_routes,name),('admin',),methods)
     route('/analytics','analytics',dashboard_routes.analytics,('admin',))
     route('/api/dashboard','api_dashboard',dashboard_routes.api_dashboard,('admin',))
+    route('/households/<int:household_id>/head','set_household_head',record_routes.set_household_head,('admin',),('POST',))
     for kind,path,name in [('residents','/print_all_members','print_all_members'),
                            ('households','/print_households_report','print_households_report'),
                            ('audit','/print_audit_logs_report','print_audit_logs_report')]:
@@ -116,6 +125,7 @@ def create_app(overrides=None):
     route('/api/notifications/<int:event_id>/read','notification_read',notifications.mark,('admin',),('POST',))
     route('/notifications/open/<int:event_id>','notification_open',notifications.open_event,('admin',))
     route('/api/report-suggestions','report_suggestions',report_context.suggestions,('admin',))
+    route('/api/report-years','report_years',report_context.years,('admin',))
 
     @app.route('/reports/builder',endpoint='report_builder')
     @app.route('/reports/options')

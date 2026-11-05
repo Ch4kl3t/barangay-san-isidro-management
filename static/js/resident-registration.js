@@ -1,25 +1,6 @@
 /* Record registration only: native POST remains available; issued server intents prevent replay writes. */
 (() => {
  function mount(){
-  const dialog=document.getElementById('recordRegistrationSuccess');
-  if(dialog&&!dialog.dataset.mounted){
-   dialog.dataset.mounted='yes';
-   // Place the fixed overlay outside any transformed page container, and keep
-   // keyboard/pointer access within it until the confirmation is dismissed.
-   document.body.append(dialog);
-   const previousOverflow=document.body.style.overflow;
-   document.body.style.overflow='hidden';
-   const background=[...document.body.children].filter(element=>element!==dialog&&!element.inert);
-   background.forEach(element=>{element.inert=true;});
-   const focusable=[...dialog.querySelectorAll('a[href],button:not([disabled])')];
-   const close=()=>{dialog.hidden=true;dialog.style.display='none';background.forEach(element=>{element.inert=false;});document.body.style.overflow=previousOverflow;const heading=document.querySelector('main h1');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}};
-   dialog.querySelector('[data-registration-close]').addEventListener('click',close);
-   dialog.addEventListener('keydown',event=>{
-    if(event.key==='Escape'){event.preventDefault();close();return;}
-    if(event.key==='Tab'&&focusable.length){const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
-   });
-   dialog.querySelector('[data-registration-primary]').focus();
-  }
   const form=document.querySelector('form[data-record-registration]');
   if(!form||form.dataset.registrationEnhanced||!window.fetch||!window.FormData)return;
   form.dataset.registrationEnhanced='yes';

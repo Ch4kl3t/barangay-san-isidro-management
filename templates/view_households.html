@@ -1,106 +1,9 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/directory-tables.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/search-analytics-refinement.css') }}">
-<script src="{{ url_for('static',filename='js/directory-report-links.js') }}" defer></script>
 <link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
-<div class="page-container households-directory modern-directory admin-ui-consistency admin-page-shell">
-    <div class="header admin-page-header">
-        <div class="title-group">
-            <span class="breadcrumb">Records / Overview</span>
-            <h1>Households</h1>
-        </div>
-        <div class="header-actions"><a class="btn-add-member" href="{{ report_url('households') }}">Print / Download</a>
-            <a href="{{ url_for('add_household') }}" class="btn-add-member">
-                <span class="icon">+</span> Add New Household
-            </a>
-        </div>
-    </div>
-
-    <div class="info-grid">
-        <div class="info-item accent-primary">
-            <label>Total Registered</label>
-            <p>{{ total }} Households</p>
-        </div>
-        <div class="info-item accent-success">
-            <label>Database Status</label>
-            <p>Live / Active</p>
-        </div>
-    </div>
-
-    <div class="table-card registry-card">
-        <div class="registry-toolbar"><div class="registry-heading"><div><h2>Household directory</h2><p>Homes and their recorded members</p></div><span class="registry-count">{{ total }} matching</span></div>
-        <div class="search-panel">
-            <div class="search-wrapper">
-                <input 
-                    type="text" 
-                    id="searchBox" 
-                    placeholder="Search by household surname (e.g., Cruz)..." 
-                    autocomplete="off"
-                >
-                <div id="suggestions" class="suggestions-panel"></div>
-            </div>
-        </div>
-
-        </div>
-        <p class="registry-scroll-note">Scroll horizontally to see all fields and actions.</p>
-        <div class="table-responsive" tabindex="0" role="region" aria-label="Household directory table">
-            <table class="registry-table">
-                <thead>
-                    <tr>
-                        <th style="width: 130px;">House No.</th>
-                        <th>Household Name</th>
-                        <th>Address</th>
-                        <th style="text-align: center;">Members</th> 
-                        <th style="text-align: center; width: 220px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="households-table">
-                    {% for household in households %}
-                    <tr class="household-row" data-name="{{ household.surname }}" data-household-id="{{ household.id }}" data-house-number="{{ household.house_number or '' }}">
-                        <td class="house-number-cell">
-                            <span class="house-number-badge">{{ household.house_number if household.house_number else 'N/A' }}</span>
-                        </td>
-                        <td class="household-name">
-                            <span class="primary-name">{{ household.surname }}</span><small class="record-secondary">Household #{{ household.id }}</small>
-                        </td>
-                        <td class="address-cell">{{ household.address }}</td>
-                        <td style="text-align: center;">
-                            <span class="member-badge">{{ household.member_count }}</span>
-                        </td>
-                        <td class="actions">
-                            <a class="btn edit-btn" href="{{ url_for('view_household', household_id=household.id) }}">View Members</a>
-                            <a class="btn edit-btn" href="{{ url_for('edit_household', id=household.id) }}">Edit</a>
-                            <a class="btn delete-btn" href="javascript:void(0)" onclick="showDeleteModal('{{ url_for('delete_household', id=household.id) }}', {{ household.surname|tojson|forceescape }}, {{ household.member_count|int }})">Delete</a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" class="no-data" style="text-align: center; padding: 40px; color: #64748b;">
-                            No household records found.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <footer class="registry-footer"><span class="registry-footer-count">{{ total }} matching records</span>{% include 'original_pagination.html' %}</footer>
-    </div>
-
-   <div id="deleteModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-icon danger-icon"><i data-lucide="alert-circle"></i></div>
-        <h3>Confirm Removal</h3>
-        <p>Are you sure you want to delete the <strong><span id="targetName"></span></strong> household and its <span id="targetMembers"></span> resident records? This action is permanent.</p>
-        <div class="modal-footer">
-            <button class="modal-btn secondary" onclick="closeDeleteModal()">Cancel</button>
-            <a id="confirmDeleteBtn" href="#" class="modal-btn danger-btn">Delete Permanently</a>
-        </div>
-    </div>
-</div>
-</div>
-
 <style>
     :root {
         --primary: #1B3A57;
@@ -147,9 +50,9 @@
     .edit-btn { background: #f1f5f9; color: var(--primary); border: 1px solid #e2e8f0; }
     .delete-btn { background: #fff1f2; color: var(--danger); cursor: pointer; border: none; }
     /* Replace your modal-content and buttons styles with these */
-.modal-overlay { 
-    display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); 
-    z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); 
+.modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
+    z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px);
 }
 .modal-content { background: white; padding: 40px; border-radius: 20px; width: 420px; text-align: center; }
 .modal-icon { font-size: 50px; margin-bottom: 20px; }
@@ -158,14 +61,109 @@
 .modal-content p { color: var(--text-muted); line-height: 1.6; font-size: 15px; }
 
 .modal-footer { display: flex; gap: 12px; margin-top: 35px; }
-.modal-btn { 
-    flex: 1; padding: 14px; border: none; border-radius: 12px; 
+.modal-btn {
+    flex: 1; padding: 14px; border: none; border-radius: 12px;
     font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px;
     display: flex; align-items: center; justify-content: center; text-decoration: none;
 }
 .modal-btn.secondary { background: #f1f5f9; color: #475569; }
 .modal-btn.danger-btn { background: var(--danger); color: white; }
 </style>
+{% endblock %}
+{% block content %}
+
+
+<script src="{{ url_for('static',filename='js/directory-report-links.js') }}" defer></script>
+
+<div class="page-container households-directory modern-directory admin-ui-consistency admin-page-shell">
+    <div class="header admin-page-header">
+        <div class="title-group">
+            <span class="breadcrumb">Records / Overview</span>
+            <h1>Households</h1>
+        </div>
+        <div class="header-actions"><a class="btn-add-member" href="{{ report_url('households') }}">Print / Download</a>
+            <a href="{{ url_for('add_household') }}" class="btn-add-member">
+                <span class="icon">+</span> Add New Household
+            </a>
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item accent-primary">
+            <label>Total Registered</label>
+            <p>{{ total }} Households</p>
+        </div>
+        <div class="info-item accent-success">
+            <label>Membership</label>
+            <p>Households may start without residents</p>
+        </div>
+    </div>
+
+    <div class="table-card registry-card">
+        <div class="registry-toolbar"><div class="registry-heading"><div><h2>Household directory</h2><p>Homes and their recorded members</p></div><span class="registry-count">{{ total }} matching</span></div>
+        <form method="get" class="compact-directory-toolbar" aria-label="Household directory search">
+ <input type="hidden" name="page_size" value="{{ page_size }}">
+ <div class="search-wrapper"><label class="directory-search-label" for="searchBox">Search</label><input type="search" name="search" id="searchBox" value="{{ keyword }}" placeholder="Household name, house number or address" autocomplete="off"><div id="suggestions" class="suggestions-panel" hidden></div></div>
+ <button type="submit">Search</button><a class="directory-clear" href="{{ url_for('view_households') }}">Clear</a>
+        </form></div>
+        <p class="registry-scroll-note">Open a household to view its residents and designate its head.</p>
+        <div class="table-responsive" tabindex="0" role="region" aria-label="Household directory table">
+            <table class="registry-table">
+                <thead>
+                    <tr>
+                        <th style="width: 130px;">House No.</th>
+                        <th>Household Name</th>
+                        <th>Address</th>
+                        <th style="text-align: center;">Members</th>
+                        <th style="text-align: center; width: 220px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="households-table">
+                    {% for household in households %}
+                    <tr class="household-row" data-name="{{ household.surname }}" data-household-id="{{ household.id }}" data-house-number="{{ household.house_number or '' }}">
+                        <td class="house-number-cell">
+                            <span class="house-number-badge">{{ household.house_number if household.house_number else 'N/A' }}</span>
+                        </td>
+                        <td class="household-name">
+                            <span class="primary-name">{{ household.surname }}</span><small class="record-secondary">Household #{{ household.id }}</small>
+                        </td>
+                        <td class="address-cell">{{ household.address }}</td>
+                        <td style="text-align: center;">
+                            <span class="member-badge">{{ household.member_count }}</span>
+                        </td>
+                        <td class="actions">
+                            <a class="btn edit-btn" href="{{ url_for('view_household', household_id=household.id) }}">View</a>
+                            <a class="btn edit-btn" href="{{ url_for('edit_household', id=household.id) }}">Edit</a>
+                            <a class="btn delete-btn" href="javascript:void(0)" onclick="showDeleteModal('{{ url_for('delete_household', id=household.id) }}', {{ household.surname|tojson|forceescape }}, {{ household.member_count|int }})">Delete</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="no-data" style="text-align: center; padding: 40px; color: #64748b;">
+                            No household records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <footer class="registry-footer"><span class="registry-footer-count">{{ total }} matching records</span>{% include 'original_pagination.html' %}</footer>
+    </div>
+
+   <div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon danger-icon"><i data-lucide="alert-circle"></i></div>
+        <h3>Confirm Removal</h3>
+        <p>Are you sure you want to delete the <strong><span id="targetName"></span></strong> household and its <span id="targetMembers"></span> resident records? This action is permanent.</p>
+        <div class="modal-footer">
+            <button class="modal-btn secondary" onclick="closeDeleteModal()">Cancel</button>
+            <a id="confirmDeleteBtn" href="#" class="modal-btn danger-btn">Delete Permanently</a>
+        </div>
+    </div>
+</div>
+</div>
+
+
 
 <script>
 // --- DELETE MODAL LOGIC ---

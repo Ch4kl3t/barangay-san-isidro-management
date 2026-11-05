@@ -6,7 +6,7 @@
  input.setAttribute('aria-label',resident?'Search residents by name or resident ID':'Search households by name, house number or address');
  input.placeholder=resident?'Resident name or ID':'Household name, house number or address';
  const list=document.getElementById(resident?'member-suggestions':'suggestions'),target=document.createElement('input'),status=document.createElement('p');
- target.type='hidden';target.id='directoryExactId';target.value=url.searchParams.get(key)||'';
+ target.type='hidden';target.name=key;target.id='directoryExactId';target.value=url.searchParams.get(key)||'';
  status.id='directorySearchStatus';status.role='status';status.className='report-note';status.textContent=target.value?'Exact record #'+target.value:'Choose a suggestion or press Enter to search.';
  list.hidden=true;list.style.display='';list.className='record-options';list.role='listbox';
  input.setAttribute('aria-controls',list.id);input.setAttribute('aria-expanded','false');input.setAttribute('aria-autocomplete','list');input.setAttribute('role','combobox');
@@ -17,12 +17,13 @@
  let timer,composing=false;
  const committedLabel=()=>target.value?(document.querySelector('.resident-row .primary-name,.household-row .primary-name')?.textContent.trim()||''):new URL(location.href).searchParams.get('search')||new URL(location.href).searchParams.get('q')||'';
  input.value=committedLabel();input.parentElement.classList.add('workflow-search');
- const help=document.createElement('p');help.className='directory-commit-help';help.textContent='Typing shows suggestions. Results change only after Search, Enter or selecting a suggestion.';status.after(help);
+ const help=document.createElement('p');help.className='directory-commit-help';help.textContent='Choose a suggestion or search all matching records.';status.after(help);
  const printLinks=[...document.querySelectorAll('.header-actions a[href*="/reports/builder"]')];
  function printPending(pending){for(const link of printLinks){link.setAttribute('aria-disabled',String(pending));link.style.pointerEvents=pending?'none':'';link.tabIndex=pending?-1:0;link.title=pending?'Wait for the directory search to finish before printing.':'';}}
  for(const link of printLinks)link.addEventListener('click',event=>{if(link.getAttribute('aria-disabled')==='true')event.preventDefault();});
  const invalidate=()=>{document.getElementById('printOptionsContent')?.dispatchEvent(new Event('report-invalidate'));};
- const apply=()=>{clearTimeout(timer);if(composing)return;const next=new URL(location.href);for(const k of ['q','search','page',key])next.searchParams.delete(k);if(target.value)next.searchParams.set(key,target.value);else if(input.value.trim())next.searchParams.set('search',input.value.trim());if(next.href===location.href){printPending(false);return;}try{sessionStorage.setItem('directory-search-focus',JSON.stringify({path:location.pathname,id:input.id,start:input.selectionStart,end:input.selectionEnd,time:Date.now()}));}catch(_){}status.textContent='Loading matching records…';input.setAttribute('aria-busy','true');invalidate();location.assign(next.pathname+next.search);};
+ const form=input.closest('form');
+ const apply=()=>{clearTimeout(timer);if(composing)return;const next=new URL(location.href);next.search='';for(const [name,value] of new FormData(form))if(value&&name!==key&&name!=='search')next.searchParams.set(name,value);if(target.value)next.searchParams.set(key,target.value);else if(input.value.trim())next.searchParams.set('search',input.value.trim());if(next.href===location.href){printPending(false);return;}try{sessionStorage.setItem('directory-search-focus',JSON.stringify({path:location.pathname,id:input.id,start:input.selectionStart,end:input.selectionEnd,time:Date.now()}));}catch(_){}status.textContent='Loading matching records…';input.setAttribute('aria-busy','true');invalidate();location.assign(next.pathname+next.search);};
  input.addEventListener('input',()=>{clearTimeout(timer);help.textContent='Draft search not applied. Press Enter, Search or choose a suggestion. Printing uses the displayed results.';});
  input.addEventListener('compositionstart',()=>{composing=true;clearTimeout(timer);});input.addEventListener('compositionend',()=>{composing=false;});
  window.addEventListener('beforeunload',()=>clearTimeout(timer));
@@ -31,11 +32,7 @@
  input.addEventListener('keydown',event=>{if(['ArrowDown','ArrowUp','Escape'].includes(event.key))clearTimeout(timer);});
  target.addEventListener('change',()=>{if(target.value){clearTimeout(timer);timer=setTimeout(apply,0);}});
  input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.defaultPrevented&&!event.isComposing){event.preventDefault();apply();}});
- const controls=document.createElement('div');controls.className='directory-search-actions';
- const clear=document.createElement('a');clear.textContent='Clear search';const clean=new URL(location.href);for(const k of ['q','search','page',key])clean.searchParams.delete(k);clear.href=clean.pathname+clean.search;
- const reset=document.createElement('a');reset.textContent='Reset Filters';reset.href=location.pathname;
- const search=document.createElement('button');search.type='button';search.textContent='Search';search.onclick=apply;
- controls.append(search,clear,reset);status.after(controls);
+ form.addEventListener('submit',event=>{event.preventDefault();apply();});
  const icon=document.createElement('span');icon.className='directory-search-icon';icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>';input.before(icon);
  input.parentElement.classList.add('automatic-directory-search');
  const restoreFocus=()=>{try{const saved=JSON.parse(sessionStorage.getItem('directory-search-focus')||'null');sessionStorage.removeItem('directory-search-focus');if(saved?.path===location.pathname&&saved.id===input.id&&Date.now()-saved.time<10000){input.focus({preventScroll:true});input.setSelectionRange(saved.start,saved.end);}}catch(_){}};

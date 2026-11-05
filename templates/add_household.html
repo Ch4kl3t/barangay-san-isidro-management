@@ -33,11 +33,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Purok / Zone</label>
-                    <input type="text" name="address" value="{{ values.get('address') or '' }}" placeholder="e.g., Purok 1" required autocomplete="off">
+                    <label>Address</label>
+                    <input type="text" name="address" value="{{ values.get('address') or '' }}" placeholder="Recorded address" maxlength="500" required autocomplete="off">
                 </div>
             </div>
 
+            <p class="helper-text">A household can be saved without residents. {% if roles_enabled %}No head is inferred from age or surname. {% if editing %}<a href="{{ url_for('view_household',household_id=values.get('id',request.view_args.get('id'))) }}#headAssignment">Manage household head and relationships</a>{% else %}Designate a head when adding a resident, or later from Household Details.{% endif %}{% else %}Residents can be added after this household is saved.{% endif %}</p>
             <div class="form-actions">
                 <button type="submit" class="btn-submit">{{ 'Save Household' if editing else 'Register Household' }}</button>
                 

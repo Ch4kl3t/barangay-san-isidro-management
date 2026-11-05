@@ -26,11 +26,19 @@ window.uiRegex = value => String(value).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
    const [year,month,day]=parts.slice(1).map(Number),born=new Date(Date.UTC(year,month-1,day));
    const dateParts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
    const current=Object.fromEntries(dateParts.map(p=>[p.type,p.value]));
-   const reference=[Number(current.year),Number(current.month),Number(current.day)];
+   let reference=[Number(current.year),Number(current.month),Number(current.day)];
+   const status=document.querySelector('[name="status"]'),death=document.querySelector('[name="death_date"]');
+   if(status?.value==='Deceased'){
+    const end=death?.value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!end||!death.validity.valid){age.value='';return;}
+    const ended=end.slice(1).map(Number),timestamp=Date.UTC(ended[0],ended[1]-1,ended[2]);
+    if(timestamp>Date.UTC(reference[0],reference[1]-1,reference[2])){age.value='';return;}
+    reference=ended;
+   }
    if(born.getUTCFullYear()!==year||born.getUTCMonth()!==month-1||born.getUTCDate()!==day||born.getTime()>Date.UTC(reference[0],reference[1]-1,reference[2])){age.value='';return;}
    age.value=reference[0]-year-((reference[1]<month||(reference[1]===month&&reference[2]<day))?1:0);
   }
-  birth?.addEventListener('input',updateAge);birth?.addEventListener('change',updateAge);updateAge();
+  for(const field of [birth,document.querySelector('[name="status"]'),document.querySelector('[name="death_date"]')]){field?.addEventListener('input',updateAge);field?.addEventListener('change',updateAge);}updateAge();
  });
 })();
 
