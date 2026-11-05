@@ -1,7 +1,11 @@
 {% extends "base.html" %}
-{% block content %}
+{% block page_styles %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/directory-tables.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/household-head.css') }}">
+{% endblock %}
+{% block content %}
+<script src="{{ url_for('static',filename='js/household-head.js') }}" defer></script>
 
 <div class="page-container admin-resident-table modern-directory household-detail-directory">
     {% if household %}

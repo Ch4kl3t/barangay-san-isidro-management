@@ -1,5 +1,12 @@
+PRE-DEFENSE-RELEASE.md
 RELEASE-FILES.txt
-static/css/defense-refinement.css
-templates/resident_directory_filters.html
-templates/view_households.html
-tests/test_ui_simplification.py
+household_roles.py
+record_routes.py
+static/css/household-head.css
+static/js/defense-refinement.js
+static/js/household-head.js
+templates/base.html
+templates/household_head_panel.html
+templates/view_household.html
+tests/test_defense_refinement.py
+tests/test_household_head_ui.py

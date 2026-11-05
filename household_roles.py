@@ -123,9 +123,16 @@ def context(cursor, household_id, members=()):
         relations={r['resident_id']:r['relationship'] for r in cursor.fetchall()}
     for member in members:
         member['relationship_to_head']='Head' if head and head['resident_id']==member['id'] else relations.get(member['id'])
-    cursor.execute("""/* roles_history */ SELECT id,resident_id_record,assigned_at,ended_at,reason
-      FROM household_head_assignments WHERE household_id_record=%s ORDER BY id DESC LIMIT 8""",(household_id,))
+    cursor.execute("""/* roles_history */ SELECT a.id,a.resident_id_record,a.assigned_at,a.ended_at,a.reason,
+      h.firstname,h.middlename,h.surname FROM household_head_assignments a
+      LEFT JOIN household h ON h.id=a.resident_id
+      WHERE a.household_id_record=%s ORDER BY a.id DESC LIMIT 8""",(household_id,))
     result['head_history']=cursor.fetchall()
+    from office_time import local_timestamp
+    for entry in result['head_history']:
+        entry['resident_name']=' '.join(entry.get(key) or '' for key in ['firstname','middlename','surname']).strip()
+        entry['assigned_display']=local_timestamp(entry.get('assigned_at'))
+        entry['ended_display']=local_timestamp(entry.get('ended_at'))
     if result['head_history']:
         cursor.execute('/* roles_relationship_history */ SELECT assignment_id,resident_id_record,relationship FROM household_member_relationships WHERE assignment_id=ANY(%s) ORDER BY assignment_id,resident_id_record',([h['id'] for h in result['head_history']],))
         history_relations=cursor.fetchall()

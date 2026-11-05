@@ -54,7 +54,8 @@ class RoleStore:
         elif tag=='roles_relationship_save':self.relations[params[:2]]=params[3]
         elif tag=='roles_relationship_clear':self.relations.pop(tuple(params),None)
         elif tag=='roles_relationships':self.rows=[dict(resident_id=i,relationship=v) for (a,i),v in self.relations.items() if a==params[0] and i in params[1]]
-        elif tag=='roles_history':self.rows=[copy.deepcopy(h) for h in reversed(self.heads) if h['household_id']==params[0]][:8]
+        elif tag=='roles_history':
+            self.rows=[dict(copy.deepcopy(h),**{k:v for k,v in self.members.get(h['resident_id'],{}).items() if k in {'firstname','middlename','surname'}}) for h in reversed(self.heads) if h['household_id']==params[0]][:8]
         elif tag=='roles_relationship_history':self.rows=[dict(assignment_id=a,resident_id_record=i,relationship=v) for (a,i),v in self.relations.items() if a in params[0]]
         elif tag=='roles_choices':self.rows=[dict(h,name='Fictional head') for h in self.heads if h['ended_at'] is None]
         elif query.startswith('SELECT id FROM households WHERE id='):

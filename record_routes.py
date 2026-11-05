@@ -328,5 +328,7 @@ def set_household_head(household_id):
             audit(cursor,'UPDATE','Household',household_id,'Household-head change rejected',
                   new={'validation_failed':True},context=household_id,outcome='FAILED')
             return committed_feedback(url_for('view_household',household_id=household_id),
-                str(exc) if isinstance(exc,ValueError) else 'The household changed. Reload and review the head assignment.','danger')
-        return committed_feedback(url_for('view_household',household_id=household_id),'Household-head designation saved. Review relationships for this head.')
+                str(exc) if isinstance(exc,ValueError) else 'The household changed. Reload and review the head assignment.','household_head_error')
+        return committed_feedback(url_for('view_household',household_id=household_id),
+            'Household-head designation cleared.' if identifier is None else 'Household-head designation saved. Review relationships for this head.',
+            'household_head_success')

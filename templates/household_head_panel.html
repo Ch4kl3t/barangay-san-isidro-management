@@ -1,14 +1,42 @@
-<section class="household-head-panel" aria-labelledby="headHeading">
- <div><h2 id="headHeading">Household head</h2><p>{% if head %}{% if head.resident_id is none %}Resident no longer available{% else %}{{ head.firstname or '' }} {{ head.surname or '' }}{% endif %} · Resident #{{ head.resident_id_record }}{% if head.status=='Deceased' %} <strong class="status-badge deceased">Deceased — reassignment needed</strong>{% endif %}{% else %}Not designated. An administrator must explicitly select a resident.{% endif %}</p></div>
- <p><a href="{{ url_for('add_member',household_id=household.id) }}#householdRoles">Add a resident and optionally designate them as head</a>. To update an existing member’s relationship, use Edit in the resident row.</p>
- <details id="headAssignment"><summary>{{ 'Manage head: reassign or clear' if head else 'Assign an existing member as head' }}</summary>
-  <p>Only an active member of this household can be newly designated. Existing residents and historical decisions are preserved. Relationships must be recorded for the new head; old labels are not copied.</p>
-  <form method="post" action="{{ url_for('set_household_head',household_id=household.id) }}" data-confirm-message="Save this household-head decision? Existing records are preserved. Relationships for a different head will remain in history and must be recorded again.">
-   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="head_assignment" value="{{ head_assignment }}">
-   <label for="headResident">Household head<select name="head_resident_id" id="headResident"><option value="">Leave household unassigned</option>{% for m in head_choices %}<option value="{{ m.id }}" {{ 'selected' if head and head.resident_id==m.id }}>{{ m.firstname }} {{ m.middlename or '' }} {{ m.surname }} · Resident #{{ m.id }}</option>{% endfor %}</select></label>
-   <label for="headReason">Reason for designation or reassignment<input name="head_reason" id="headReason" required minlength="3" maxlength="300" autocomplete="off"></label>
-   <button class="btn-submit" type="submit">Save Head Designation</button>
-  </form>
+<section class="household-head-panel head-card" id="householdHeadCard" aria-labelledby="headHeading">
+ <div class="head-card-summary">
+  <div class="head-card-identity">
+   <h2 id="headHeading">Household Head</h2>
+   {% if head %}
+    <h3 class="head-card-name">{{ [head.firstname,head.middlename,head.surname]|select|join(' ') if head.resident_id is not none else 'Resident no longer available' }}</h3>
+    <div class="head-card-meta"><span>Resident #{{ head.resident_id_record }}</span><span class="head-designation-badge">Designated Head</span>{% if head.status=='Deceased' %}<span class="status-badge deceased">Deceased — reassignment needed</span>{% endif %}</div>
+   {% else %}
+    <h3 class="head-card-name">No household head designated</h3>
+    <p class="head-card-description">Select an eligible resident to designate as the household head.</p>
+   {% endif %}
+  </div>
+  <div class="head-card-actions" data-head-actions></div>
+ </div>
+ <details id="headAssignment" class="head-editor-fallback">
+  <summary class="head-action head-action-primary" data-head-launch>{{ 'Change Head' if head else 'Designate Household Head' }}</summary>
+  <div data-head-editor>
+   <header class="head-dialog-header"><span class="head-eyebrow">Household management</span><h2 id="headDialogTitle">{{ 'Change Household Head' if head else 'Designate Household Head' }}</h2><p id="headDialogDescription">Select an active member of {{ household.surname }} Household.</p></header>
+   <div data-head-edit-view>
+    <form method="post" action="{{ url_for('set_household_head',household_id=household.id) }}" class="head-management-form" data-head-form data-head-household="{{ household.surname }} Household" data-head-existing="{{ 'yes' if head else 'no' }}">
+     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="head_assignment" value="{{ head_assignment }}">
+     <div class="head-field"><label for="headResident">Household head</label><select name="head_resident_id" id="headResident" {% if not head %}required{% endif %} aria-describedby="headEligibility">
+      {% if head %}<option value="">Clear current designation</option>{% else %}<option value="" selected disabled>Select an active member</option>{% endif %}
+      {% for m in head_choices %}{% set name=[m.firstname,m.middlename,m.surname]|select|join(' ') %}<option value="{{ m.id }}" data-resident-name="{{ name }}" {{ 'selected' if head and head.resident_id==m.id }}>{{ name }} · Resident #{{ m.id }}</option>{% endfor %}
+     </select><p id="headEligibility" class="head-field-help">Only active members of this household may be newly designated.{% if not head_choices %} No eligible members are currently available.{% endif %}</p></div>
+     <div class="head-field"><label for="headReason">Reason for {{ 'change' if head else 'designation' }}</label><textarea name="head_reason" id="headReason" required minlength="3" maxlength="300" rows="3" aria-describedby="headReasonHelp"></textarea><p id="headReasonHelp" class="head-field-help">Enter 3–300 characters. The reason is retained in designation history.</p></div>
+     <div class="head-dialog-actions"><button class="head-action" type="button" data-head-cancel hidden>Cancel</button><button class="head-action head-action-primary" type="submit" data-head-review-button>Save {{ 'Change' if head else 'Designation' }}</button></div>
+    </form>
+   </div>
+   <section class="head-review-view" data-head-review hidden aria-label="Review household-head decision">
+    <dl class="head-review-list"><div><dt>Household</dt><dd data-review-household></dd></div><div><dt>Selected resident</dt><dd data-review-name></dd></div><div><dt>Resident ID</dt><dd data-review-id></dd></div><div class="head-review-reason"><dt>Reason</dt><dd data-review-reason></dd></div></dl>
+    <p class="head-review-note" data-review-explanation>This action will update the designated household head. Previous designations will remain in the history.</p>
+    <div class="head-dialog-actions"><button class="head-action" type="button" data-head-cancel>Cancel</button><button class="head-action" type="button" data-head-back>Edit decision</button><button class="head-action head-action-primary" type="button" data-head-confirm>Confirm Designation</button></div>
+   </section>
+  </div>
  </details>
- {% if head_history %}<details><summary>Designation history</summary><ul>{% for item in head_history %}<li>Resident #{{ item.resident_id_record }} · {{ 'Previous designation' if item.ended_at else 'Current designation' }} · {{ item.reason }}{% if item.relationships %}<ul>{% for relation in item.relationships %}<li>Resident #{{ relation.resident_id_record }}: {{ relation.relationship }}</li>{% endfor %}</ul>{% endif %}</li>{% endfor %}</ul><p>Latest eight decisions. Earlier decisions remain preserved in the database and audit history.</p></details>{% endif %}
+ {% if head_history %}
+ <details class="head-history" id="headHistory"><summary>View designation history</summary><div class="head-history-content"><h3>Designation history</h3><ol class="head-history-list">
+  {% for item in head_history %}<li class="head-history-entry"><div class="head-history-top"><strong>{{ item.resident_name or 'Resident name unavailable' }}</strong><span class="head-designation-badge">{{ 'Previous designation' if item.ended_at else 'Current designation' }}</span></div><p class="head-history-meta">Resident #{{ item.resident_id_record }} · Designated {{ item.assigned_display }}</p>{% if item.ended_at %}<p class="head-history-meta">Ended {{ item.ended_display }}</p>{% endif %}<p class="head-history-reason">{{ item.reason or 'Reason not recorded' }}</p>{% if item.relationships %}<details class="head-history-relationships"><summary>Recorded relationships</summary><ul>{% for relation in item.relationships %}<li>Resident #{{ relation.resident_id_record }}: {{ relation.relationship }}</li>{% endfor %}</ul></details>{% endif %}</li>{% endfor %}
+ </ol><p class="head-history-footnote">Latest eight decisions. Names are from available linked resident records; earlier decisions remain preserved.</p></div></details>
+ {% endif %}
 </section>

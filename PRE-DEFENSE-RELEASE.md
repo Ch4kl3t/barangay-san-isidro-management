@@ -1,5 +1,12 @@
 # Pre-defense refinement: review and release guide
 
+November 5 household-head UI follow-up: the owner reports migration 007 is already
+installed and the feature is working in production. Do not reapply it. This release
+refines the card, native review dialog, history presentation and single inline
+feedback. Its only backend changes are read-only history name/date presentation
+and scoped feedback categories. Existing migration-pending notes below describe
+earlier releases. No production connection, SQL, push or deployment is part of this task.
+
 November 4, 2026 (Asia/Manila). Local release preparation only; no production connection,
 migration, seed import, credential change, deployment or push performed.
 The owner's 30 households / 120 residents / 110 active / 10 deceased inventory
