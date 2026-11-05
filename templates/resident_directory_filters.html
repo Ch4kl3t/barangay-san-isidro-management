@@ -1,0 +1,7 @@
+<form method="get" class="compact-directory-toolbar" aria-label="Resident directory search and filters">
+ <input type="hidden" name="page_size" value="{{ page_size }}">
+ <div class="search-wrapper"><label class="directory-search-label" for="member-search">Search</label><input type="search" name="search" id="member-search" value="{{ keyword }}" placeholder="Resident name or ID" autocomplete="off"><div id="member-suggestions" class="suggestions-panel" hidden></div></div>
+ <label for="directoryGender">Gender<select name="gender" id="directoryGender"><option value="">All</option>{% for value in ['Male','Female'] %}<option value="{{ value }}" {{ 'selected' if request.args.get('gender')==value }}>{{ value }}</option>{% endfor %}</select></label>
+ <label for="directoryStatus">Status<select name="status" id="directoryStatus"><option value="">All</option>{% for value in ['Active','Deceased'] %}<option value="{{ value }}" {{ 'selected' if request.args.get('status')==value }}>{{ value }}</option>{% endfor %}</select></label>
+ <button type="submit">Search</button><a class="directory-clear" href="{{ url_for('view_members') }}">Clear</a>
+</form>

@@ -56,3 +56,16 @@ def suggestions():
         label=(r['full_name']+' · #'+str(r['id'])+' · House '+str(r.get('household_number') or 'Not recorded')) if effective=='residents' else (str(r['surname'])+' · House '+str(r.get('house_number') or 'Not recorded')+' · '+str(r.get('address') or '')[:70])
         items.append(dict(id=r['id'],label=label,type=effective))
     return jsonify(items=items)
+
+def years():
+    from database import transaction
+    from flask import jsonify
+    kind=request.args.get('kind','residents')
+    if kind=='residents':table='household h';field='death_date' if request.args.get('date_basis')=='death' else 'registration_date';expr='h.'+field
+    elif kind=='households':table='households';field='created_at';expr="(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila')"
+    elif kind=='audit':table='audit_logs';field='created_at';expr="(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila')"
+    else:abort(400)
+    with transaction() as cursor:
+        cursor.execute('SELECT DISTINCT EXTRACT(YEAR FROM '+expr+')::int AS year FROM '+table+' WHERE '+field+' IS NOT NULL ORDER BY year')
+        values=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
+    return jsonify(years=values)

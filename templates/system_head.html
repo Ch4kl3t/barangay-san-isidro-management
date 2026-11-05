@@ -1,0 +1,5 @@
+{% set page_names={'home':'Home','analytics':'Analytics','view_members':'Residents','view_households':'Households','view_household':'Household Details','resident_detail':'Resident Details','add_member':'Add Resident','edit_member':'Edit Resident','add_household':'Add Household','edit_household':'Edit Household','audit_log':'Activity Log','profile':'Profile','print_reports':'Reports','report_builder':'Report Builder','notifications':'Notifications','login':'Login','forgot_password':'Forgot Password','reset_password':'Reset Password'} %}
+<title>{{ system_page_title|default(page_names.get(request.endpoint,'Administration')) }} | Barangay Information System</title>
+<link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="{{ url_for('static',filename='icons/favicon.ico',v=1) }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static',filename='icons/favicon-32.png',v=1) }}">
+<link rel="icon" type="image/svg+xml" sizes="any" href="{{ url_for('static',filename='icons/favicon.svg',v=1) }}">

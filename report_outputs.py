@@ -10,20 +10,20 @@ from database import transaction
 from office_time import now_local,local_timestamp
 
 COLUMNS={
- 'residents': [('full_name','Full name'),('id','Resident ID'),('birthdate','Birthdate'),('age','Age'),('gender','Gender'),('civil_status','Civil status'),('household_name','Household'),('household_number','House no.'),('occupation','Occupation'),('status','Resident status'),('registration_date','Registered'),('death_date','Reported death date'),('mental_health_status','Mental Health Status'),('current_health_status','Current Health Status')],
+ 'residents': [('full_name','Full name'),('id','Resident ID'),('birthdate','Birthdate'),('age','Age'),('gender','Gender'),('civil_status','Civil status'),('household_name','Household'),('household_number','House no.'),('household_address','Address'),('relationship_to_head','Relationship to household head'),('occupation','Occupation'),('status','Resident status'),('registration_date','Registered'),('death_date','Reported death date'),('mental_health_status','Mental Health Status'),('current_health_status','Current Health Status')],
  'households':[('surname','Household'),('house_number','House no.'),('address','Address'),('member_count','Members'),('active_count','Active'),('deceased_count','Deceased')],
  'audit':[('created_at_display','Event time (PHT)'),('username','Actor'),('action_type','Action'),('target_type','Entity'),('target_id','Record ID'),('details','Summary'),('status','Recorded outcome')]
 }
 REQUIRED={'residents':{'full_name','id'},'households':{'surname','house_number'},'audit':{'created_at_display','username','action_type','target_type','target_id'}}
 DEFAULTS={'residents':['full_name','id','birthdate','age','gender','household_name','household_number','status'],'households':[c[0] for c in COLUMNS['households']],'audit':[c[0] for c in COLUMNS['audit']]}
-FILTER_KEYS={'scope','resident_id','household_id','mode','gender','status','civil_status','age_min','age_max','date_basis','month','year','date_from','date_to','empty','username','action_type','target_type','outcome'}
+FILTER_KEYS={'scope','resident_id','household_id','mode','gender','status','civil_status','age_min','age_max','date_basis','month','year','date_from','date_to','username','action_type','target_type','outcome','audit_period','audit_month','audit_year'}
 
 def column_weight(key):return 2.2 if key in {'full_name','address','details','mental_health_status','current_health_status'} else .9 if key=='id' else .55 if key=='age' else 1
 
 
 def effective_kind(kind,args):
     if kind not in COLUMNS:raise ValueError('Invalid report type')
-    if kind=='households' and args.get('mode','summary') not in {'summary','members'}:raise ValueError('Invalid household report mode')
+    if kind=='households' and args.get('mode','summary') not in {'summary','members','profile'}:raise ValueError('Invalid household report mode')
     return 'residents' if kind=='households' and args.get('mode')=='members' else kind
 
 
@@ -43,6 +43,10 @@ def prepare(kind,args,limit=None):
     if kind=='households' and args.get('mode')=='members':
         args['scope']='household'
         if not args.get('household_id'):raise ValueError('Select one household for a member roster')
+    if kind=='households' and args.get('mode')=='profile' and not args.get('household_id'):
+        raise ValueError('Select one household for a Household Profile')
+    if kind=='residents' and args.get('scope')=='resident' and not args.get('resident_id'):
+        raise ValueError('Choose exactly one resident for an Individual Resident Profile')
     validate_filters(kind,args,effective)
     columns=selected_columns(effective,args)
     from privacy import HEALTH_FIELDS
@@ -63,21 +67,50 @@ def prepare(kind,args,limit=None):
         for key in ['birthdate','registration_date','death_date']:
             if isinstance(row.get(key),(date,datetime)):row[key]=row[key].isoformat()
     scope=None
-    if args.get('scope')=='household':
+    if args.get('scope')=='household' or kind=='households' and args.get('mode')=='profile':
         with transaction() as cursor:
-            cursor.execute('SELECT id,surname,house_number,address FROM households WHERE id=%s',(reporting.positive_id(args.get('household_id')),));scope=cursor.fetchone()
+            cursor.execute('SELECT id,surname,house_number,address,created_at FROM households WHERE id=%s',(reporting.positive_id(args.get('household_id')),));scope=cursor.fetchone()
         if not scope:abort(404,description='Household not found; no wider report was generated')
     title={'residents':'Residents','households':'Households','audit':'Audit Log'}[kind]
-    if scope:title='Household information and member roster'
-    if args.get('scope')=='resident':title='Individual resident record'
+    if scope:title='Household Profile' if kind=='households' and args.get('mode')=='profile' else 'Household information and member roster'
+    if args.get('scope')=='resident':title='Individual Resident Profile'
     labels={'search':'Search','search_extra':'Refine search','household_id':'Household ID','resident_id':'Resident ID','date_basis':'Date basis','date_from':'From','date_to':'Through','age_min':'Minimum age','age_max':'Maximum age','civil_status':'Civil status','action_type':'Action','target_type':'Entity','username':'Actor','empty':'Members'}
     summary=[title]
     for key,value in args.items():
         if value and key in FILTER_KEYS|{'search','search_extra'} and key not in {'scope','mode'}:summary.append(labels.get(key,key.replace('_',' ').title())+': '+str(value))
-    if not any(args.get(k) for k in ['month','year','date_from','date_to']):summary.append('All time')
+    if kind=='audit':
+        period_labels={'all':'All time','today':'Today','this_month':'This month','last_month':'Last month','specific_month':args.get('audit_month','Specific month'),'specific_year':args.get('audit_year','Specific year')}
+        summary.append('Time period: '+period_labels.get(args.get('audit_period','all'),'All time'))
+    elif not any(args.get(k) for k in ['month','year','date_from','date_to']):summary.append('All time')
     summary.append(str(total)+' matching records')
     weights=[column_weight(k) for k,l in columns]
-    return dict(kind=kind,effective_kind=effective,title=title,columns=columns,column_widths=[100*w/sum(weights) for w in weights],rows=rows,total=total,shown=len(rows),sample=len(rows)<total,basis=basis,scope=scope,
+    profile=None;profile_members=[];profile_head=None;profile_fields=[]
+    if args.get('scope')=='resident' and rows:
+        profile=dict(rows[0]);profile['relationship_to_head']=None
+        import household_roles
+        with transaction() as cursor:
+            if household_roles.available(cursor):
+                head=household_roles.current(cursor,profile.get('household_id'))
+                if head and head.get('resident_id'):
+                    cursor.execute('SELECT relationship FROM household_member_relationships WHERE assignment_id=%s AND resident_id=%s',(head['id'],profile['id']))
+                    relationship=cursor.fetchone()
+                    profile['relationship_to_head']='Head' if head['resident_id']==profile['id'] else (relationship or {}).get('relationship')
+        profile_fields=[(label,profile.get(key)) for key,label in [('full_name','Full name'),('id','Resident ID'),('birthdate','Birthdate'),('age','Age'),('gender','Gender'),('civil_status','Civil status'),('occupation','Occupation'),('status','Resident status'),('household_name','Household'),('household_number','House number'),('household_address','Address'),('relationship_to_head','Relationship to household head'),('registration_date','Registration date'),('death_date','Reported death date')]]
+        profile_fields.extend((label,profile.get(key)) for key,label in columns if key in HEALTH_FIELDS)
+    if kind=='households' and args.get('mode')=='profile' and scope:
+        profile=dict(scope)
+        if profile.get('created_at'):profile['created_at']=local_timestamp(profile['created_at'])
+        import reporting
+        profile_members,_,_=reporting.rows_for('residents',{'scope':'household','household_id':str(scope['id'])})
+        import household_roles
+        with transaction() as cursor:
+            if household_roles.available(cursor):
+                role_data=household_roles.context(cursor,scope['id'],profile_members)
+                profile_head=role_data.get('head')
+        head_name=' '.join(str(profile_head.get(key) or '') for key in ('firstname','middlename','surname')).strip() if profile_head else ''
+        head_value=(head_name+' (Resident #'+str(profile_head.get('resident_id_record'))+')') if profile_head and profile_head.get('resident_id') else ('Resident #'+str(profile_head.get('resident_id_record'))+'; resident record unavailable' if profile_head else 'Not designated')
+        profile_fields=[('Household name',profile.get('surname')),('House number',profile.get('house_number')),('Address',profile.get('address')),('Registration date',profile.get('created_at')),('Current household head',head_value)]
+    return dict(kind=kind,effective_kind=effective,title=title,columns=columns,column_widths=[100*w/sum(weights) for w in weights],rows=rows,total=total,shown=len(rows),sample=len(rows)<total,basis=basis,scope=scope,profile=profile,profile_members=profile_members,profile_head=profile_head,profile_fields=profile_fields,
                 summary=' · '.join(summary),generated=now_local().strftime('%b %d, %Y %I:%M:%S %p PHT'),preparer=g.identity['username'],args=args)
 
 
@@ -129,7 +162,8 @@ def preview(kind):
     try:data=prepare(kind,request.args,100)
     except ValueError as exc:return jsonify(error=str(exc)),400
     items=[{key:row.get(key) for key,label in data['columns']} for row in data['rows']]
-    return jsonify(items=items,total=data['total'],shown=data['shown'],sample=data['sample'],date_basis=data['basis'],summary=data['summary'],columns=[dict(key=k,label=l) for k,l in data['columns']],scope=data['scope'])
+    members=[{key:r.get(key) for key in ('id','full_name','status','relationship_to_head')} for r in data['profile_members']]
+    return jsonify(items=items,total=data['total'],shown=data['shown'],sample=data['sample'],date_basis=data['basis'],summary=data['summary'],columns=[dict(key=k,label=l) for k,l in data['columns']],scope=data['scope'],profile_fields=[dict(label=label,value=value) for label,value in data.get('profile_fields',[])],profile_members=members)
 
 
 def print_view(kind):
@@ -149,6 +183,21 @@ def document(data):
     doc.add_paragraph('Barangay San Isidro','Title');doc.add_paragraph('Municipality of Bongabong, Oriental Mindoro')
     doc.add_paragraph(data['title'],'Heading 1');doc.add_paragraph(data['summary']);doc.add_paragraph('Date basis: '+data['basis'])
     doc.add_paragraph('Generated '+data['generated']+' · Prepared by '+data['preparer'])
+    if data.get('profile') and data.get('args',{}).get('scope')=='resident':
+        doc.add_paragraph('Resident information','Heading 2')
+        table=doc.add_table(rows=0,cols=2);table.style='Table Grid'
+        for label,value in data['profile_fields']:
+            cells=table.add_row().cells;cells[0].text=label;cells[1].text=str(value) if value not in (None,'') else 'Not recorded'
+        stream=BytesIO();doc.save(stream);stream.seek(0);return stream
+    if data.get('kind')=='households' and data.get('args',{}).get('mode')=='profile':
+        doc.add_paragraph('Household information','Heading 2')
+        for label,value in data['profile_fields']:doc.add_paragraph(f"{label}: {value or 'Not recorded'}")
+        doc.add_paragraph('Household members','Heading 2');table=doc.add_table(rows=1,cols=4);table.style='Table Grid'
+        for cell,label in zip(table.rows[0].cells,['Resident ID','Full name','Status','Relationship to head']):cell.text=label
+        for member in data['profile_members']:
+            cells=table.add_row().cells
+            for cell,value in zip(cells,[member.get('id'),member.get('full_name'),member.get('status'),member.get('relationship_to_head')]):cell.text=str(value) if value not in (None,'') else 'Not recorded'
+        stream=BytesIO();doc.save(stream);stream.seek(0);return stream
     if data['scope']:
         h=data['scope'];doc.add_paragraph(f"House {h['house_number']} · {h['surname']} · {h['address']}")
     table=doc.add_table(rows=1,cols=len(data['columns']));table.style='Table Grid';table.autofit=False
@@ -189,7 +238,7 @@ def validate_filters(kind,args,effective=None):
     """Reject active unsupported controls independently of client visibility."""
     effective=effective or effective_kind(kind,args)
     dates={'month','year','date_from','date_to'}
-    allowed=dates|({'scope','resident_id','household_id','gender','status','civil_status','age_min','age_max','date_basis'} if effective=='residents' else {'household_id','empty','gender','status'} if effective=='households' else {'username','action_type','target_type','outcome'})
+    allowed=dates|({'scope','resident_id','household_id','gender','status','civil_status','age_min','age_max','date_basis'} if effective=='residents' else {'household_id','gender','status'} if effective=='households' else {'username','action_type','target_type','outcome','audit_period','audit_month','audit_year'})
     if kind=='households':allowed.add('mode')
     if effective=='residents' and args.get('scope')=='resident':
         allowed={'scope','resident_id'}

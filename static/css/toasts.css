@@ -1,0 +1,20 @@
+/* Floating feedback only; confirmation dialogs and persistent form messages are separate. */
+.toast-region{position:fixed;inset:18px 20px auto auto;z-index:12000;display:flex;flex-direction:column;gap:10px;width:min(370px,calc(100vw - 32px));max-height:calc(100dvh - 36px);overflow-y:auto;padding:3px;box-sizing:border-box;pointer-events:none}
+.admin-workspace .toast-region{top:80px;max-height:calc(100dvh - 96px)}
+.toast-region:empty{display:none}
+.app-toast{display:grid;grid-template-columns:22px minmax(0,1fr) 28px;align-items:start;gap:10px;padding:14px;border:1px solid var(--office-border,#d8e2ed);border-radius:10px;background:var(--office-surface,#fff);color:var(--office-text,#1b3a57);box-shadow:0 4px 16px #10283f12;pointer-events:auto;font:400 13px/1.55 'Inter',system-ui,sans-serif;transition:opacity 160ms ease,transform 160ms ease}
+.app-toast-icon{color:var(--office-link,#315b83);display:flex;align-items:center;justify-content:center;margin-top:1px}
+.app-toast-icon svg{width:21px;height:21px}
+.app-toast--success .app-toast-icon{color:#37816b}.app-toast--error .app-toast-icon{color:#b65360}.app-toast--warning .app-toast-icon{color:#9b772a}
+.app-toast-message{overflow-wrap:anywhere;white-space:pre-line;padding-top:1px}
+.toast-region .app-toast-close{display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:28px;width:28px;height:28px;padding:0;margin:-3px -3px 0 0;border:0;border-radius:5px;background:transparent;color:var(--office-muted,#52677c);font:400 21px/1 system-ui;cursor:pointer}
+.toast-region .app-toast-close:hover{background:var(--office-raised,#f1f5f9)}
+.toast-region .app-toast-close:focus-visible{outline:2px solid var(--office-focus,#2e86c1);outline-offset:2px}
+.app-toast.toast-enter,.app-toast.toast-leave{opacity:0;transform:translateY(-5px)}
+html[data-theme=dark] .app-toast{background:var(--office-surface,#152438);color:var(--office-text,#e0e9f5);border-color:var(--office-border,#3a506b)}
+html[data-theme=dark] .app-toast-icon{color:var(--office-link,#a8d5ff)}
+html[data-theme=dark] .toast-region .app-toast-close{color:var(--office-muted,#b7c8dc)}
+html[data-theme=dark] .app-toast--success .app-toast-icon{color:#8cc6ac}html[data-theme=dark] .app-toast--error .app-toast-icon{color:#e4a0a8}html[data-theme=dark] .app-toast--warning .app-toast-icon{color:#ddc180}
+@media(max-width:600px){.toast-region{right:12px;width:calc(100vw - 24px)}.app-toast{padding:12px;gap:8px}.toast-region .app-toast-close{width:32px;height:32px;margin:-3px -5px 0 0}.app-toast{grid-template-columns:22px minmax(0,1fr) 28px}}
+@media(prefers-reduced-motion:reduce){.app-toast{transition:none}.app-toast.toast-enter,.app-toast.toast-leave{transform:none}}
+@media print{.toast-region{display:none!important}}

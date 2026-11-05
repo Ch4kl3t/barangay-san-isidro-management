@@ -1,0 +1,14 @@
+<section class="toast-region" data-toast-region aria-label="Notifications">
+{% set notices=namespace(seen=[]) %}
+{% for category,message in get_flashed_messages(with_categories=true) %}
+ {% set tone='success' if category in ['success','resident_registered','household_registered','household_head_success'] else 'error' if category in ['danger','error','household_head_error'] else 'warning' if category=='warning' else 'info' %}
+ {% set key=tone ~ ':' ~ message|string %}
+ {% if key not in notices.seen %}{% set notices.seen=notices.seen+[key] %}
+ <div class="app-toast app-toast--{{ tone }}" data-toast data-toast-type="{{ tone }}" role="{{ 'alert' if tone in ['error','warning'] else 'status' }}" aria-live="{{ 'assertive' if tone in ['error','warning'] else 'polite' }}" aria-atomic="true">
+  <span class="app-toast-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/>{% if tone=='success' %}<path d="m8 12 3 3 5-6"/>{% elif tone=='error' %}<path d="m9 9 6 6m0-6-6 6"/>{% elif tone=='warning' %}<path d="M12 7v6m0 4h.01"/>{% else %}<path d="M12 11v6m0-10h.01"/>{% endif %}</svg></span>
+  <span class="app-toast-message">{{ message|string|forceescape }}</span>
+  <button type="button" class="app-toast-close" data-toast-close aria-label="Dismiss {{ tone }} notification">&times;</button>
+ </div>
+ {% endif %}
+{% endfor %}
+</section>

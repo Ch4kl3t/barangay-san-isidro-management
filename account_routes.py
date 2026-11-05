@@ -7,7 +7,9 @@ from office_time import utc_now
 from security import hash_password, verify_password, token_hash, throttle
 
 
-def audit(cursor, action, target, target_id, details, old=None, new=None, context='N/A'):
+def audit(cursor, action, target, target_id, details, old=None, new=None, context='N/A', outcome=None):
+    if outcome not in {None,'SUCCESS','FAILED','DENIED','PENDING'}:
+        raise ValueError('Unsupported audit outcome')
     import json
     from privacy import audit_value
     actor = g.get('identity') or {}
@@ -19,9 +21,10 @@ def audit(cursor, action, target, target_id, details, old=None, new=None, contex
         (str(actor.get('id', 'system')), actor.get('username', 'System'), action, target,
          str(target_id), details, json.dumps(audit_value(old), default=str) if old is not None else None,
          json.dumps(audit_value(new), default=str) if new is not None else None,
-         str(context), request.remote_addr, request.user_agent.string[:255], 'DENIED' if action=='LOGIN_DENIED' else 'SUCCESS'))
+         str(context), request.remote_addr, request.user_agent.string[:255], outcome or ('DENIED' if action=='LOGIN_DENIED' else 'SUCCESS')))
     from notifications import create_for_audit
-    create_for_audit(cursor,action,target,target_id,details,old,new,actor.get('id'))
+    if outcome in {None,'SUCCESS'}:
+        create_for_audit(cursor,action,target,target_id,details,old,new,actor.get('id'))
 
 
 def protect_administrator_change(cursor,user_id,new_role=None,new_status=None,delete=False):

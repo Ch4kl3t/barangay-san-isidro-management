@@ -22,6 +22,16 @@ def age_on(birthdate, reference=None):
     return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
 
+def resident_age(record, reference=None):
+    """A deceased resident stops aging; unknown death dates stay unknown."""
+    if record.get('status')=='Deceased':
+        death=record.get('death_date')
+        if not death:return None
+        reference=date.fromisoformat(str(death))
+    value=age_on(record.get('birthdate'),reference)
+    return value if value is None or value>=0 else None
+
+
 def resident(form):
     data = {key: text(form.get(key), key.replace('_', ' ').title(), 255, key in {'firstname','surname'})
             for key in ('firstname','middlename','surname','occupation')}
@@ -36,7 +46,6 @@ def resident(form):
         if born > office_today() or age_on(birth) > 130:
             raise ValueError('Birthdate must be within the past 130 years')
     data['birthdate'] = birth or None
-    data['age'] = str(age_on(birth)) if birth else None
     for key, allowed in {'gender': {'Male','Female','Not recorded'},
                          'civil_status': {'Single','Married','Widowed','Separated','Not recorded'},
                          'status': {'Active','Deceased'}}.items():
@@ -59,6 +68,8 @@ def resident(form):
         if data['status'] != 'Deceased' or died > office_today() or (birth and died < date.fromisoformat(birth)):
             raise ValueError('Check death date and resident status')
     data['death_date'] = death or None
+    age=resident_age(data)
+    data['age']=str(age) if age is not None else None
     return data
 
 
