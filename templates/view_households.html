@@ -101,11 +101,10 @@
 
     <div class="table-card registry-card">
         <div class="registry-toolbar"><div class="registry-heading"><div><h2>Household directory</h2><p>Homes and their recorded members</p></div><span class="registry-count">{{ total }} matching</span></div>
-        <form method="get" class="compact-directory-toolbar" aria-label="Household directory search and filters">
+        <form method="get" class="compact-directory-toolbar" aria-label="Household directory search">
  <input type="hidden" name="page_size" value="{{ page_size }}">
- <div class="search-wrapper"><label class="sr-only" for="searchBox">Household search</label><input type="search" name="search" id="searchBox" value="{{ keyword }}" placeholder="Household name, house number or address" autocomplete="off"><div id="suggestions" class="suggestions-panel" hidden></div></div>
- <label for="householdMembershipFilter">Membership<select id="householdMembershipFilter" name="empty"><option value="">All</option><option value="nonempty" {{ 'selected' if request.args.get('empty')=='nonempty' }}>With residents</option><option value="empty" {{ 'selected' if request.args.get('empty')=='empty' }}>Empty</option></select></label>
- <button type="submit">Search</button><a href="{{ url_for('view_households') }}">Clear</a>
+ <div class="search-wrapper"><label class="directory-search-label" for="searchBox">Search</label><input type="search" name="search" id="searchBox" value="{{ keyword }}" placeholder="Household name, house number or address" autocomplete="off"><div id="suggestions" class="suggestions-panel" hidden></div></div>
+ <button type="submit">Search</button><a class="directory-clear" href="{{ url_for('view_households') }}">Clear</a>
         </form></div>
         <p class="registry-scroll-note">Open a household to view its residents and designate its head.</p>
         <div class="table-responsive" tabindex="0" role="region" aria-label="Household directory table">

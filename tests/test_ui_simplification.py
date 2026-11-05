@@ -183,3 +183,48 @@ target.value='17';state.applySearch();params=new URL(href).searchParams;assert.e
 '''
     result=subprocess.run(['node','-e',harness,json.dumps(apply)],capture_output=True,text=True,timeout=10)
     assert result.returncode==0,result.stderr
+
+
+class Toolbar(HTMLParser):
+    def __init__(self):super().__init__();self.labels=[];self.selects={};self.inputs=[];self.links=[];self.buttons=[];self.selected=None
+    def handle_starttag(self,tag,attrs):
+        attrs=dict(attrs)
+        if tag=='label':self.labels.append(attrs)
+        elif tag=='input':self.inputs.append(attrs)
+        elif tag=='a':self.links.append(attrs)
+        elif tag=='button':self.buttons.append(attrs)
+        elif tag=='select':self.selected=attrs['name'];self.selects[self.selected]=[]
+        elif tag=='option' and self.selected:self.selects[self.selected].append(attrs)
+    def handle_endtag(self,tag):
+        if tag=='select':self.selected=None
+
+
+@pytest.mark.parametrize('path,resident',[('/view_members',True),('/view_households',False)])
+def test_directory_toolbar_exposes_only_intended_labeled_controls(client,monkeypatch,role_store,path,resident):
+    monkeypatch.setattr('directory_routes.rows_for',lambda *a,**k:([],0,'Synthetic'))
+    html=client.get(path).text
+    toolbar=html.split('class="compact-directory-toolbar"',1)[1].split('</form>',1)[0]
+    parser=Toolbar();parser.feed(toolbar)
+    assert len([field for field in parser.inputs if field.get('type')=='search'])==1
+    assert parser.buttons==[dict(type='submit')]
+    assert len(parser.links)==1
+    assert parser.links[0]['href']==path and parser.links[0]['class']=='directory-clear'
+    assert 'directory-search-label' in toolbar and 'sr-only' not in toolbar
+    if resident:
+        assert {label['for'] for label in parser.labels}=={'member-search','directoryGender','directoryStatus'}
+        assert {key:[option['value'] for option in options] for key,options in parser.selects.items()}==dict(gender=['','Male','Female'],status=['','Active','Deceased'])
+    else:
+        assert not parser.selects and {label['for'] for label in parser.labels}=={'searchBox'}
+        assert 'householdMembershipFilter' not in html
+        assert not any(field.get('name')=='empty' for field in parser.inputs)
+
+
+def test_hidden_head_controls_and_intended_locations_remain_unchanged(client,csrf,role_store):
+    role_store.enabled=False
+    assert 'id="headAssignment"' not in client.get('/view_household/1').text
+    assert 'id="householdRoles"' not in client.get('/add_member?household_id=1').text
+    assert client.post('/households/1/head',data={'head_resident_id':'1','head_reason':'Synthetic test'},headers=csrf).status_code==409
+    role_store.enabled=True
+    assert 'id="headAssignment"' in client.get('/view_household/1').text
+    assert 'id="householdRoles"' in client.get('/add_member?household_id=1').text
+    assert 'id="householdRoles"' in client.get('/edit_member/1').text
