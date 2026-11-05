@@ -10,7 +10,7 @@
  box.setAttribute('aria-labelledby','headDialogTitle');box.setAttribute('aria-describedby','headDialogDescription');
  box.append(content);document.body.append(box);fallback.hidden=true;card.querySelector('[data-head-actions]').append(launch);
  const edit=content.querySelector('[data-head-edit-view]'),review=content.querySelector('[data-head-review]'),title=content.querySelector('#headDialogTitle'),description=content.querySelector('#headDialogDescription');
- const resident=form.elements.namedItem('head_resident_id'),reason=form.elements.namedItem('head_reason'),confirm=content.querySelector('[data-head-confirm]');
+ const resident=form.elements.namedItem('head_resident_id'),confirm=content.querySelector('[data-head-confirm]');
  const initialTitle=title.textContent,initialDescription=description.textContent;
  let approved=false,submitting=false,reviewed=null;
  form.querySelector('[data-head-review-button]').textContent=form.dataset.headExisting==='yes'?'Review Change':'Review Designation';
@@ -26,18 +26,19 @@
   event.preventDefault();if(!form.reportValidity())return;
   const clear=!resident.value,reassign=form.dataset.headExisting==='yes';
   const selected=resident.selectedOptions[0];
-  const values={household:form.dataset.headHousehold,name:clear?'No designated head':selected.dataset.residentName||selected.textContent,id:clear?'None':resident.value,reason:reason.value};
-  reviewed={id:resident.value,reason:reason.value};
-  for(const [key,value] of Object.entries(values))content.querySelector('[data-review-'+key+']').textContent=value;
+  const values={household:form.dataset.headHousehold,name:clear?'No designated head':selected.dataset.residentName||selected.textContent,id:clear?'None':resident.value};
+  reviewed={id:resident.value};
+  for(const [key,value] of Object.entries(values)){const target=content.querySelector('[data-review-'+key+']');if(target)target.textContent=value;}
   title.textContent=clear?'Confirm Clearing Household Head':reassign?'Confirm Household Head Reassignment':'Confirm Household Head Designation';
   description.textContent='Review the decision before saving.';
-  content.querySelector('[data-review-explanation]').textContent=clear?'This action will leave the household without a designated head. Previous designations will remain in the history.':'This action will update the designated household head. Previous designations will remain in the history.';
-  confirm.textContent=clear?'Confirm Clear':reassign?'Confirm Reassignment':'Confirm Designation';
+  const former=form.dataset.headCurrentName?`The current household head, ${form.dataset.headCurrentName} (Resident #${form.dataset.headCurrentId}), `:'';
+  content.querySelector('[data-review-explanation]').textContent=clear?`${former}will no longer be designated. This household will have no designated head. Previous designations will remain in the history.`:reassign?`${former}will become a household member. Previous designations will remain in the history.`:'This action will designate the selected resident. Previous designations will remain in the history.';
+  confirm.textContent=clear?'Confirm Clear':reassign?'Confirm Change':'Confirm Designation';
   edit.hidden=true;review.hidden=false;content.querySelector('[data-head-back]').focus();
  });
  confirm.onclick=()=>{
   if(submitting)return;
-  if(!reviewed||reviewed.id!==resident.value||reviewed.reason!==reason.value){editing();description.textContent='The decision changed. Review the updated selection and reason.';resident.focus();return;}
+  if(!reviewed||reviewed.id!==resident.value){editing();description.textContent='The decision changed. Review the updated selection.';resident.focus();return;}
   editing();if(!form.reportValidity())return;
   approved=true;form.requestSubmit();
  };

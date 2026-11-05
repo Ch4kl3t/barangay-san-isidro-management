@@ -125,6 +125,7 @@ def create_app(overrides=None):
     route('/api/notifications/<int:event_id>/read','notification_read',notifications.mark,('admin',),('POST',))
     route('/notifications/open/<int:event_id>','notification_open',notifications.open_event,('admin',))
     route('/api/report-suggestions','report_suggestions',report_context.suggestions,('admin',))
+    route('/api/report-years','report_years',report_context.years,('admin',))
 
     @app.route('/reports/builder',endpoint='report_builder')
     @app.route('/reports/options')

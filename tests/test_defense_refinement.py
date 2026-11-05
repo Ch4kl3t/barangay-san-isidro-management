@@ -127,10 +127,10 @@ def test_deceased_foreign_missing_and_invalid_candidates_fail_without_assignment
     assert role_store.audits[-1][-1]=='FAILED'
 
 
-@pytest.mark.parametrize('reason',['','ab','x'*301])
-def test_reason_validation_is_server_side(client,csrf,role_store,reason):
+@pytest.mark.parametrize('reason',['','ab','Optional concise note'])
+def test_reason_is_optional_for_household_head_assignment(client,csrf,role_store,reason):
     designate(client,csrf,role_store,reason=reason)
-    assert not role_store.heads and role_store.audits[-1][-1]=='FAILED'
+    assert role_store.active(1)['resident_id']==1 and role_store.audits[-1][-1]=='SUCCESS'
 
 
 def test_reassignment_retains_original_decision_and_does_not_copy_relationships(client,csrf,role_store):
@@ -168,6 +168,20 @@ def test_clear_head_preserves_history_and_relationships(client,csrf,role_store):
     designate(client,csrf,role_store,'','1','No replacement confirmed yet')
     assert role_store.active(1) is None and role_store.heads[0]['ended_at'] is not None
     assert role_store.relations[(1,2)]=='Sibling'
+
+
+def test_resident_role_selector_can_reassign_and_clear_without_losing_relationship_history(app,identity,role_store):
+    with app.test_request_context('/'):
+        g.identity=identity;roles.assign(role_store,1,1,'none','')
+        role_store.relations[(1,2)]='Sibling'
+        roles.save_member(role_store,2,1,'Active',dict(household_roles_present='yes',head_assignment='1',head_role='head',relationship_to_head=''))
+        assert role_store.active(1)['resident_id']==2 and len(role_store.heads)==2
+        assert role_store.relations[(1,2)]=='Sibling'
+        former=copy.deepcopy(role_store.members[1]);roles.context(role_store,1,[former])
+        assert former.get('relationship_to_head') is None
+        roles.save_member(role_store,2,1,'Active',dict(household_roles_present='yes',head_assignment='2',head_role='member',relationship_to_head=''))
+        assert role_store.active(1) is None and len(role_store.heads)==2
+        with pytest.raises(ValueError):roles.save_member(role_store,2,1,'Active',dict(household_roles_present='yes',head_assignment='1',head_role='member'))
 
 
 def test_missing_optional_schema_preserves_existing_views_and_blocks_new_writes(client,csrf,role_store):
@@ -288,7 +302,7 @@ def test_feedback_script_uses_native_focus_dialog_and_never_evaluates_server_htm
 def test_registration_can_designate_first_head_atomically(client,csrf,role_store):
     response=client.post('/add_member',data=dict(firstname='Fictional',surname='Unrelated',household_id='1',
         gender='Female',civil_status='Single',status='Active',household_roles_present='yes',
-        head_assignment='none',designate_head='yes',head_reason='First explicit designation'),headers=csrf)
+        head_assignment='none',head_role='head',relationship_to_head=''),headers=csrf)
     assert response.status_code==302
     assert role_store.active(1)['resident_id']==5 and role_store.members[5]['surname']=='Unrelated'
     assert not any(q.startswith('UPDATE users') for q,p in role_store.executed)

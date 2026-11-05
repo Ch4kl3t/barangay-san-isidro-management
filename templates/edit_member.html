@@ -2,6 +2,7 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/admin-improvements.css') }}">
 <script src="{{ url_for('static',filename='js/resident-form.js') }}" defer></script>
+<script src="{{ url_for('static',filename='js/resident-head-role.js') }}" defer></script>
 
 <div class="form-container resident-editor">
     <div class="form-card">
@@ -115,7 +116,7 @@
             </div></fieldset>
             {% if duplicate_detected %}<p class="helper-text duplicate-warning" role="alert"><label><input type="checkbox" name="confirm_duplicate" value="yes"> I reviewed the possible duplicate and confirm this is a different person.</label></p>{% endif %}
             <div class="form-actions">
-                <button type="button" class="btn-submit" id="openModal">
+                <button type="submit" class="btn-submit">
                     Save Profile Changes
                 </button>
 
@@ -132,18 +133,6 @@
 
         </form>
 
-    </div>
-</div>
-
-<div id="modal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-icon"><i data-lucide="edit-3"></i></div>
-        <h3>Confirm Update</h3>
-        <p>Are you sure you want to save the changes made to this resident's profile?</p>
-        <div class="modal-footer">
-            <button id="cancel" class="modal-btn secondary">Cancel</button>
-            <button id="confirm" class="modal-btn primary">Yes, Update</button>
-        </div>
     </div>
 </div>
 
@@ -242,66 +231,10 @@
         text-decoration: underline;
     }
 
-    /* Modals */
-    .modal-overlay { 
-        display: none; 
-        position: fixed; 
-        inset: 0; 
-        background: rgba(15, 23, 42, 0.7); 
-        z-index: 10000; 
-        align-items: center; 
-        justify-content: center; 
-        backdrop-filter: blur(4px); 
-    }
-    .modal-content { 
-        background: white; 
-        padding: 40px; 
-        border-radius: 20px; 
-        width: 400px; 
-        text-align: center; 
-    }
-    .modal-icon { color: var(--accent); font-size: 48px; margin-bottom: 15px; }
-    .modal-footer { display: flex; gap: 12px; margin-top: 25px; }
-    
-    .modal-btn { 
-        flex: 1; 
-        padding: 14px; 
-        border: none; 
-        border-radius: 10px; 
-        cursor: pointer; 
-        font-weight: 700; 
-        transition: 0.2s; 
-    }
-    .modal-btn.primary { background: var(--primary); color: white; }
-    .modal-btn.secondary { background: #f1f5f9; color: #475569; }
-
     @media (max-width: 600px) {
         .form-grid { grid-template-columns: 1fr; }
         .form-grid.dual { grid-template-columns: 1fr; }
     }
 </style>
-
-<script>
-const modal = document.getElementById("modal");
-
-document.getElementById("openModal").onclick = () => {
-    if (!document.querySelector(".form-card form").reportValidity()) return;
-    modal.style.display = "flex";
-};
-
-document.getElementById("cancel").onclick = () => {
-    modal.style.display = "none";
-};
-
-document.getElementById("confirm").onclick = () => {
-    document.querySelector(".form-card form").requestSubmit();
-};
-
-window.onclick = function(event) {
-    if (event.target == modal) {
-        modal.style.display = "none";
-    }
-}
-</script>
 
 {% endblock %}

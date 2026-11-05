@@ -40,12 +40,6 @@
   const labels=[...table.tHead.rows[0].cells].map(cell=>cell.textContent.trim());
   for(const row of table.tBodies[0].rows)if(row.cells.length===labels.length)[...row.cells].forEach((cell,i)=>cell.dataset.label=labels[i]);
  }
- const roles=document.getElementById('householdHeadOptions');
- if(roles){
-  const options=JSON.parse(roles.textContent),form=roles.closest('form'),home=form.elements.namedItem('household_id'),assignment=form.elements.namedItem('head_assignment'),relation=form.elements.namedItem('relationship_to_head'),designate=form.elements.namedItem('designate_head'),reason=form.elements.namedItem('head_reason');
-  const requiredReason=()=>{reason.required=designate.checked;};designate.addEventListener('change',requiredReason);requiredReason();
-  home?.addEventListener('change',()=>{const head=options[home.value]||{};assignment.value=head.assignment||'none';relation.value='';designate.checked=false;requiredReason();document.getElementById('householdHeadHint').textContent='Current head: '+(head.name||'Not designated')+'. Household changed; enter relationships explicitly.';});
- }
  const originalFetch=window.fetch.bind(window);
  window.fetch=async(input,init)=>{
   const response=await originalFetch(input,init);

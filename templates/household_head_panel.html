@@ -17,18 +17,17 @@
   <div data-head-editor>
    <header class="head-dialog-header"><span class="head-eyebrow">Household management</span><h2 id="headDialogTitle">{{ 'Change Household Head' if head else 'Designate Household Head' }}</h2><p id="headDialogDescription">Select an active member of {{ household.surname }} Household.</p></header>
    <div data-head-edit-view>
-    <form method="post" action="{{ url_for('set_household_head',household_id=household.id) }}" class="head-management-form" data-head-form data-head-household="{{ household.surname }} Household" data-head-existing="{{ 'yes' if head else 'no' }}">
+    <form method="post" action="{{ url_for('set_household_head',household_id=household.id) }}" class="head-management-form" data-head-form data-head-household="{{ household.surname }} Household" data-head-existing="{{ 'yes' if head else 'no' }}" data-head-current-name="{{ [head.firstname,head.middlename,head.surname]|select|join(' ') if head else '' }}" data-head-current-id="{{ head.resident_id_record if head else '' }}">
      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="head_assignment" value="{{ head_assignment }}">
      <div class="head-field"><label for="headResident">Household head</label><select name="head_resident_id" id="headResident" {% if not head %}required{% endif %} aria-describedby="headEligibility">
       {% if head %}<option value="">Clear current designation</option>{% else %}<option value="" selected disabled>Select an active member</option>{% endif %}
       {% for m in head_choices %}{% set name=[m.firstname,m.middlename,m.surname]|select|join(' ') %}<option value="{{ m.id }}" data-resident-name="{{ name }}" {{ 'selected' if head and head.resident_id==m.id }}>{{ name }} · Resident #{{ m.id }}</option>{% endfor %}
      </select><p id="headEligibility" class="head-field-help">Only active members of this household may be newly designated.{% if not head_choices %} No eligible members are currently available.{% endif %}</p></div>
-     <div class="head-field"><label for="headReason">Reason for {{ 'change' if head else 'designation' }}</label><textarea name="head_reason" id="headReason" required minlength="3" maxlength="300" rows="3" aria-describedby="headReasonHelp"></textarea><p id="headReasonHelp" class="head-field-help">Enter 3–300 characters. The reason is retained in designation history.</p></div>
      <div class="head-dialog-actions"><button class="head-action" type="button" data-head-cancel hidden>Cancel</button><button class="head-action head-action-primary" type="submit" data-head-review-button>Save {{ 'Change' if head else 'Designation' }}</button></div>
     </form>
    </div>
    <section class="head-review-view" data-head-review hidden aria-label="Review household-head decision">
-    <dl class="head-review-list"><div><dt>Household</dt><dd data-review-household></dd></div><div><dt>Selected resident</dt><dd data-review-name></dd></div><div><dt>Resident ID</dt><dd data-review-id></dd></div><div class="head-review-reason"><dt>Reason</dt><dd data-review-reason></dd></div></dl>
+    <dl class="head-review-list"><div><dt>Household</dt><dd data-review-household></dd></div><div><dt>Selected resident</dt><dd data-review-name></dd></div><div><dt>Resident ID</dt><dd data-review-id></dd></div></dl>
     <p class="head-review-note" data-review-explanation>This action will update the designated household head. Previous designations will remain in the history.</p>
     <div class="head-dialog-actions"><button class="head-action" type="button" data-head-cancel>Cancel</button><button class="head-action" type="button" data-head-back>Edit decision</button><button class="head-action head-action-primary" type="button" data-head-confirm>Confirm Designation</button></div>
    </section>

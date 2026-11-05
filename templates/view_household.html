@@ -18,7 +18,7 @@
             <a href="{{ url_for('add_member', household_id=household.id) }}" class="btn-action btn-add">
                 <span class="icon">+</span> Add Member
             </a>
-            <a class="btn-action btn-print" href="{{ report_url('households',mode='members',household_id=household.id) }}"><i data-lucide="printer"></i>Print / Download</a>
+            <a class="btn-action btn-print" href="{{ report_url('households',mode='profile',household_id=household.id) }}"><i data-lucide="printer"></i>Print / Download</a>
             <a href="{{ url_for('edit_household', id=household.id) }}" class="btn-action btn-back">Edit Household</a>
             <a href="{{ url_for('view_households') }}" class="btn-action btn-back">← Back</a>
         </div>

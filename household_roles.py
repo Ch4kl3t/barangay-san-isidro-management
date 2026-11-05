@@ -34,8 +34,7 @@ def expected(head):
 
 def assign(cursor, household_id, resident_id, previous, reason):
     """Caller holds serialize(); existing assignments and relationships survive."""
-    reason=text(reason,'Reason for head designation',300,True)
-    if len(reason)<3:raise ValueError('Give a reason of at least 3 characters')
+    reason=text(reason,'Reason for head designation',300)
     cursor.execute('SELECT id FROM households WHERE id=%s FOR UPDATE',(household_id,))
     if not cursor.fetchone():raise ValueError('Household is no longer available')
     old=current(cursor,household_id)
@@ -85,16 +84,22 @@ def save_member(cursor, identifier, household_id, status, form):
     relation=text(form.get('relationship_to_head'),'Relationship to household head',80)
     if relation and relation.casefold()=='head':
         raise ValueError('Use the household-head designation instead of entering Head as a relationship')
-    if form.get('designate_head')=='yes':
+    role=form.get('head_role','head' if form.get('designate_head')=='yes' else 'member')
+    if role not in {'member','head'}:raise ValueError('Choose Household member or Household head')
+    if role=='head':
         if status!='Active':raise ValueError('A new household head must be an active resident')
-        if relation:raise ValueError('Leave the relationship blank when designating the household head')
-        assign(cursor,household_id,identifier,expected(head),form.get('head_reason',''))
+        if relation:raise ValueError('Review the relationship to the new head and leave it blank unless it is accurate')
+        assign(cursor,household_id,identifier,expected(head),'')
         return
+    if head and head['resident_id']==identifier:
+        if form.get('head_role')=='member':
+            assign(cursor,household_id,None,expected(head),'')
+            head=None
+        else:
+            if relation:raise ValueError('The designated head does not have a relationship to themselves')
+            return
     if not head or head['resident_id'] is None:
         if relation:raise ValueError('Designate a household head before recording relationships')
-        return
-    if head['resident_id']==identifier:
-        if relation:raise ValueError('The designated head has the relationship Head')
         return
     cursor.execute('/* roles_relationship_old */ SELECT relationship FROM household_member_relationships WHERE assignment_id=%s AND resident_id=%s',(head['id'],identifier))
     old=cursor.fetchone()
@@ -146,7 +151,7 @@ def form_context(cursor, member):
     heads={}
     if enabled:
         cursor.execute("""/* roles_choices */ SELECT a.household_id,a.id,a.resident_id,
-          CONCAT_WS(' ',h.firstname,h.surname) AS name FROM household_head_assignments a
+          CONCAT_WS(' ',h.firstname,h.middlename,h.surname) AS name FROM household_head_assignments a
           LEFT JOIN household h ON h.id=a.resident_id WHERE a.ended_at IS NULL""")
         heads={str(r['household_id']):dict(assignment=str(r['id']),resident_id=r['resident_id'],name=r['name']) for r in cursor.fetchall()}
     return dict(roles_enabled=enabled,household_heads=heads)

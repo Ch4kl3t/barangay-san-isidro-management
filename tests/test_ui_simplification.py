@@ -33,6 +33,8 @@ class DashboardStore:
             self.rows=[dict(h) for h in self.homes]
         elif query.startswith('SELECT * FROM '):
             homes=self.homes
+            if 'id=ANY(%s)' in query:
+                ids=params[-3];homes=[h for h in homes if h['id'] in ids]
             if ' WHERE member_count=%s' in query:homes=[h for h in homes if h['member_count']==params[-3]]
             self.rows=[dict(h) for h in homes[params[-1]:params[-1]+params[-2]]]
         elif query.startswith('SELECT id,old_value'):

@@ -22,7 +22,7 @@ def test_login_visual_native_form_and_local_assets(client):
     assert {a.get('for') for tag,a in p.elements if tag=='label'}=={'username','password'}
     assert any(tag=='a' and a.get('href')=='/forgot-password' for tag,a in p.elements)
     assert 'login-image-notice' not in html and 'Conceptual illustration' not in html
-    assert not any(tag=='img' and a.get('alt') for tag,a in p.elements)
+    assert any(tag=='img' and a.get('alt')=='Barangay San Isidro' and 'favicon.svg' in a.get('src','') for tag,a in p.elements)
     assert 'https://' not in html and '/signup' not in html
     for tag,a in p.elements:
         asset=a.get('src') if tag in {'script','img'} else a.get('href') if tag=='link' else None
