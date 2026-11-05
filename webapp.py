@@ -27,7 +27,15 @@ def create_app(overrides=None):
     app.session_interface.salt=app.config['SESSION_SIGNING_SALT']
     app.teardown_appcontext(database.cleanup)
     app.before_request(security.protect_request)
-    app.after_request(security.response_headers)
+    def presentation_headers(response):
+        response=security.response_headers(response)
+        # Only these public, versioned icons are cacheable; private pages remain no-store.
+        if (request.endpoint=='static' and response.status_code in {200,304}
+                and (request.view_args or {}).get('filename') in {
+                    'icons/favicon.svg','icons/favicon-32.png','icons/favicon.ico'}):
+            response.headers['Cache-Control']='public, max-age=86400'
+        return response
+    app.after_request(presentation_headers)
     app.jinja_env.globals['csrf_token'] = security.csrf_token
     app.jinja_env.globals['submission_token'] = record_routes.submission_token
 

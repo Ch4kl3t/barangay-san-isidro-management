@@ -38,7 +38,7 @@ def test_empty_state_and_eligible_options_are_compact_and_explicit(client,role_s
 
 
 @pytest.mark.parametrize('operation',['designate','reassign','clear'])
-def test_success_has_one_inline_notification_and_preserves_decisions(client,csrf,role_store,operation):
+def test_success_has_one_toast_and_preserves_decisions(client,csrf,role_store,operation):
     if operation!='designate':
         designate(client,csrf,role_store);client.get('/view_household/1')
     result=designate(client,csrf,role_store,'2' if operation=='reassign' else '' if operation=='clear' else '1',
@@ -46,8 +46,8 @@ def test_success_has_one_inline_notification_and_preserves_decisions(client,csrf
     assert result.status_code==302
     html=client.get(result.location).text
     message='Household-head designation cleared.' if operation=='clear' else 'Household-head designation saved. Review relationships for this head.'
-    assert html.count(message)==1 and html.count('data-feedback-inline')==1
-    assert 'office-feedback success' in html and 'role="status"' in html
+    assert html.count(message)==1 and html.count('data-toast data-toast-type=')==1
+    assert 'app-toast--success' in html and 'role="status"' in html
     assert role_store.audits[-1][-1]=='SUCCESS'
     if operation=='clear':assert role_store.active(1) is None and role_store.heads[0]['ended_at']
     elif operation=='reassign':assert role_store.active(1)['resident_id']==2 and len(role_store.heads)==2
@@ -60,7 +60,7 @@ def test_validation_error_is_visible_once_and_does_not_change_head(client,csrf,r
     designate(client,csrf,role_store,'4','1','Foreign member test')
     html=client.get('/view_household/1').text
     assert html.count('Choose a resident from this household')==1
-    assert 'office-feedback error' in html and 'data-feedback-inline' in html and 'role="alert"' in html
+    assert 'app-toast--error' in html and 'data-toast-type="error"' in html and 'role="alert"' in html
     assert role_store.active(1)['resident_id']==1 and len(role_store.heads)==1
     assert role_store.audits[-1][-1]=='FAILED'
 
@@ -138,7 +138,7 @@ events.pageshow({persisted:true});assert(!confirm.disabled);assert(!box.open);as
 
 
 @pytest.mark.parametrize('inline',[True,False])
-def test_shared_feedback_opens_no_second_dialog_for_head_feedback(inline):
+def test_shared_feedback_opens_no_second_dialog_for_ordinary_feedback(inline):
     script=(ROOT/'static/js/defense-refinement.js').read_text(encoding='utf-8')
     harness=r'''
 const vm=require('vm'),assert=require('assert'),inline=JSON.parse(process.argv[2]);let opens=0;const handlers={},created=[];
@@ -148,8 +148,8 @@ const document={activeElement:node('opener'),querySelector:()=>null,getElementBy
  if(selector.startsWith('.office-feedback-region'))return inline&&selector.includes(':not([data-feedback-inline])')?[]:[feedback];return [];
 },createElement(tag){const element=node(tag);created.push(element);return element},body:{append(){}},addEventListener(type,fn){handlers[type]=fn}};
 const window={fetch:async()=>({status:200})};vm.runInNewContext(process.argv[1],{document,window,URL,location:{href:'https://example.invalid/view_household/1'}});
-assert.equal(opens,inline?0:1);
-handlers.submit({target:{matches:()=>true}});assert.equal(opens,inline?0:1);
+assert.equal(opens,0);
+handlers.submit({target:{matches:()=>true}});assert.equal(opens,0);
 if(inline){
  const fields={designate_head:{checked:true},household_id:{value:'1'},firstname:{value:'Fictional'},middlename:{value:'Middle'},surname:{value:'Resident'},head_reason:{value:'Fictional <reason>'}};
  handlers.submit({target:{matches:()=>false,dataset:{},elements:{namedItem:key=>fields[key]},checkValidity:()=>true,action:'/add_member'},preventDefault(){},stopImmediatePropagation(){}});

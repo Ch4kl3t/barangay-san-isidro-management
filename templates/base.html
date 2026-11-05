@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barangay Information System</title>
+    {% include 'system_head.html' %}
 {% include 'early_paint.html' %}
     <script src="{{ url_for('static',filename='js/appearance.js') }}"></script>
 
@@ -220,6 +220,7 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='css/appearance.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/report-builder.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/defense-refinement.css') }}">
+{% include 'toast_assets.html' %}
 </head>
 
 <body class="admin-workspace">
@@ -350,23 +351,8 @@
     </div>
 </nav>
 
+{% include 'toast_region.html' %}
 <main id="main-content">
-<div class="office-feedback-region" aria-label="Application messages">
-    {% with messages=get_flashed_messages(with_categories=true) %}
-    {% for category,message in messages %}
-      {% if category in ['resident_registered','household_registered'] %}
-        {% set registration_kind = 'resident' if category == 'resident_registered' else 'household' %}
-        {% include 'resident_registration_success.html' %}
-      {% else %}
-        {% set head_feedback=category in ['household_head_success','household_head_error'] %}
-        {% set tone='success' if category=='household_head_success' else 'danger' if category=='household_head_error' else category %}
-        <div class="office-feedback {{ 'error' if tone in ['danger','error'] else tone if tone in ['success','warning','info'] else 'info' }}" {% if head_feedback %}data-feedback-inline{% endif %} role="{{ 'alert' if tone in ['danger','error','warning'] else 'status' }}">
-          <strong>{{ 'Error' if tone in ['danger','error'] else tone|capitalize if tone in ['success','warning','info'] else 'Information' }}</strong><span>{{ message }}</span><button type="button" data-dismiss-feedback aria-label="Dismiss message">&times;</button>
-        </div>
-      {% endif %}
-    {% endfor %}
-    {% endwith %}
-</div>
 {% block content %}{% endblock %}
 </main>
 

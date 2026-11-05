@@ -1,5 +1,12 @@
 # Pre-defense refinement: review and release guide
 
+November 5 toast/favicon follow-up: ordinary admin/auth flashes and registration
+completion now share one toast surface; pre-action confirmations, corrective form
+feedback, recovery warnings and report-preview messages remain. The original navy
+house/three-people SVG has local PNG/ICO fallbacks. Only these three public icons
+receive a one-day cache policy; authenticated pages remain no-store. No authentication,
+record, schema, migration or production configuration change is included.
+
 November 5 household-head UI follow-up: the owner reports migration 007 is already
 installed and the feature is working in production. Do not reapply it. This release
 refines the card, native review dialog, history presentation and single inline

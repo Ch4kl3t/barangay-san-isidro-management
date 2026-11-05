@@ -14,9 +14,6 @@
   box.addEventListener('close',()=>{box.remove();opener?.focus({preventScroll:true});},{once:true});
   box.showModal();cancel.focus();
  }
- window.officeFeedback=(title,message)=>dialog(title,message);
- const feedback=[...document.querySelectorAll('.office-feedback-region .office-feedback:not([data-feedback-inline])')];
- if(feedback.length)dialog(feedback.some(el=>el.classList.contains('error'))?'Action could not be completed':'Application feedback',feedback.map(el=>el.querySelector('span')?.textContent||el.textContent).join('\n'));
  const confirmedForms=new WeakSet();
  document.addEventListener('submit',event=>{
   const form=event.target;

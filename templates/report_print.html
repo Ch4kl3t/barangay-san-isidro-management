@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ title }} · Barangay San Isidro</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">{% set system_page_title=title %}{% include 'system_head.html' %}
 <style>@page{size:{{ 'landscape' if columns|length>6 else 'portrait' }};margin:15mm}body{font:11pt Arial,sans-serif;color:#111;margin:20px}h1{font-size:19pt;margin-bottom:4px}h2{font-size:15pt}p{line-height:1.4}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #777;padding:7px;text-align:left;vertical-align:top;overflow-wrap:anywhere}thead{display:table-header-group}tr{break-inside:avoid}small{font-size:9pt}</style></head><body>
 <h1>Barangay San Isidro</h1><p>Municipality of Bongabong, Oriental Mindoro</p><h2>{{ title }}</h2>
 <p>{{ summary }}</p><p>Date basis: {{ basis }}</p><p><small>Generated {{ generated }} · Prepared by {{ preparer }}</small></p>
