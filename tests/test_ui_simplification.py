@@ -21,14 +21,17 @@ class DashboardStore:
         self.homes=[dict(id=i,surname='Fictional',house_number=str(i),address='Fictional address',
                         member_count=4,active_count=4,deceased_count=0,male_members=0,female_members=4,
                         registration_date=None) for i in range(1,31)] if not empty else []
+        self.household_years=[2024,2025]
     def execute(self,query,params=()):
         self.executed.append((query,params));self.rows=[]
         if query.startswith('SELECT COUNT(*) AS total,COUNT(*) FILTER'):
             n=len(self.residents);self.rows=[dict(total=n,male=0,female=n,deceased=0)]
         elif query.startswith('SELECT EXTRACT'):
             self.rows=[] if 'FROM death_date' in query or self.empty else [dict(month=1,total=125,male=0,female=125)]
+        elif query.startswith('SELECT DISTINCT EXTRACT(YEAR FROM registration_date'):
+            self.rows=[dict(year=2025)]
         elif query.startswith("SELECT DISTINCT EXTRACT(YEAR FROM (created_at AT TIME ZONE"):
-            self.rows=[dict(year=2024),dict(year=2025)]
+            self.rows=[dict(year=value) for value in self.household_years]
         elif query.startswith('SELECT * FROM ') and 'ORDER BY surname,firstname,id LIMIT' in query:
             self.rows=self.residents[params[-1]:params[-1]+params[-2]]
         elif query.startswith('SELECT id,surname,house_number,address,member_count'):
@@ -286,3 +289,56 @@ def test_household_year_options_are_data_driven_and_all_years_include_undated_ho
     html=client.get('/analytics').text
     year_control=html[html.index('id="filterHouseholdYear"'):html.index('</select>',html.index('id="filterHouseholdYear"'))]
     assert 'All Years' in year_control and '2024' not in year_control and '2025' not in year_control
+
+
+
+def test_resident_and_household_years_are_isolated_and_empty_household_year_is_success(client,dashboard):
+    from datetime import datetime
+    dashboard.homes[0]['registration_date']=datetime(2026,6,1)
+    dashboard.homes[1]['registration_date']=datetime(2025,6,1)
+    dashboard.household_years=[2025,2026]
+    exact=client.get('/api/dashboard?year=2025&household_year=2026')
+    assert exact.status_code==200
+    data=exact.json
+    assert data['stats']['total']==125 and len(data['residents'])==10
+    assert [row['id'] for row in data['household_summary']]==[1]
+    resident_count=next((query,params) for query,params in dashboard.executed if query.startswith('SELECT COUNT(*) AS total,COUNT(*) FILTER'))
+    household_aggregate=next((query,params) for query,params in dashboard.executed if query.startswith('SELECT id,surname,house_number,address,member_count'))
+    assert resident_count[1]==[2025] and household_aggregate[1]==[2026]
+
+    switched=client.get('/api/dashboard?year=2025&household_year=2025')
+    assert switched.status_code==200
+    assert switched.json['stats']['total']==125 and len(switched.json['residents'])==10
+    assert [row['id'] for row in switched.json['household_summary']]==[2]
+
+    empty=client.get('/api/dashboard?year=2025&household_year=2026&household_size=7%2B')
+    assert empty.status_code==200
+    assert empty.json['stats']['total']==125 and len(empty.json['residents'])==10
+    assert empty.json['household_summary']==[] and empty.json['households']==[]
+    assert empty.json['pagination']['households']['total']==0
+
+    valid_year_without_rows=client.get('/api/dashboard?year=2025&household_year=2027')
+    assert valid_year_without_rows.status_code==200
+    assert valid_year_without_rows.json['stats']['total']==125
+    assert valid_year_without_rows.json['household_summary']==[]
+
+
+def test_household_year_change_listener_preserves_resident_filter_and_page_state():
+    source=(ROOT/'templates/analytics.html').read_text(encoding='utf-8')
+    assert "field.addEventListener(id==='filterYear'?'input':'change'" in source
+    assert "if(residentFilters.has(id))analyticsPages.residents=1;else analyticsPages.households=1" in source
+    assert "analyticsPages.residents=analyticsPages.households=1;saveAnalyticsPages();" not in source
+
+
+
+
+def test_targeted_toolbar_footer_and_household_actions_are_compact_and_aligned():
+    analytics_css=(ROOT/'static/css/analytics-improvements.css').read_text(encoding='utf-8')
+    audit_css=(ROOT/'static/css/audit-improvements.css').read_text(encoding='utf-8')
+    directory_css=(ROOT/'static/css/directory-tables.css').read_text(encoding='utf-8')
+    assert '.household-filter-bar .filter-bar-inner{display:grid;grid-template-columns:minmax(0,1fr) auto' in analytics_css
+    assert '.household-filter-bar .filter-bar-group{display:grid;grid-template-columns:auto repeat(4,minmax(0,1fr))' in analytics_css
+    assert '.household-filter-help{position:absolute;width:1px;height:1px' in analytics_css
+    assert '.audit-server-filters .audit-filter-footer{border-top:0' in audit_css
+    assert '.audit-server-filters .audit-filter-actions{border-top:0' in audit_css
+    assert '.modern-directory.households-directory .compact-directory-toolbar>button,.modern-directory.households-directory .compact-directory-toolbar>.directory-clear{width:82px' in directory_css

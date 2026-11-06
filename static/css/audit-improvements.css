@@ -42,3 +42,7 @@
 .audit-filter-actions :is(.apply-btn,.reset-btn){width:auto;margin:0;white-space:nowrap}
 @media(max-width:900px){.audit-filter-footer{align-items:stretch;flex-direction:column}.audit-filter-footer .report-note{max-width:none}.audit-filter-actions{justify-content:flex-start}}
 @media(max-width:600px){.audit-filter-actions{display:grid;grid-template-columns:1fr}.audit-filter-actions :is(.apply-btn,.reset-btn){width:100%}}
+
+/* Keep footer content within the filter card without duplicate separator rules. */
+.audit-page.admin-ui-consistency .audit-server-filters .audit-filter-footer{border-top:0;padding:12px 0 0}
+.audit-page.admin-ui-consistency .audit-server-filters .audit-filter-actions{border-top:0;padding-top:0}

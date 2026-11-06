@@ -119,14 +119,13 @@ def test_branding_uses_shared_favicon_and_resident_roles_are_radio_controls(clie
 
 def test_household_analytics_restores_previous_filters_and_year_suggestions():
     source=(Path(__file__).resolve().parents[1]/'templates'/'analytics.html').read_text(encoding='utf-8')
-    household=source.split('id="householdChartTitle"',1)[1].split('Household Details Table',1)[0]
-    assert 'Household size' in household and 'filterHouseholdSize' in household
-    assert 'Household head' in household and 'filterHeadStatus' in household
-    assert 'Resident composition' in household and 'filterComposition' in household
-    assert 'Household registration year' in household and 'filterHouseholdYear' in household
-    assert '<datalist id="householdYearSuggestions">' in household
+    for control in ['filterHouseholdSize','filterHouseholdOccupancy','filterHouseholdYear','filterHouseholdBasis']:
+        assert f'id="{control}"' in source
+    for removed in ['filterHouseholdSearch','filterHouseholdMonth','filterHeadStatus','filterComposition','householdLimit']:
+        assert removed not in source
+    assert 'Registration year' in source and 'householdYears.map(value=>new Option(value,value))' in source
     assert '<datalist id="residentYearSuggestions">' in source
-    assert 'id="householdChartScope" hidden' not in household
+    assert 'id="householdChartScope" hidden' not in source
     assert "document.getElementById('householdOrientation')" not in source
     assert 'i.parsed.x' in source
 

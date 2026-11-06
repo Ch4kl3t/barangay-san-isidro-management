@@ -498,14 +498,14 @@ body > #main {
         <div class="filter-bar-inner">
             <div class="filter-bar-group">
                 <span class="filter-bar-label"><i data-lucide="filter"></i>Filters</span>
-                <div class="filter-inline"><label for="filterHouseholdSize">Household size</label><div class="select-wrapper"><select id="filterHouseholdSize"><option value="">All Sizes</option><option value="0">Empty Households (0 members)</option><option value="1">1 Member</option><option value="2-4">2?4 Members</option><option value="5-6">5?6 Members</option><option value="7+">7+ Members</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
-                <div class="filter-inline"><label for="filterHouseholdOccupancy">Occupancy</label><div class="select-wrapper"><select id="filterHouseholdOccupancy"><option value="">All Households</option><option value="occupied">Occupied</option><option value="empty">Empty</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
-                <div class="filter-inline"><label for="filterHouseholdYear">Registration year</label><div class="select-wrapper"><select id="filterHouseholdYear"><option value="">All Years</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdSize">Household size</label><div class="select-wrapper"><select id="filterHouseholdSize" aria-describedby="householdFilterHelp"><option value="">All Sizes</option><option value="0">Empty Households (0 members)</option><option value="1">1 Member</option><option value="2-4">2?4 Members</option><option value="5-6">5?6 Members</option><option value="7+">7+ Members</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdOccupancy">Occupancy</label><div class="select-wrapper"><select id="filterHouseholdOccupancy" aria-describedby="householdFilterHelp"><option value="">All Households</option><option value="occupied">Occupied</option><option value="empty">Empty</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdYear">Registration year</label><div class="select-wrapper"><select id="filterHouseholdYear" aria-describedby="householdFilterHelp"><option value="">All Years</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
                 <div class="filter-inline"><label for="filterHouseholdBasis">Resident count</label><div class="select-wrapper"><select id="filterHouseholdBasis"><option value="members">All Recorded Members</option><option value="active">Active Residents</option><option value="deceased">Deceased Residents</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
             </div>
             <div class="filter-bar-actions"><button id="resetHouseholdFilters" class="btn-reset" type="button"><i data-lucide="x" style="width:13px;height:13px;"></i>Reset Filters</button></div>
         </div>
-        <p class="household-filter-help">Size and occupancy use the selected resident count basis. Registration years come from household registration dates.</p>
+        <p id="householdFilterHelp" class="visually-hidden">Size and occupancy use the selected resident count basis. Registration years come from household registration dates.</p>
     </div>
 
     <!-- Household Stat Cards -->
@@ -1105,8 +1105,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const restoreFilters=()=>{const params=new URLSearchParams(location.search);for(const id of filterIds){const field=document.getElementById(id),value=params.get(id)|| (id==='filterEvent'?'registered':id==='filterHouseholdBasis'?'members':'');if(id==='filterHouseholdYear'&&value&&!Array.from(field.options).some(o=>o.value===value)){pendingHouseholdYear=value;continue;}field.value=value;}};
     restoreFilters();restoreAnalyticsPages();window.addEventListener('popstate',()=>{restoreFilters();restoreAnalyticsPages();loadDashboard();});
     let filterTimer;
-    const applyAutomatic=()=>{clearTimeout(filterTimer);if(filterIds.some(id=>!document.getElementById(id).checkValidity())){loadDashboard();return;}analyticsPages.residents=analyticsPages.households=1;saveAnalyticsPages();loadDashboard();};
-    for(const id of filterIds){const field=document.getElementById(id);field.addEventListener(['filterYear','filterHouseholdYear'].includes(id)?'input':'change',()=>{clearTimeout(filterTimer);filterTimer=setTimeout(applyAutomatic,['filterYear','filterHouseholdYear'].includes(id)?450:0);});}
+    const residentFilters=new Set(['filterEvent','filterGender','filterStatus','filterMonth','filterYear']);
+    for(const id of filterIds){const field=document.getElementById(id);field.addEventListener(id==='filterYear'?'input':'change',()=>{clearTimeout(filterTimer);filterTimer=setTimeout(()=>{if(filterIds.some(filterId=>!document.getElementById(filterId).checkValidity())){loadDashboard();return;}if(residentFilters.has(id))analyticsPages.residents=1;else analyticsPages.households=1;saveAnalyticsPages();loadDashboard();},id==='filterYear'?450:0);});}
     setInterval(updateClock, 1000);
     updateClock();
     setTimeout(loadDashboard, 100);
@@ -1138,7 +1138,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .forEach(id => document.getElementById(id).value = '');
         document.getElementById('filterActivity').value = 'registered';
         document.getElementById('filterDateBasis').value='registered';document.getElementById('filterEvent').value='registered';householdCard='total';
-        analyticsPages.residents=analyticsPages.households=1;saveAnalyticsPages();
+        analyticsPages.residents=1;saveAnalyticsPages();
         loadDashboard();
     });
 });
