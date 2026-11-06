@@ -36,3 +36,9 @@
 #auditModal .audit-technical{padding:0 24px 24px;border-top:1px solid var(--office-border,#dedfe3)}
 #auditModal .audit-technical summary{padding:16px 0;cursor:pointer}
 @media(max-width:600px){#auditModal .modal-summary{grid-template-columns:1fr;gap:12px;padding:16px}#auditModal .modal-header{padding:18px 16px}#auditModal .modal-description{margin:0 16px 18px}#auditModal :is(#modalEventDetails,.audit-technical){padding-left:16px;padding-right:16px}#auditModal .modal-header h2{font-size:20px}}
+.audit-filter-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px 18px;border-top:1px solid var(--office-border,#dce4ed)}
+.audit-filter-footer .report-note{margin:0;max-width:56ch;line-height:1.5;color:var(--office-muted,#64748b);font-size:12px}
+.audit-filter-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.audit-filter-actions :is(.apply-btn,.reset-btn){width:auto;margin:0;white-space:nowrap}
+@media(max-width:900px){.audit-filter-footer{align-items:stretch;flex-direction:column}.audit-filter-footer .report-note{max-width:none}.audit-filter-actions{justify-content:flex-start}}
+@media(max-width:600px){.audit-filter-actions{display:grid;grid-template-columns:1fr}.audit-filter-actions :is(.apply-btn,.reset-btn){width:100%}}

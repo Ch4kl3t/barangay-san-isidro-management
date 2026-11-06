@@ -160,7 +160,9 @@ def resident_form(id=None):
                     session.pop('resident_draft_id', None)
                 if not old:
                     return registration_complete('resident', id)
-                return committed_feedback(url_for('resident_detail', id=id),'Resident saved.')
+                from record_navigation import resident_navigation
+                token,_=resident_navigation(id,request.args.get('nav') or request.form.get('nav'))
+                return committed_feedback(url_for('resident_detail', id=id,nav=token),'Resident saved.')
             except ValueError as exc:
                 cursor.execute('ROLLBACK TO SAVEPOINT resident_save')
                 error = str(exc)
@@ -191,9 +193,14 @@ def resident_form(id=None):
     selected=next((h for h in choices if str(h['id'])==str(values.get('household_id'))),None)
     labels=[dict(id=h['id'],name=f"{h['surname']} — House {h.get('house_number') or 'Not recorded'} — {h.get('address') or 'Not recorded'}") for h in choices]
     fixed=request.form.get('household_id_fixed','') if request.method=='POST' else request.args.get('household_id','')
+    navigation_token=None
+    navigation_return_to='/view_members'
+    if old:
+        from record_navigation import resident_navigation
+        navigation_token,navigation_return_to=resident_navigation(old['id'],request.args.get('nav') or request.form.get('nav') or None)
     return render_template('edit_member.html' if old else 'add_member.html',member=values,prefill=values,
         households=choices,household_options=labels,error=error,household_id=fixed,
-        household_name=next((h['name'] for h in labels if str(h['id'])==str(values.get('household_id'))),''),editing=bool(old),duplicate_detected=duplicate_detected,**roles)
+        household_name=next((h['name'] for h in labels if str(h['id'])==str(values.get('household_id'))),''),editing=bool(old),duplicate_detected=duplicate_detected,navigation_token=navigation_token,navigation_return_to=navigation_return_to,**roles)
 
 
 def add_member():
@@ -215,8 +222,9 @@ def resident_detail(id):
         roles=household_roles.context(cursor,member['household_id'],[member])
     try:member['age']=resident_age(member)
     except ValueError:member['age']=None
-    from record_navigation import return_destination
-    return render_template('resident_detail.html',member=member,household=home,return_to=return_destination(id),**roles)
+    from record_navigation import resident_navigation
+    token,return_to=resident_navigation(id)
+    return render_template('resident_detail.html',member=member,household=home,return_to=return_to,navigation_token=token,**roles)
 
 
 def household_form(id=None):
@@ -284,16 +292,27 @@ def delete_member(id):
         old = cursor.fetchone()
         if not old:
             abort(404)
+        destination=url_for('view_members')
+        try:requested_household=int(request.args.get('household_id') or request.form.get('household_id',''))
+        except (ValueError,TypeError):requested_household=None
+        if requested_household==old['household_id']:
+            from record_navigation import household_return_destination
+            household_return_destination(old['household_id'])
+            context={key:request.args[key] for key in ('page','page_size','nav') if request.args.get(key)}
+            destination=url_for('view_household',household_id=old['household_id'],**context)
         if household_roles.available(cursor):
             head=household_roles.current(cursor,old['household_id'])
             if head and head['resident_id']==id:
-                abort(409,description='Reassign or clear the household head before deleting this resident.')
+                audit(cursor,'DELETE','Resident',id,'Resident deletion blocked: designated household head',
+                      old=audit_value(old),context=old['household_id'],outcome='DENIED')
+                return committed_feedback(destination,
+                    'This resident is the designated household head. Reassign or clear the head designation above before deleting this resident.','warning')
         cursor.execute('SELECT surname,house_number,address FROM households WHERE id=%s', (old['household_id'],))
         identity = cursor.fetchone()
         snapshot = dict(old, household_identity=identity)
         cursor.execute('DELETE FROM household WHERE id=%s', (id,))
         audit(cursor, 'DELETE', 'Resident', id, 'Resident permanently deleted', old=snapshot,context=old['household_id'])
-        return committed_feedback(url_for('view_members'),'Resident deleted.')
+        return committed_feedback(destination,'Resident deleted.')
 
 
 def delete_household(id):
