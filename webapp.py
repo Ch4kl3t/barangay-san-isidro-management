@@ -85,8 +85,9 @@ def create_app(overrides=None):
             if kind=='households':args.setdefault('mode','summary')
             if kind=='residents':args.setdefault('scope','all_matching')
             return url_for('report_builder',kind=kind,context=report_context.issue(args),return_to=request.full_path.rstrip('?'))
-        from record_navigation import resident_url
-        return dict(page_url=page_url,audit_actions=sorted(reporting.ACTIONS),report_url=report_url,resident_url=resident_url)
+        from record_navigation import household_url,resident_edit_url,resident_url
+        return dict(page_url=page_url,audit_actions=sorted(reporting.ACTIONS),report_url=report_url,
+                    resident_url=resident_url,resident_edit_url=resident_edit_url,household_url=household_url)
 
     @app.route('/health')
     def health():

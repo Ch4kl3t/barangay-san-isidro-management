@@ -1,3 +1,6 @@
+.brand-home{display:flex;align-items:center;gap:15px;min-width:0;color:inherit;text-decoration:none;border-radius:8px}
+.brand-home:hover .header-title{color:#1e4d7b}
+.brand-home:focus-visible{outline:3px solid #3b82f6;outline-offset:4px}
 /* Shared, scoped refinements. Existing navy identity and appearance tokens remain. */
 .modern-directory .registry-toolbar{display:block}
 .compact-directory-toolbar{display:flex;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-top:12px;width:100%;font-size:14px;line-height:20px}

@@ -7,11 +7,13 @@
 .modern-directory>.info-grid>.info-item p{font-size:18px;line-height:1.45;font-weight:650;color:#1b3a57;margin:0;overflow-wrap:anywhere}
 .modern-directory .table-card.registry-card{border:1px solid #dce4ed;border-radius:12px;box-shadow:0 4px 20px #1b3a5706;overflow:visible;background:white}
 .modern-directory .registry-card>.registry-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border-bottom:1px solid #e5eaf0;border-radius:12px 12px 0 0;background:#fff}
-.modern-directory .registry-card>.registry-toolbar:has(.search-panel){display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.8fr)}
+.modern-directory .registry-card>.registry-toolbar:has(.search-panel),
+.modern-directory .registry-card>.registry-toolbar:has(.compact-directory-toolbar){display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.8fr);align-items:center}
 .modern-directory .registry-heading{display:flex;align-items:center;gap:16px;min-width:0;padding-top:3px}
 .modern-directory .registry-heading h2{font-size:17px;line-height:1.4;letter-spacing:-.2px;font-weight:700;color:#1b3a57;margin:0 0 5px}
 .modern-directory .registry-heading p{font-size:12px;color:#64748b;line-height:1.5;margin:0}
 .modern-directory .registry-count{font-size:11px;font-weight:600;color:#415a73;background:#f0f4f8;border:1px solid #e0e7ef;padding:5px 8px;border-radius:6px;white-space:nowrap}
+#deleteForm{display:flex;flex:1;margin:0}#deleteForm .modal-btn{width:100%}
 .modern-directory .registry-toolbar>.search-panel{padding:0;border:0;background:none;flex:0 1 520px;min-width:0;width:100%}
 .modern-directory .registry-toolbar .search-wrapper{display:grid;grid-template-columns:minmax(140px,1fr) auto;gap:8px 10px;max-width:none;width:100%;position:relative}
 .modern-directory .registry-toolbar .search-wrapper>input[type=text]{grid-column:1;grid-row:1;min-width:0;width:100%;height:40px;box-sizing:border-box;padding:10px 12px;border:1px solid #ccd7e2;border-radius:7px;background:#fff;color:#1b3a57;font:inherit;font-size:13px;box-shadow:none}
@@ -60,7 +62,7 @@
 .modern-directory .registry-footer select{font:inherit;color:#315574;background:white;padding:6px 8px;border:1px solid #d3dfea;border-radius:6px}
 .modern-directory .registry-card :focus-visible{outline:3px solid #3981b5;outline-offset:2px}
 @media(min-width:601px){.modern-directory.admin-resident-table .registry-card table.registry-table thead th:nth-child(2){left:0;z-index:4}}
-@media(max-width:1000px){.modern-directory .registry-card>.registry-toolbar{flex-direction:column;gap:12px}.modern-directory .registry-card>.registry-toolbar:has(.search-panel){grid-template-columns:minmax(0,1fr)}.modern-directory .registry-toolbar>.search-panel{flex-basis:auto}.modern-directory .registry-heading{width:100%;justify-content:space-between}.modern-directory>.info-grid>.info-item{padding:16px}.modern-directory>.info-grid>.info-item p{font-size:16px}}
+@media(max-width:1000px){.modern-directory .registry-card>.registry-toolbar{flex-direction:column;gap:12px}.modern-directory .registry-card>.registry-toolbar:has(.search-panel),.modern-directory .registry-card>.registry-toolbar:has(.compact-directory-toolbar){grid-template-columns:minmax(0,1fr)}.modern-directory .registry-toolbar>.search-panel{flex-basis:auto}.modern-directory .registry-heading{width:100%;justify-content:space-between}.modern-directory>.info-grid>.info-item{padding:16px}.modern-directory>.info-grid>.info-item p{font-size:16px}}
 @media(max-width:600px){
  .modern-directory>.info-grid{flex-direction:column;margin-bottom:18px}.modern-directory>.info-grid>.info-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px;border-right:0;border-bottom:1px solid #e5eaf0}.modern-directory>.info-grid>.info-item:last-child{border-bottom:0}.modern-directory>.info-grid>.info-item label{margin:0;font-size:10px}.modern-directory>.info-grid>.info-item p{font-size:14px;text-align:right}
  .modern-directory .registry-card>.registry-toolbar{padding:18px 14px;gap:16px}.modern-directory .registry-heading h2{font-size:16px}.modern-directory .registry-heading{gap:8px}.modern-directory .registry-count{font-size:10px;padding:4px 6px}

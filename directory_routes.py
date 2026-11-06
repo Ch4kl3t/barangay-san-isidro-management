@@ -87,8 +87,10 @@ def view_household(household_id):
     for member in members:
         try:member['age']=resident_age(member)
         except ValueError:member['age']=None
+    from record_navigation import household_return_destination
+    return_to=household_return_destination(household_id) if g.identity['role']=='admin' else url_for('user_view_households')
     return render_template('view_household.html' if g.identity['role']=='admin' else 'user_view_household.html',household=household,members=members,total=total,
-                           page=page_number(),pages=pages,page_size=size,**roles)
+                           page=page_number(),pages=pages,page_size=size,return_to=return_to,**roles)
 
 
 def user_view_household(household_id):

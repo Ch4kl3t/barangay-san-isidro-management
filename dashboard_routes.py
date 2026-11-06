@@ -174,16 +174,20 @@ def api_dashboard():
             if activity!='deleted' and g.identity['role']=='admin':
                 from urllib.parse import urlencode
                 from record_navigation import resident_url
-                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
-                if args.get('date_basis')=='death':navigation['filterEvent']='death'
+                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('household_search','filterHouseholdSearch'),('household_size','filterHouseholdSize'),('head_status','filterHeadStatus'),('composition','filterComposition'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
+                if args.get('activity')=='deleted':navigation['filterEvent']='deleted'
+                elif args.get('date_basis')=='death':navigation['filterEvent']='death'
                 row['detail_url']=resident_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
             row['household']=row.get('household_name',row.get('household'))
             row['date_of_death']=row.get('death_date')
             for field in ['registration_date','birthdate','death_date','date_of_death','status_recorded_at']:
                 if hasattr(row.get(field),'isoformat'):row[field]=row[field].isoformat()
         for row in households+household_summary:
-            from flask import url_for
-            row['detail_url']=url_for('view_household',household_id=row['id'])
+            from urllib.parse import urlencode
+            from record_navigation import household_url
+            navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('household_search','filterHouseholdSearch'),('household_size','filterHouseholdSize'),('head_status','filterHeadStatus'),('composition','filterComposition'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
+            if args.get('activity')=='deleted':navigation['filterEvent']='deleted'
+            row['detail_url']=household_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
             row.update(household_name=row.get('surname'),members=row.get('member_count',0),active=row.get('active_count',0),
                        deceased=row.get('deceased_count',0),male=row.get('male_members',0),female=row.get('female_members',0))
             if hasattr(row.get('registration_date'),'isoformat'):row['registration_date']=row['registration_date'].isoformat()
