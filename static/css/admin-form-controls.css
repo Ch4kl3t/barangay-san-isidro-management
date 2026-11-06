@@ -13,3 +13,23 @@ body.admin-workspace .select-wrapper select:not([data-native-arrow]){background-
 .resident-role-options input[type=radio]{width:18px;height:18px;accent-color:#1b3a57;margin:0}
 .resident-role-options label:has(input:checked){border-color:#1b3a57;background:color-mix(in srgb,#1b3a57 6%,white)}
 @media(max-width:640px){.resident-role-options{display:grid;grid-template-columns:1fr}.resident-role-options label{width:100%;box-sizing:border-box}}
+
+.resident-role-options label{color:var(--office-text,#1e293b);transition:border-color .15s,background-color .15s,color .15s}
+.resident-role-options label:hover:not(:has(input:disabled)){border-color:var(--office-focus,#2e86c1)}
+.resident-role-options label:has(input:checked){border-color:var(--office-focus,#2e86c1);background:color-mix(in srgb,var(--office-focus,#2e86c1) 14%,var(--office-surface,#fff));color:var(--office-text,#1e293b)}
+.resident-role-options input[type=radio]:focus-visible{outline:3px solid var(--office-focus,#2e86c1);outline-offset:3px}
+.resident-role-options label:has(input:disabled){opacity:.55;cursor:not-allowed}
+.brand-group,.system-brand-text{min-width:0}
+.admin-workspace .header-title{max-width:min(42vw,480px);font-size:clamp(12px,1.15vw,16px);line-height:1.2}
+@media(max-width:620px){.admin-workspace .header-title{max-width:calc(100vw - 190px);font-size:11px;white-space:normal}.system-brand-subtitle{display:none}}
+html[data-theme=dark] body.admin-workspace .resident-editor{background:var(--office-bg,#0b1220)!important;color:var(--office-text,#e2e8f0)}
+html[data-theme=dark] body.admin-workspace .resident-editor .form-card{background:var(--office-surface,#111c2e)!important;color:var(--office-text,#e2e8f0);border-color:var(--office-border,#334155)!important}
+html[data-theme=dark] body.admin-workspace .resident-editor :is(.form-header h1,.form-section legend,.form-group label,.resident-role-options legend){color:var(--office-text,#e2e8f0)!important}
+html[data-theme=dark] body.admin-workspace .resident-editor :is(.form-header,.form-section){border-color:var(--office-border,#334155)!important}
+html[data-theme=dark] body.admin-workspace .resident-editor :is(input:not([type=radio]):not([type=checkbox]),select,textarea){background:var(--office-raised,#1e293b)!important;color:var(--office-text,#e2e8f0)!important;border-color:var(--office-border,#475569)!important}
+html[data-theme=dark] body.admin-workspace .resident-editor :is(input,select,textarea):focus{border-color:var(--office-focus,#60a5fa)!important}
+html[data-theme=dark] body.admin-workspace .resident-editor .household-role-fields{background:var(--office-raised,#1e293b)!important;border-color:var(--office-border,#475569)!important}
+html[data-theme=dark] body.admin-workspace .resident-role-options label{background:var(--office-raised,#1e293b);color:var(--office-text,#e2e8f0);border-color:var(--office-border,#475569)}
+html[data-theme=dark] body.admin-workspace .resident-role-options label:has(input:checked){background:color-mix(in srgb,var(--office-focus,#60a5fa) 24%,var(--office-surface,#111c2e));border-color:var(--office-focus,#60a5fa);color:var(--office-text,#f8fafc)}
+html[data-theme=dark] body.admin-workspace .resident-editor [role=alert]{color:#fecaca;background:#451a1a;border:1px solid #7f1d1d;border-radius:8px;padding:10px 12px}
+html[data-theme=dark] body.admin-workspace .resident-editor .btn-submit{background:#1e4d7b;color:#fff}

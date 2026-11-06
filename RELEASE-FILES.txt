@@ -31,3 +31,12 @@ tests/test_login_visual.py
 tests/test_predefense_workflows.py
 tests/test_ui_simplification.py
 webapp.py
+auth_utils.py
+email_config.py
+record_routes.py
+static/css/report-builder.css
+templates/system_head.html
+tests/test_password_reset_flow.py
+tests/test_toasts_favicon.py
+static/css/workflow-polish.css
+static/css/resident-portal.css

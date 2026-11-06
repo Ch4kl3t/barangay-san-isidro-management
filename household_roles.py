@@ -34,7 +34,7 @@ def expected(head):
 
 def assign(cursor, household_id, resident_id, previous, reason):
     """Caller holds serialize(); existing assignments and relationships survive."""
-    reason=text(reason,'Reason for head designation',300)
+    reason=text(reason,'Reason for head designation',300) or 'Administrative designation'
     cursor.execute('SELECT id FROM households WHERE id=%s FOR UPDATE',(household_id,))
     if not cursor.fetchone():raise ValueError('Household is no longer available')
     old=current(cursor,household_id)

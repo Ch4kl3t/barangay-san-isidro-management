@@ -9,7 +9,7 @@
 .user-management-page .users-table{min-width:700px;table-layout:auto}.user-management-page .activity-table{min-width:700px}.user-management-page .role-badge,.user-management-page .status-badge{white-space:nowrap;overflow-wrap:normal}.user-management-page .user-name{min-width:160px}.user-management-page .user-actions{min-width:250px}
 
 .report-suggestions [role=option]{overflow-wrap:anywhere}
-@media(max-width:600px){.top-header .header-left{min-width:0;flex:1}.top-header .brand-group{min-width:0}.top-header .header-title{max-width:150px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.top-header .header-right{flex-shrink:0;gap:8px}.top-header .user-pill .user-name{display:none}.top-header .user-pill{padding:7px}.top-header{padding-left:12px;padding-right:12px}}
+@media(max-width:600px){.top-header .header-left{min-width:0;flex:1}.top-header .brand-group{min-width:0}.top-header .header-title{max-width:calc(100vw - 185px);white-space:normal;text-overflow:clip;overflow:visible;overflow-wrap:anywhere;line-height:1.1;font-size:11px}.top-header .header-right{flex-shrink:0;gap:8px}.top-header .user-pill .user-name{display:none}.top-header .user-pill{padding:7px}.top-header{padding-left:12px;padding-right:12px}}
 /* Keep the existing home cards within narrow screens without changing desktop. */
 @media(max-width:600px){.home-wrapper .stats-wrapper{grid-template-columns:repeat(2,minmax(0,1fr))}.home-wrapper .stat-box,.home-wrapper .stat-info{min-width:0}.home-wrapper .stat-info h3{overflow-wrap:anywhere}.home-wrapper .stat-box{gap:10px;padding:16px 12px}.home-wrapper .stat-icon-bg{width:36px;height:36px}}
 

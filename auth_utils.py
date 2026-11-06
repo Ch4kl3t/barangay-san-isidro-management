@@ -52,14 +52,14 @@ def send_password_reset_email(to_email, username, reset_link):
     """
     try:
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = 'Barangay Information System - Password Reset Request'
+        msg['Subject'] = 'Barangay Household Information Management System - Password Reset Request'
         msg['From'] = GMAIL_CONFIG['sender_email']
         msg['To'] = to_email
 
         text = f"""
 Hello {username},
 
-You requested to reset your password for the Barangay Information System.
+You requested to reset your password for the Barangay Household Information Management System.
 Click the link below to reset your password:
 
 {reset_link}
@@ -69,7 +69,7 @@ This link will expire in 1 hour.
 If you did not request this, please ignore this email.
 
 Best regards,
-Barangay Information System
+Barangay Household Information Management System
         """
 
         html = f"""
@@ -78,7 +78,7 @@ Barangay Information System
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #1B3A57;">Password Reset Request</h2>
                     <p>Hello <strong>{escape(username)}</strong>,</p>
-                    <p>You requested to reset your password for the Barangay Information System.</p>
+                    <p>You requested to reset your password for the Barangay Household Information Management System.</p>
                     <p>
                         <a href="{escape(reset_link, quote=True)}"
                            style="display: inline-block; padding: 12px 24px; background-color: #2e86c1;
@@ -94,7 +94,7 @@ Barangay Information System
                     </p>
                     <hr style="border: none; border-top: 1px solid #dde3ed; margin: 30px 0;">
                     <p style="color: #7a93aa; font-size: 11px;">
-                        Barangay Information System<br>
+                        Barangay Household Information Management System<br>
                         Municipality of Bongabong, Oriental Mindoro
                     </p>
                 </div>
@@ -121,7 +121,7 @@ def send_admin_notification(admin_email, username, action):
     """
     try:
         msg = MIMEMultipart('alternative')
-        msg['Subject'] = 'Password Reset Activity - Barangay Information System'
+        msg['Subject'] = 'Password Reset Activity - Barangay Household Information Management System'
         msg['From'] = GMAIL_CONFIG['sender_email']
         msg['To'] = admin_email
         
@@ -133,7 +133,7 @@ Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 Please review in the audit log if needed.
 
-Barangay Information System
+Barangay Household Information Management System
         """
         
         html = f"""

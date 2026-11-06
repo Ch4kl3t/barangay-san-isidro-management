@@ -10,7 +10,7 @@ def get_brevo_api_key():
     return os.getenv("BREVO_API_KEY", "").strip()
 
 SENDER_EMAIL = os.getenv("GMAIL_ADDRESS", "").strip()
-SENDER_NAME = "Barangay Information System"
+SENDER_NAME = "Barangay Household Information Management System"
 
 class SafeConfigDict(dict):
     def __getitem__(self, key):

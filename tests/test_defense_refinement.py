@@ -173,9 +173,11 @@ def test_clear_head_preserves_history_and_relationships(client,csrf,role_store):
 def test_resident_role_selector_can_reassign_and_clear_without_losing_relationship_history(app,identity,role_store):
     with app.test_request_context('/'):
         g.identity=identity;roles.assign(role_store,1,1,'none','')
+        assert role_store.heads[-1]['reason']=='Administrative designation'
         role_store.relations[(1,2)]='Sibling'
         roles.save_member(role_store,2,1,'Active',dict(household_roles_present='yes',head_assignment='1',head_role='head',relationship_to_head=''))
         assert role_store.active(1)['resident_id']==2 and len(role_store.heads)==2
+        assert role_store.heads[-1]['reason']=='Administrative designation'
         assert role_store.relations[(1,2)]=='Sibling'
         former=copy.deepcopy(role_store.members[1]);roles.context(role_store,1,[former])
         assert former.get('relationship_to_head') is None

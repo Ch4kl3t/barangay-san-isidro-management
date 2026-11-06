@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barangay Information System - Resident View</title>
+    <title>Barangay Household Information Management System - Resident View</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='fonts/inter-fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <!-- Local Lucide Icons - Works Offline -->
@@ -23,7 +23,7 @@
         </button>
         <div class="brand-group">
             <img class="brand-badge" src="{{ url_for('static',filename='icons/favicon.svg') }}" alt="Barangay San Isidro" width="38" height="38">
-            <div class="system-brand-text"><h1 class="header-title">Barangay Information System</h1><span class="system-brand-subtitle">Barangay San Isidro</span></div>
+            <div class="system-brand-text"><h1 class="header-title">Barangay Household Information Management System</h1><span class="system-brand-subtitle">Barangay San Isidro</span></div>
         </div>
     </div>
 
@@ -91,7 +91,7 @@
         font-size: 13px;
     }
 
-    .header-title { color: var(--bis-navy); font-size: 18px; font-weight: 700; margin: 0; }
+    .header-title { color: var(--bis-navy); font-size: clamp(13px, 1.1vw, 16px); font-weight: 700; line-height: 1.2; max-width: min(40vw, 460px); margin: 0; }
 
     #burger-btn {
         color: var(--bis-navy);
@@ -556,6 +556,14 @@
         }
 
         .header-title {
+            display: block;
+            max-width: calc(100vw - 185px);
+            font-size: 11px;
+            line-height: 1.1;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+        .system-brand-subtitle {
             display: none;
         }
 
