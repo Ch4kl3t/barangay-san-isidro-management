@@ -1,19 +1,18 @@
 /* Independent API pages; totals and chart summaries always describe all matches. */
 const analyticsPages={residents:1,households:1};
-const analyticsFilterIds=['filterEvent','filterGender','filterStatus','filterMonth','filterYear','filterHouseholdYear','filterHousehold','filterHouseholdMonth'];
+const analyticsFilterIds=['filterEvent','filterGender','filterStatus','filterMonth','filterYear','filterHouseholdSize','filterHouseholdOccupancy','filterHouseholdYear','filterHouseholdBasis'];
 function restoreAnalyticsPages(){
  const params=new URLSearchParams(location.search);
  for(const key of Object.keys(analyticsPages)){const value=Number(params.get(key+'_page'));analyticsPages[key]=Number.isSafeInteger(value)&&value>0?value:1;}
- const metric=params.get('household_metric'),group=params.get('household_group');
- activeHHTab=['members','active','deceased'].includes(metric)?metric:'members';
+ const group=params.get('household_group');
+ activeHHTab=document.getElementById('filterHouseholdBasis')?.value||'members';
  householdCard=['total','average','largest','single'].includes(group)?group:'total';
- document.querySelectorAll('.hh-tab').forEach(button=>button.classList.toggle('active',button.dataset.hh===activeHHTab));
 }
 function saveAnalyticsPages(replace=false){
  const url=new URL(location.href);
- for(const id of analyticsFilterIds){const value=document.getElementById(id)?.value||'';if(value&&(id!=='filterEvent'||value!=='registered'))url.searchParams.set(id,value);else url.searchParams.delete(id);}
+ for(const id of analyticsFilterIds){const value=document.getElementById(id)?.value||'',base=id==='filterEvent'?'registered':id==='filterHouseholdBasis'?'members':'';if(value&&value!==base)url.searchParams.set(id,value);else url.searchParams.delete(id);}
  for(const [key,page] of Object.entries(analyticsPages)){if(page>1)url.searchParams.set(key+'_page',page);else url.searchParams.delete(key+'_page');}
- for(const [key,value,base] of [['household_metric',activeHHTab,'members'],['household_group',householdCard,'total']]){if(value!==base)url.searchParams.set(key,value);else url.searchParams.delete(key);}
+ for(const [key,value,base] of [['household_group',householdCard,'total']]){if(value!==base)url.searchParams.set(key,value);else url.searchParams.delete(key);}
  if(url.href!==location.href)history[replace?'replaceState':'pushState'](null,'',url);
 }
 function updateAnalyticsPages(pagination){

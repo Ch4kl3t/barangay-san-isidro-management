@@ -2,16 +2,25 @@
 .analytics-wrapper .filter-bar-inner,.analytics-wrapper .filter-bar-group{flex-wrap:wrap;gap:16px}
 .analytics-wrapper .filter-inline{min-width:0;max-width:100%}
 .analytics-wrapper .filter-inline label{white-space:normal}
-.analytics-wrapper .select-wrapper input,.analytics-wrapper .hh-chart-controls input,.analytics-wrapper .hh-chart-controls select{box-sizing:border-box;font-family:inherit;font-size:12px;font-weight:600;color:var(--navy);border:1.5px solid var(--border);border-radius:8px;padding:7px 11px;background:#f5f8fc;min-height:34px}
+.analytics-wrapper .select-wrapper input{box-sizing:border-box;font-family:inherit;font-size:12px;font-weight:600;color:var(--navy);border:1.5px solid var(--border);border-radius:8px;padding:7px 11px;background:#f5f8fc;min-height:34px}
 .analytics-wrapper .select-wrapper input{width:110px}.analytics-wrapper .select-wrapper input:focus{outline:none;border-color:var(--blue-light);box-shadow:0 0 0 3px #3498db1a}
-.analytics-wrapper .hh-header-right{flex:1 1 100%;width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));align-items:end;gap:12px;padding:0 0 14px}
-.analytics-wrapper .hh-header-right .select-wrapper{width:100%}
-.analytics-wrapper .hh-header-right .select-wrapper select{width:100%;min-width:0;min-height:40px;padding:8px 34px 8px 12px}
-.analytics-wrapper .analytics-household-search{display:grid;gap:6px;min-width:0;font-size:11px;font-weight:700;color:var(--text-muted)}
-.analytics-wrapper .analytics-household-search input{width:100%;min-height:40px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:#f5f8fc;font:inherit;font-size:12px;color:var(--navy)}
-.analytics-wrapper .hh-chart-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;padding:16px 24px;font-size:12px}
-.analytics-wrapper .hh-chart-controls label{display:grid;gap:6px;min-width:0;font-size:11px;font-weight:700;color:var(--text-muted)}
-.analytics-wrapper .hh-chart-controls select,.analytics-wrapper .hh-chart-controls input{width:100%;min-height:40px}
 .analytics-wrapper [hidden]{display:none!important}
 .analytics-wrapper #dashboardScope{font-size:13px;line-height:1.6;color:#3d5a75;margin-bottom:18px}.analytics-wrapper .table-card{min-width:0;max-width:100%}
-@media(max-width:600px){.analytics-wrapper .chart-body-hh{padding-left:10px;padding-right:10px}.analytics-wrapper .top-bar{flex-wrap:wrap}.analytics-wrapper .filter-bar-group{align-items:flex-start}.analytics-wrapper .filter-inline{flex-wrap:wrap}.analytics-wrapper .filter-inline label{min-width:70px}.analytics-wrapper .hh-header-right,.analytics-wrapper .hh-chart-controls{grid-template-columns:minmax(0,1fr);padding-left:16px;padding-right:16px}}
+@media(max-width:600px){.analytics-wrapper .chart-body-hh{padding-left:10px;padding-right:10px}.analytics-wrapper .top-bar{flex-wrap:wrap}.analytics-wrapper .filter-bar-group{align-items:flex-start}.analytics-wrapper .filter-inline{flex-wrap:wrap}.analytics-wrapper .filter-inline label{min-width:70px}}
+
+/* Compact household analytics filters mirror the resident filter toolbar. */
+.analytics-wrapper .household-filter-bar{margin:0 0 22px}
+.analytics-wrapper .household-filter-bar .filter-bar-inner{align-items:center;gap:14px}
+.analytics-wrapper .household-filter-bar .filter-bar-group{flex:1 1 auto;display:flex;align-items:center;gap:16px;min-width:0;flex-wrap:nowrap}
+.analytics-wrapper .household-filter-bar .filter-inline{display:grid;grid-template-columns:auto minmax(145px,1fr);align-items:center;gap:9px;min-width:0;flex:1 1 0}
+.analytics-wrapper .household-filter-bar .filter-inline>label{font-size:11px;line-height:1.3;white-space:nowrap;color:var(--text-muted)}
+.analytics-wrapper .household-filter-bar .select-wrapper{position:relative;min-width:0;width:100%}
+.analytics-wrapper .household-filter-bar .select-wrapper select{width:100%;min-width:0;height:40px;min-height:40px;box-sizing:border-box;padding:8px 35px 8px 11px;border-radius:8px;font-size:12px;background-position:right 12px center}
+.analytics-wrapper .household-filter-bar .select-wrapper [data-lucide]{display:none}
+.analytics-wrapper .household-filter-bar .filter-bar-actions{flex:0 0 auto;margin-left:auto}
+.analytics-wrapper .household-filter-bar .btn-reset{min-height:40px;white-space:nowrap}
+.analytics-wrapper .household-filter-help{margin:0;padding:0 20px 12px;font-size:11px;line-height:1.5;color:var(--text-muted)}
+.analytics-wrapper .household-chart-scope{margin:0;padding:0 24px 10px;line-height:1.5}
+@media(max-width:1200px){.analytics-wrapper .household-filter-bar .filter-bar-inner{align-items:flex-start}.analytics-wrapper .household-filter-bar .filter-bar-group{flex-wrap:wrap;gap:12px}.analytics-wrapper .household-filter-bar .filter-inline{grid-template-columns:1fr;gap:6px;flex:1 1 calc(50% - 12px)}}
+@media(max-width:760px){.analytics-wrapper .household-filter-bar .filter-bar-inner{display:grid;grid-template-columns:1fr}.analytics-wrapper .household-filter-bar .filter-bar-group{display:grid;grid-template-columns:1fr 1fr}.analytics-wrapper .household-filter-bar .filter-bar-label{grid-column:1/-1}.analytics-wrapper .household-filter-bar .filter-inline{grid-template-columns:1fr;min-width:0}.analytics-wrapper .household-filter-bar .filter-bar-actions{margin:0}.analytics-wrapper .household-filter-bar .btn-reset{width:100%;justify-content:center}.analytics-wrapper .household-filter-help{padding:0 16px 14px}}
+@media(max-width:420px){.analytics-wrapper .household-filter-bar .filter-bar-group{grid-template-columns:1fr}}

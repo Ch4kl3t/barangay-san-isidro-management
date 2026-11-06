@@ -206,12 +206,6 @@ body > #main {
 .legend-line { display: inline-block; width: 28px; height: 2.5px; border-radius: 4px; background: var(--blue-light); flex-shrink: 0; transition: background 0.2s; }
 .legend-dashed { background: repeating-linear-gradient(to right, #b0c4d8 0, #b0c4d8 5px, transparent 5px, transparent 9px); }
 
-/* ── HH CHART HEADER ── */
-.hh-header-right {
-    display: flex; align-items: center; gap: 12px;
-    align-self: flex-end; margin-bottom: -1px; flex-wrap: wrap;
-}
-.hh-header-right .select-wrapper select { min-width: 160px; }
 
 /* ── TABLE CARDS ── */
 .table-card {
@@ -291,7 +285,6 @@ body > #main {
     .btn-apply, .btn-reset { flex: 1; justify-content: center; }
     .chart-card-header { flex-direction: column; align-items: flex-start; }
     .chart-stat-tabs { width: 100%; overflow-x: auto; }
-    .hh-header-right { flex-direction: column; align-items: flex-start; }
 }
 @media (max-width: 480px) {
     .metrics-row { grid-template-columns: 1fr 1fr; }
@@ -501,6 +494,20 @@ body > #main {
         </span>
     </div>
 
+    <div class="filter-bar-card household-filter-bar">
+        <div class="filter-bar-inner">
+            <div class="filter-bar-group">
+                <span class="filter-bar-label"><i data-lucide="filter"></i>Filters</span>
+                <div class="filter-inline"><label for="filterHouseholdSize">Household size</label><div class="select-wrapper"><select id="filterHouseholdSize"><option value="">All Sizes</option><option value="0">Empty Households (0 members)</option><option value="1">1 Member</option><option value="2-4">2?4 Members</option><option value="5-6">5?6 Members</option><option value="7+">7+ Members</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdOccupancy">Occupancy</label><div class="select-wrapper"><select id="filterHouseholdOccupancy"><option value="">All Households</option><option value="occupied">Occupied</option><option value="empty">Empty</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdYear">Registration year</label><div class="select-wrapper"><select id="filterHouseholdYear"><option value="">All Years</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdBasis">Resident count</label><div class="select-wrapper"><select id="filterHouseholdBasis"><option value="members">All Recorded Members</option><option value="active">Active Residents</option><option value="deceased">Deceased Residents</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+            </div>
+            <div class="filter-bar-actions"><button id="resetHouseholdFilters" class="btn-reset" type="button"><i data-lucide="x" style="width:13px;height:13px;"></i>Reset Filters</button></div>
+        </div>
+        <p class="household-filter-help">Size and occupancy use the selected resident count basis. Registration years come from household registration dates.</p>
+    </div>
+
     <!-- Household Stat Cards -->
     <div class="metrics-row">
         <div class="metric-card metric-dark household-card" data-household-card="total" role="button" tabindex="0" aria-pressed="false">
@@ -533,38 +540,12 @@ body > #main {
     <div class="chart-card">
         <div class="chart-card-header">
             <div class="chart-title-group">
-                <h2 class="chart-card-title" id="householdChartTitle">Active residents per household</h2>
-                <p class="chart-card-sub">Top households by selected count; empty homes remain in the full breakdown below</p>
-            </div>
-            <div class="hh-header-right">
-                <div class="select-wrapper"><select id="filterHousehold"><option value="">All Households</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div>
-                <label class="analytics-household-search" for="filterHouseholdSearch">Search households <input id="filterHouseholdSearch" type="search" maxlength="200" placeholder="Surname or house number"></label>
-                <div class="select-wrapper">
-                    <select id="filterHouseholdMonth">
-                        <option value="">All Registration Months</option>
-                        <option value="01">January</option>
-                        <option value="02">February</option>
-                        <option value="03">March</option>
-                        <option value="04">April</option>
-                        <option value="05">May</option>
-                        <option value="06">June</option>
-                        <option value="07">July</option>
-                        <option value="08">August</option>
-                        <option value="09">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                    </select>
-                    <i data-lucide="chevron-down" style="width:13px;height:13px;"></i>
-                </div>
-                <div class="chart-stat-tabs">
-                    <button class="chart-stat-tab hh-tab" data-hh="members">All recorded members</button>
-                    <button class="chart-stat-tab active hh-tab" data-hh="active">Active residents</button>
-                    <button class="chart-stat-tab hh-tab" data-hh="deceased">Deceased</button>
-                </div>
+                <h2 class="chart-card-title" id="householdChartTitle">Members per household</h2>
+                <p class="chart-card-sub">Top matching households by the selected resident count basis</p>
             </div>
         </div>
-        <div class="hh-chart-controls"><label for="filterHouseholdSize">Household size <select id="filterHouseholdSize"><option value="">All households</option><option value="1-2">1–2 members</option><option value="3-4">3–4 members</option><option value="5-6">5–6 members</option><option value="7+">7 or more members</option></select></label><label for="filterHeadStatus">Household head <select id="filterHeadStatus"><option value="">All</option><option value="with">With designated head</option><option value="without">Without designated head</option></select></label><label for="filterComposition">Resident composition <select id="filterComposition"><option value="">All</option><option value="active">With active residents</option><option value="deceased">With deceased records</option></select></label><label for="householdLimit">Households shown <select id="householdLimit"><option>10</option><option>20</option></select></label><label for="filterHouseholdYear">Household registration year <input id="filterHouseholdYear" type="text" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" list="householdYearSuggestions" placeholder="All years"><datalist id="householdYearSuggestions"></datalist></label></div><p id="householdChartScope" class="chart-card-sub" style="padding:0 24px" aria-live="polite"></p><div class="chart-body chart-body-hh">
+        <p id="householdChartScope" class="chart-card-sub household-chart-scope" aria-live="polite"></p>
+        <div class="chart-body chart-body-hh">
             <canvas id="householdBarChart"></canvas>
         </div>
     </div>
@@ -626,8 +607,9 @@ body > #main {
 /* ═══════════════════════════════════ STATE ═══════════════════════════════════ */
 let dashData       = null;
 let activeStat     = 'total';
-let activeHHTab    = 'active';
+let activeHHTab    = 'members';
 let householdCard='total';
+let pendingHouseholdYear='';
 let lineChart      = null;
 let hhBarChart     = null;
 let builtMonthData = null;
@@ -667,16 +649,13 @@ function getFilters() {
         status:    document.getElementById('filterStatus').value,
         month:     document.getElementById('filterMonth').value,
         year: document.getElementById('filterYear').value,
-        householdSearch: document.getElementById('filterHouseholdSearch').value,
         householdSize: document.getElementById('filterHouseholdSize').value,
-        headStatus: document.getElementById('filterHeadStatus').value,
-        composition: document.getElementById('filterComposition').value,
+        householdOccupancy: document.getElementById('filterHouseholdOccupancy').value,
+        householdBasis: document.getElementById('filterHouseholdBasis').value,
         dateBasis:document.getElementById('filterDateBasis').value,
         householdYear:document.getElementById('filterHouseholdYear').value,
         dateFrom:  '',
         dateTo:    '',
-        household: document.getElementById('filterHousehold').value,
-        householdMonth: document.getElementById('filterHouseholdMonth').value,
         householdFrom:  '',
         householdTo:    ''
     };
@@ -783,15 +762,6 @@ function buildHouseholdMap(households, residents) {
     return map;
 }
 
-function populateHouseholdFilter(residents, households = []) {
-    const sel = document.getElementById('filterHousehold'), cur = sel.value;
-    // Preserve the full set when the API returns only a selected household.
-    const options = new Map([...sel.options].filter(o => o.value).map(o => [o.value, o.textContent]));
-    households.forEach(h => options.set(String(h.id), `${h.household_name || h.surname || 'Unknown'} — ${h.house_number || 'N/A'}`));
-    sel.replaceChildren(new Option('All Households', ''));
-    [...options].forEach(([id,label]) => sel.add(new Option(label,id)));
-    sel.value=cur;
-}
 
 /* ═══════════════════════════════ SERIES ════════════════════════════════════ */
 function normalizeMonthSeries(monthData, stat) {
@@ -913,15 +883,16 @@ function renderHouseholdChart(tab) {
     const canvas = document.getElementById('householdBarChart');
     if (!canvas || typeof Chart === 'undefined') { return; }
     const ctx      = canvas.getContext('2d');
-    const hhFilter = document.getElementById('filterHousehold').value;
     const comparison=householdComparison(tab);
-    const sorted=comparison.slice(0,Number(document.getElementById('householdLimit').value));
+    const sorted=comparison.slice(0,10);
     const labels=sorted.map(([,v])=>[v.house_number||'No house number',v.label.split(' \u2014 ')[0].slice(0,28)]);
     const full=Object.entries(hhMap),average=full.length?full.reduce((sum,[,v])=>sum+v[tab],0)/full.length:0;
     const label={members:'recorded residents (Active + Deceased)',active:'active residents',deceased:'deceased records'}[tab];
     document.getElementById('householdChartTitle').textContent=label.charAt(0).toUpperCase()+label.slice(1)+' per household';
     const note=document.getElementById('householdChartScope');
-    note.textContent=`Showing ${sorted.length} of ${comparison.length} qualifying / ${full.length} matching households by ${label}. Ties use household ID. Full-set average ${average.toFixed(1)}, including empty homes. ${!comparison.length?'No households qualify for this comparison.':sorted.every(([,v])=>v[tab]===0)?'All shown counts are zero.':''}`;
+    const size=document.getElementById('filterHouseholdSize').selectedOptions[0].textContent;
+    const occupancy=document.getElementById('filterHouseholdOccupancy').value;
+    note.textContent=`${full.length} matching households. Size: ${size}; occupancy: ${occupancy||'all'} by ${label.toLowerCase()}. Chart shows up to 10 households ranked by ${label.toLowerCase()}; ties use household ID. Average ${average.toFixed(1)} per matching household. ${!comparison.length?'No households qualify for this comparison.':sorted.every(([,v])=>v[tab]===0)?'All shown counts are zero.':''}`;
     canvas.parentElement.style.height=Math.max(220,sorted.length*48+75)+'px';
     const data   = sorted.map(([, v]) => v[tab]);
     const colorMap = { members: '#2e86c1', active: '#27ae60', deceased: '#e74c3c' };
@@ -1062,8 +1033,9 @@ async function loadDashboard() {
     activeStat=document.getElementById('filterStatus').value==='Deceased'?'deceased':document.getElementById('filterGender').value==='Male'?'male':document.getElementById('filterGender').value==='Female'?'female':'total';
     document.querySelectorAll('.stat-btn').forEach(c=>{const active=c.dataset.stat===activeStat;c.classList.toggle('active',active);c.setAttribute('aria-pressed',String(active));});
     document.querySelectorAll('#chartStatTabs button').forEach(c=>c.classList.toggle('active',c.dataset.stat===activeStat));
+    activeHHTab=document.getElementById('filterHouseholdBasis').value;
     const f=getFilters();
-    const url = `/api/dashboard?activity=${encodeURIComponent(f.activity)}&gender=${encodeURIComponent(f.gender)}&status=${encodeURIComponent(f.status)}&month=${encodeURIComponent(f.month)}&date_from=${encodeURIComponent(f.dateFrom)}&date_to=${encodeURIComponent(f.dateTo)}&household=${encodeURIComponent(f.household)}&household_month=${encodeURIComponent(f.householdMonth)}&household_from=${encodeURIComponent(f.householdFrom)}&household_to=${encodeURIComponent(f.householdTo)}&year=${encodeURIComponent(f.year)}&date_basis=${encodeURIComponent(f.dateBasis)}&household_year=${encodeURIComponent(f.householdYear)}&household_search=${encodeURIComponent(f.householdSearch)}&household_size=${encodeURIComponent(f.householdSize)}&head_status=${encodeURIComponent(f.headStatus)}&composition=${encodeURIComponent(f.composition)}&residents_page=${analyticsPages.residents}&households_page=${analyticsPages.households}&household_metric=${activeHHTab}&household_group=${householdCard}`;
+    const url = `/api/dashboard?activity=${encodeURIComponent(f.activity)}&gender=${encodeURIComponent(f.gender)}&status=${encodeURIComponent(f.status)}&month=${encodeURIComponent(f.month)}&date_from=${encodeURIComponent(f.dateFrom)}&date_to=${encodeURIComponent(f.dateTo)}&household_from=${encodeURIComponent(f.householdFrom)}&household_to=${encodeURIComponent(f.householdTo)}&year=${encodeURIComponent(f.year)}&date_basis=${encodeURIComponent(f.dateBasis)}&household_year=${encodeURIComponent(f.householdYear)}&household_size=${encodeURIComponent(f.householdSize)}&household_occupancy=${encodeURIComponent(f.householdOccupancy)}&household_basis=${encodeURIComponent(f.householdBasis)}&residents_page=${analyticsPages.residents}&households_page=${analyticsPages.households}&household_group=${householdCard}`;
     try {
         dashboardDebug('[DEBUG-FRONTEND] loadDashboard: Fetching from', url);
         const res = await fetch(url,{signal:dashboardAbort.signal});
@@ -1072,12 +1044,19 @@ async function loadDashboard() {
         if (requestSeq !== dashboardRequestSeq) return;
         if(payload.error)throw new Error(payload.error);
         dashData = payload;
-        for(const [id,values] of [['residentYearSuggestions',payload.resident_years||[]],['householdYearSuggestions',payload.household_years||[]]]){const list=document.getElementById(id);list.replaceChildren(...values.map(value=>new Option(value,value)));}
+        const residentYears=document.getElementById('residentYearSuggestions');residentYears.replaceChildren(...(payload.resident_years||[]).map(value=>new Option(value,value)));
+        const householdYearField=document.getElementById('filterHouseholdYear');
+        const householdYears=payload.household_years||[];
+        const requestedHouseholdYear=pendingHouseholdYear||householdYearField.value;
+        householdYearField.replaceChildren(new Option('All Years',''),...householdYears.map(value=>new Option(value,value)));
+        householdYearField.value=householdYears.includes(requestedHouseholdYear)?requestedHouseholdYear:'';
+        pendingHouseholdYear='';
+        if(householdYearField.value&&householdYearField.value!==f.householdYear){saveAnalyticsPages(true);loadDashboard();return;}
         dashboardLoaded = true;
         dashboardTrace('[DEBUG-FRONTEND] raw API response:', dashData);
         dashboardDebug('[DEBUG-FRONTEND] loadDashboard: Response received:', dashData);
         const stats = dashData.stats || {};
-        document.getElementById('dashboardScope').textContent=`Resident matches: ${stats.total} (Active ${stats.active}, Deceased ${stats.deceased}). ${dashData.date_basis}. Year: ${f.year||'all years'}. Household scope: ${f.household||'all IDs'}; household filters apply consistently to household cards, charts, counts and table. Tables show 10 records per page; totals and charts use all matches.`;
+        document.getElementById('dashboardScope').textContent=`Resident matches: ${stats.total} (Active ${stats.active}, Deceased ${stats.deceased}). ${dashData.date_basis}. Resident year: ${f.year||'all years'}. Household size and occupancy use ${f.householdBasis}; household filters apply consistently to cards, charts, matching counts, and the A?Z table. Tables show 10 records per page.`;
         dashboardDebug('[DEBUG-FRONTEND] Stats:', stats);
         dashboardDebug('[DEBUG-FRONTEND] Residents count:', dashData.residents?.length || 0);
         dashboardDebug('[DEBUG-FRONTEND] Households count:', dashData.households?.length || 0);
@@ -1093,7 +1072,6 @@ async function loadDashboard() {
         dashboardDebug('[DEBUG-FRONTEND] builtMonthData:', builtMonthData);
         hhMap          = buildHouseholdMap(allHouseholds, allResidents);
         dashboardDebug('[DEBUG-FRONTEND] hhMap keys:', Object.keys(hhMap));
-        populateHouseholdFilter(allResidents, allHouseholds);
         renderLineChart(activeStat);
         updateHouseholdStats();
         renderHouseholdChart(activeHHTab);
@@ -1123,12 +1101,11 @@ function updateClock() {
 
 /* ═══════════════════════════════ EVENTS ════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    const filterIds=['filterEvent','filterGender','filterStatus','filterMonth','filterYear','filterHouseholdYear','filterHousehold','filterHouseholdMonth','filterHouseholdSize','filterHeadStatus','filterComposition'];
-    const restoreFilters=()=>{const params=new URLSearchParams(location.search);for(const id of filterIds){const field=document.getElementById(id),value=params.get(id)|| (id==='filterEvent'?'registered':'');if(id==='filterHousehold'&&value&&!Array.from(field.options).some(o=>o.value===value))field.add(new Option('Selected household #'+value,value));field.value=value;}};
+    const filterIds=['filterEvent','filterGender','filterStatus','filterMonth','filterYear','filterHouseholdSize','filterHouseholdOccupancy','filterHouseholdYear','filterHouseholdBasis'];
+    const restoreFilters=()=>{const params=new URLSearchParams(location.search);for(const id of filterIds){const field=document.getElementById(id),value=params.get(id)|| (id==='filterEvent'?'registered':id==='filterHouseholdBasis'?'members':'');if(id==='filterHouseholdYear'&&value&&!Array.from(field.options).some(o=>o.value===value)){pendingHouseholdYear=value;continue;}field.value=value;}};
     restoreFilters();restoreAnalyticsPages();window.addEventListener('popstate',()=>{restoreFilters();restoreAnalyticsPages();loadDashboard();});
     let filterTimer;
     const applyAutomatic=()=>{clearTimeout(filterTimer);if(filterIds.some(id=>!document.getElementById(id).checkValidity())){loadDashboard();return;}analyticsPages.residents=analyticsPages.households=1;saveAnalyticsPages();loadDashboard();};
-    const householdSearch=document.getElementById('filterHouseholdSearch');householdSearch.addEventListener('input',()=>{clearTimeout(filterTimer);filterTimer=setTimeout(applyAutomatic,350);});
     for(const id of filterIds){const field=document.getElementById(id);field.addEventListener(['filterYear','filterHouseholdYear'].includes(id)?'input':'change',()=>{clearTimeout(filterTimer);filterTimer=setTimeout(applyAutomatic,['filterYear','filterHouseholdYear'].includes(id)?450:0);});}
     setInterval(updateClock, 1000);
     updateClock();
@@ -1137,34 +1114,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('chartStatTabs').addEventListener('click', e => {
         const t = e.target.closest('.chart-stat-tab');
-        if (t && !t.classList.contains('hh-tab')) switchStat(t.dataset.stat);
+        if (t) switchStat(t.dataset.stat);
     });
 
     document.querySelectorAll('.stat-btn').forEach(c =>
         c.addEventListener('click', () => switchStat(c.dataset.stat))
     );
 
-    document.querySelectorAll('.hh-tab').forEach(btn =>
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.hh-tab').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            activeHHTab = btn.dataset.hh;
-            analyticsPages.households=1;saveAnalyticsPages();loadDashboard();
-        })
-    );
-
-    for(const id of ['householdLimit'])document.getElementById(id).addEventListener('change',()=>renderHouseholdChart(activeHHTab));
+    document.getElementById('resetHouseholdFilters').addEventListener('click',()=>{
+        document.getElementById('filterHouseholdSize').value='';
+        document.getElementById('filterHouseholdOccupancy').value='';
+        document.getElementById('filterHouseholdYear').value='';
+        document.getElementById('filterHouseholdBasis').value='members';
+        pendingHouseholdYear='';activeHHTab='members';householdCard='total';analyticsPages.households=1;
+        saveAnalyticsPages();loadDashboard();
+    });
     document.querySelectorAll('[data-household-card]').forEach(card=>card.addEventListener('click',()=>{householdCard=card.dataset.householdCard;analyticsPages.households=1;saveAnalyticsPages();loadDashboard();}));
     document.querySelectorAll('.stat-btn,[data-household-card]').forEach(card=>{card.tabIndex=0;card.setAttribute('role','button');card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();card.click();}});});
     installAnalyticsPages();
     document.getElementById('applyFilters').addEventListener('click', loadDashboard);
     document.getElementById('resetFilters').addEventListener('click', () => {
-        ['filterGender', 'filterStatus', 'filterMonth', 'filterYear','filterHouseholdYear','filterHousehold', 'filterHouseholdMonth','filterHouseholdSize','filterHeadStatus','filterComposition']
+        ['filterGender', 'filterStatus', 'filterMonth', 'filterYear']
             .forEach(id => document.getElementById(id).value = '');
-        document.getElementById('filterHouseholdSearch').value='';
         document.getElementById('filterActivity').value = 'registered';
         document.getElementById('filterDateBasis').value='registered';document.getElementById('filterEvent').value='registered';householdCard='total';
-        document.getElementById('filterHousehold').value = '';
         analyticsPages.residents=analyticsPages.households=1;saveAnalyticsPages();
         loadDashboard();
     });

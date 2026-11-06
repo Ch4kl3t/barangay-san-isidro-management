@@ -117,9 +117,8 @@ def api_dashboard():
                 for resident in residents:
                     try:resident['age']=resident_age(resident)
                     except ValueError:resident['age']=None
-            hhargs={k:v for k,v in args.items() if k in {'household_id','household_search','household_size','composition'}}
-            if hhargs.get('household_search'):hhargs['search']=hhargs.pop('household_search')
-            hhargs['month']=args.get('household_month','')
+            hhargs={k:v for k,v in args.items() if k=='household_id'}
+            hhargs['month']=''
             hhargs['year']=args.get('household_year','')
             hhargs['date_from']=args.get('household_from','')
             hhargs['date_to']=args.get('household_to','')
@@ -127,7 +126,7 @@ def api_dashboard():
             hhargs.pop('status',None);hhargs.pop('gender',None)
             hquery,hparams,_,_=report_query('households',hhargs)
             # Full compact aggregates feed charts/cards; full table rows are paged.
-            cursor.execute('SELECT id,surname,house_number,address,member_count,active_count,deceased_count,male_members,female_members,designated_head_id FROM '+hquery+' ORDER BY surname,id',hparams)
+            cursor.execute('SELECT id,surname,house_number,address,member_count,active_count,deceased_count,male_members,female_members,designated_head_id FROM '+hquery+' ORDER BY lower(surname),id',hparams)
             household_summary=cursor.fetchall()
             import household_roles
             roles_enabled=False
@@ -138,10 +137,24 @@ def api_dashboard():
                 cursor.execute('SELECT household_id,MAX(resident_id) AS resident_id FROM household_head_assignments WHERE ended_at IS NULL GROUP BY household_id')
                 heads={str(row['household_id']):row.get('resident_id') for row in cursor.fetchall()}
                 for row in household_summary:row['designated_head_id']=heads.get(str(row['id']))
-            if args.get('head_status'):
-                if args['head_status'] not in {'with','without'}:raise ValueError('Invalid household-head status')
-                wants_head=args['head_status']=='with'
-                household_summary=[row for row in household_summary if bool(row.get('designated_head_id'))==wants_head]
+            basis=args.get('household_basis','members')
+            count_column={'members':'member_count','active':'active_count','deceased':'deceased_count'}.get(basis)
+            if count_column is None:raise ValueError('Choose a valid resident count basis')
+            size=args.get('household_size','')
+            size_bounds={'0':(0,0),'1':(1,1),'2-4':(2,4),'5-6':(5,6),'7+':(7,None)}
+            if size and size not in size_bounds:raise ValueError('Choose a valid household size')
+            occupancy=args.get('household_occupancy','')
+            if occupancy not in {'','occupied','empty'}:raise ValueError('Choose a valid occupancy')
+            low,high=size_bounds.get(size,(None,None))
+            filtered=[]
+            for row in household_summary:
+                count=int(row.get(count_column) or 0)
+                if size and (count<low or (high is not None and count>high)):continue
+                if occupancy=='occupied' and count==0:continue
+                if occupancy=='empty' and count!=0:continue
+                filtered.append(row)
+            household_summary=filtered
+            household_summary.sort(key=lambda row:(str(row.get('surname') or '').casefold(),int(row.get('id') or 0)))
             resident_year_column='death_date' if args.get('date_basis')=='death' or args.get('report_type')=='deceased' else 'registration_date'
             cursor.execute('SELECT DISTINCT EXTRACT(YEAR FROM '+resident_year_column+')::int AS year FROM household WHERE '+resident_year_column+' IS NOT NULL ORDER BY year')
             resident_years=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
@@ -149,7 +162,9 @@ def api_dashboard():
             household_years=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
             if args.get('year') and args['year'] not in resident_years:raise ValueError('Choose a year present in the selected resident date field')
             if args.get('household_year') and args['household_year'] not in household_years:raise ValueError('Choose a household registration year present in the data')
-            metric={'members':'member_count','active':'active_count','deceased':'deceased_count'}.get(args.get('household_metric','members'))
+            legacy_metric=args.get('household_metric')
+            if legacy_metric is not None and legacy_metric not in {'members','active','deceased'}:raise ValueError('Invalid household comparison')
+            metric=count_column
             group=args.get('household_group','total')
             if metric is None or group not in {'total','average','largest','single'}:
                 raise ValueError('Invalid household comparison')
@@ -159,14 +174,16 @@ def api_dashboard():
             household_paging=table_page(args.get('households_page'),total)
             where=(' WHERE '+metric+'=%s') if selection is not None else ''
             qualifying=[row for row in household_summary if selection is None or row.get(metric)==selection]
-            qualifying.sort(key=lambda row:(-row.get(metric,0),row.get('id',0)))
+            qualifying.sort(key=lambda row:(str(row.get('surname') or '').casefold(),int(row.get('id') or 0)))
             start=(household_paging['page']-1)*10
             selected_households=qualifying[start:start+10]
             selected_ids=[row['id'] for row in selected_households]
             if selected_ids:
-                cursor.execute('SELECT * FROM '+hquery+' WHERE id=ANY(%s) ORDER BY '+metric+' DESC,id LIMIT %s OFFSET %s',
+                cursor.execute('SELECT * FROM '+hquery+' WHERE id=ANY(%s) ORDER BY lower(surname),id LIMIT %s OFFSET %s',
                                [*hparams,selected_ids,10,0])
-                households=cursor.fetchall()
+                fetched_households=cursor.fetchall()
+                fetched_by_id={str(row['id']):row for row in fetched_households}
+                households=[fetched_by_id[str(row['id'])] for row in selected_households if str(row['id']) in fetched_by_id]
             else:households=[]
             head_by_id={str(row['id']):row.get('designated_head_id') for row in selected_households}
             for row in households:row['designated_head_id']=head_by_id.get(str(row['id']))
@@ -174,7 +191,7 @@ def api_dashboard():
             if activity!='deleted' and g.identity['role']=='admin':
                 from urllib.parse import urlencode
                 from record_navigation import resident_url
-                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('household_search','filterHouseholdSearch'),('household_size','filterHouseholdSize'),('head_status','filterHeadStatus'),('composition','filterComposition'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
+                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household_year','filterHouseholdYear'),('household_size','filterHouseholdSize'),('household_occupancy','filterHouseholdOccupancy'),('household_basis','filterHouseholdBasis'),('residents_page','residents_page'),('households_page','households_page'),('household_group','household_group')] if args.get(key)}
                 if args.get('activity')=='deleted':navigation['filterEvent']='deleted'
                 elif args.get('date_basis')=='death':navigation['filterEvent']='death'
                 row['detail_url']=resident_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
@@ -185,7 +202,7 @@ def api_dashboard():
         for row in households+household_summary:
             from urllib.parse import urlencode
             from record_navigation import household_url
-            navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('household_search','filterHouseholdSearch'),('household_size','filterHouseholdSize'),('head_status','filterHeadStatus'),('composition','filterComposition'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
+            navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household_year','filterHouseholdYear'),('household_size','filterHouseholdSize'),('household_occupancy','filterHouseholdOccupancy'),('household_basis','filterHouseholdBasis'),('residents_page','residents_page'),('households_page','households_page'),('household_group','household_group')] if args.get(key)}
             if args.get('activity')=='deleted':navigation['filterEvent']='deleted'
             row['detail_url']=household_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
             row.update(household_name=row.get('surname'),members=row.get('member_count',0),active=row.get('active_count',0),

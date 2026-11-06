@@ -27,16 +27,21 @@ class DashboardStore:
             n=len(self.residents);self.rows=[dict(total=n,male=0,female=n,deceased=0)]
         elif query.startswith('SELECT EXTRACT'):
             self.rows=[] if 'FROM death_date' in query or self.empty else [dict(month=1,total=125,male=0,female=125)]
+        elif query.startswith("SELECT DISTINCT EXTRACT(YEAR FROM (created_at AT TIME ZONE"):
+            self.rows=[dict(year=2024),dict(year=2025)]
         elif query.startswith('SELECT * FROM ') and 'ORDER BY surname,firstname,id LIMIT' in query:
             self.rows=self.residents[params[-1]:params[-1]+params[-2]]
         elif query.startswith('SELECT id,surname,house_number,address,member_count'):
-            self.rows=[dict(h) for h in self.homes]
+            homes=[dict(h) for h in self.homes]
+            if 'EXTRACT(YEAR FROM' in query and params:
+                homes=[h for h in homes if h.get('registration_date') and str(h['registration_date'].year)==str(params[0])]
+            self.rows=sorted(homes,key=lambda h:(str(h.get('surname') or '').casefold(),int(h['id'])))
         elif query.startswith('SELECT * FROM '):
             homes=self.homes
             if 'id=ANY(%s)' in query:
                 ids=params[-3];homes=[h for h in homes if h['id'] in ids]
             if ' WHERE member_count=%s' in query:homes=[h for h in homes if h['member_count']==params[-3]]
-            self.rows=[dict(h) for h in homes[params[-1]:params[-1]+params[-2]]]
+            self.rows=sorted((dict(h) for h in homes),key=lambda h:(str(h.get('surname') or '').casefold(),int(h['id'])))[params[-1]:params[-1]+params[-2]]
         elif query.startswith('SELECT id,old_value'):
             self.rows=[dict(id=i,old_value=json.dumps(dict(id=i,firstname='Fictional',surname='Removed',gender='Female',status='Active',household_id=1)),created_at=datetime(2026,1,1),household_context='1') for i in range(1,26)]
     def fetchone(self):return self.rows[0] if self.rows else None
@@ -230,3 +235,54 @@ def test_hidden_head_controls_and_intended_locations_remain_unchanged(client,csr
     assert 'id="headAssignment"' in client.get('/view_household/1').text
     assert 'id="householdRoles"' in client.get('/add_member?household_id=1').text
     assert 'id="householdRoles"' in client.get('/edit_member/1').text
+
+
+@pytest.mark.parametrize('basis,count_key',[('members','member_count'),('active','active_count'),('deceased','deceased_count')])
+def test_household_size_and_occupancy_use_selected_count_basis_and_sort_before_pagination(client,dashboard,basis,count_key):
+    dashboard.homes=[
+        dict(id=1,surname='zeta',house_number='1',address='A',member_count=4,active_count=1,deceased_count=3,male_members=0,female_members=0,registration_date=None),
+        dict(id=2,surname='Alpha',house_number='2',address='A',member_count=1,active_count=1,deceased_count=0,male_members=0,female_members=0,registration_date=None),
+        dict(id=3,surname='alpha',house_number='3',address='A',member_count=4,active_count=2,deceased_count=2,male_members=0,female_members=0,registration_date=None),
+        dict(id=4,surname='Beta',house_number='4',address='A',member_count=0,active_count=0,deceased_count=0,male_members=0,female_members=0,registration_date=None),
+        dict(id=5,surname='Gamma',house_number='5',address='A',member_count=7,active_count=7,deceased_count=0,male_members=0,female_members=0,registration_date=None),
+    ]
+    counts={'members':{'1':4,'2':1,'3':4,'4':0,'5':7},'active':{'1':1,'2':1,'3':2,'4':0,'5':7},'deceased':{'1':3,'2':0,'3':2,'4':0,'5':0}}[basis]
+    minimum=2
+    maximum=4 if basis in {'members','deceased'} else 2
+    data=client.get(f'/api/dashboard?household_basis={basis}&household_size=2-4&household_occupancy=occupied&households_page=1').json
+    expected=sorted([int(identifier) for identifier,value in counts.items() if minimum<=value<=maximum and value>0],key=lambda identifier:(dashboard.homes[identifier-1]['surname'].casefold(),identifier))
+    assert [row['id'] for row in data['household_summary']]==expected
+    assert [row['id'] for row in data['households']]==expected[:10]
+    assert data['pagination']['households']['total']==len(expected)
+    assert all(0 < row[count_key] for row in data['household_summary'])
+
+
+def test_household_breakdown_is_fixed_a_to_z_and_ui_only_exposes_four_filters(client,dashboard):
+    dashboard.homes=[dict(id=i,surname=name,house_number=str(i),address='A',member_count=1,active_count=1,deceased_count=0,male_members=0,female_members=0,registration_date=None) for i,name in enumerate(['Zulu','alpha','ALPHA','Beta','Mike','Echo','Oscar','Charlie','Lima','Foxtrot','Golf','Hotel','India','Juliet'],1)]
+    expected=sorted(range(1,15),key=lambda identifier:(dashboard.homes[identifier-1]['surname'].casefold(),identifier))
+    result=client.get('/api/dashboard?households_page=1').json
+    assert [row['id'] for row in result['household_summary']]==expected
+    assert [row['id'] for row in result['households']]==expected[:10]
+    assert result['pagination']['households']==dict(page=1,pages=2,total=14,page_size=10)
+    next_page=client.get('/api/dashboard?households_page=2').json
+    assert [row['id'] for row in next_page['households']]==expected[10:]
+    html=client.get('/analytics').text
+    assert 'All Sizes' in html and 'Empty Households (0 members)' in html and '1 Member' in html and '2?4 Members' in html and '5?6 Members' in html and '7+ Members' in html
+    assert 'id="resetHouseholdFilters"' in html
+    assert 'filterHouseholdSearch' not in html and 'householdLimit' not in html
+    reset=html[html.index("document.getElementById('resetHouseholdFilters')"):html.index('installAnalyticsPages();',html.index("document.getElementById('resetHouseholdFilters')"))]
+    assert all(f"getElementById('filterHousehold{suffix}').value=''" in reset for suffix in ['Size','Occupancy','Year'])
+    assert "getElementById('filterHouseholdBasis').value='members'" in reset
+
+
+def test_household_year_options_are_data_driven_and_all_years_include_undated_households(client,dashboard):
+    from datetime import datetime
+    dashboard.homes[0]['registration_date']=datetime(2025,3,1)
+    all_years=client.get('/api/dashboard').json
+    assert all_years['household_years']==['2024','2025']
+    assert len(all_years['household_summary'])==30
+    selected=client.get('/api/dashboard?household_year=2025').json
+    assert [row['id'] for row in selected['household_summary']]==[1]
+    html=client.get('/analytics').text
+    year_control=html[html.index('id="filterHouseholdYear"'):html.index('</select>',html.index('id="filterHouseholdYear"'))]
+    assert 'All Years' in year_control and '2024' not in year_control and '2025' not in year_control
