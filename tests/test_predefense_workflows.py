@@ -115,3 +115,47 @@ def test_branding_uses_shared_favicon_and_resident_roles_are_radio_controls(clie
     role_template=(Path(__file__).resolve().parents[1]/'templates'/'household_role_fields.html').read_text(encoding='utf-8')
     assert 'type="radio" name="head_role" value="member"' in role_template
     assert 'type="radio" name="head_role" value="head"' in role_template
+
+
+def test_household_analytics_chart_keeps_only_compact_chart_controls():
+    source=(Path(__file__).resolve().parents[1]/'templates'/'analytics.html').read_text(encoding='utf-8')
+    household=source.split('id="householdChartTitle"',1)[1].split('Household Details Table',1)[0]
+    assert 'Households shown' in household and 'householdLimit' in household
+    assert 'Household size</label>' not in household
+    assert 'Household head <select' not in household
+    assert 'Resident composition' not in household
+    assert 'Household registration year' not in household
+    assert 'id="householdChartScope" hidden' in household
+
+
+def test_resident_role_and_edit_form_styles_support_dark_mode():
+    css=(Path(__file__).resolve().parents[1]/'static'/'css'/'admin-form-controls.css').read_text(encoding='utf-8')
+    assert 'html[data-theme=dark] body.admin-workspace .resident-editor' in css
+    assert 'resident-role-options label:has(input:checked)' in css
+    assert 'resident-role-options input[type=radio]:focus-visible' in css
+    assert 'resident-role-options label:has(input:disabled)' in css
+
+
+def test_application_name_and_audit_reset_alignment_are_consistent():
+    base=Path(__file__).resolve().parents[1]
+    name='Barangay Household Information Management System'
+    for rel in ['templates/base.html','templates/login.html','templates/system_head.html',
+                'templates/user_base.html','auth_utils.py','email_config.py']:
+        source=(base/rel).read_text(encoding='utf-8')
+        assert name in source and 'Barangay Information System' not in source
+    for rel in ['templates/user_base.html','static/css/workflow-polish.css','static/css/resident-portal.css','static/css/login-lovable.css']:
+        assert 'overflow-wrap' in (base/rel).read_text(encoding='utf-8')
+    workspace=(base/'templates'/'report_workspace.html').read_text(encoding='utf-8')
+    style=(base/'static'/'css'/'report-builder.css').read_text(encoding='utf-8')
+    script=(base/'static'/'js'/'report-center.js').read_text(encoding='utf-8')
+    assert '<div class="builder-filter-actions"><button' in workspace
+    assert '.builder-filter-actions #reportReset' in style
+    assert "byId('reportReset').addEventListener('click',()=>{stale();initialize();" in script
+
+
+def test_head_reason_default_matches_existing_schema_constraint():
+    base=Path(__file__).resolve().parents[1]
+    migration=(base/'migrations'/'optional'/'007_household_roles.up.sql').read_text(encoding='utf-8')
+    roles_source=(base/'household_roles.py').read_text(encoding='utf-8')
+    assert 'reason VARCHAR(300) NOT NULL CHECK (length(trim(reason)) BETWEEN 3 AND 300)' in migration
+    assert "or 'Administrative designation'" in roles_source

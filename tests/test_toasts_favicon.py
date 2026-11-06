@@ -50,7 +50,7 @@ def test_favicon_and_toast_assets_on_authenticated_and_auth_pages(client,role_st
     with client.session_transaction() as state:state['_flashes']=[('info','Synthetic notice')]
     response=client.get(path);assert response.status_code==200
     html=response.text;head=html.split('</head>',1)[0]
-    assert f'<title>{title} | Barangay Information System</title>' in head
+    assert f'<title>{title} | Barangay Household Information Management System</title>' in head
     assert 'css/toasts.css' in head and 'js/toasts.js' in head
     assert html.count('data-toast-region')==1 and html.count('Synthetic notice')==1
     for asset in ['icons/favicon.svg','icons/favicon-32.png','icons/favicon.ico']:
@@ -66,11 +66,11 @@ def test_reset_error_and_print_documents_use_system_identity_without_changing_co
     with app.test_request_context('/reset-password/synthetic'):
         session['_flashes']=[('danger','Synthetic correction')]
         html=render_template('reset_password.html')
-        assert '<title>Reset Password | Barangay Information System</title>' in html
+        assert '<title>Reset Password | Barangay Household Information Management System</title>' in html
         assert html.count('Synthetic correction')==1 and 'warning-box' in html
         assert 'favicon.svg?v=1' in html
         error=render_template('request_error.html',status=403,message='Synthetic refusal')
-        assert '<title>Request 403 | Barangay Information System</title>' in error
+        assert '<title>Request 403 | Barangay Household Information Management System</title>' in error
         assert 'role="alert"' in error and 'Synthetic refusal' in error
 
 

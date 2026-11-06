@@ -164,9 +164,15 @@ def resident_form(id=None):
             except ValueError as exc:
                 cursor.execute('ROLLBACK TO SAVEPOINT resident_save')
                 error = str(exc)
-            except IntegrityError:
+            except IntegrityError as exc:
                 cursor.execute('ROLLBACK TO SAVEPOINT resident_save')
-                error = 'The household changed while saving. Select an existing household and try again.'
+                constraint = getattr(getattr(exc, 'diag', None), 'constraint_name', None)
+                if constraint == 'household_head_current':
+                    error = 'Another head change happened while saving. Reload the resident and review the current household head.'
+                elif constraint == 'resident_head_current':
+                    error = 'This resident already has an active head designation. Reload and review the resident?s household.'
+                else:
+                    error = 'The resident could not be saved because a data-integrity check failed. No changes were saved. Reload and try again.'
             audit(cursor,'UPDATE' if old else 'ADD','Resident',old['id'] if old else 'new',
                   'Resident save rejected',new={'validation_failed':True},outcome='FAILED')
         if not values.get('household_id') and request.method == 'GET':
