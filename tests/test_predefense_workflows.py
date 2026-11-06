@@ -117,15 +117,18 @@ def test_branding_uses_shared_favicon_and_resident_roles_are_radio_controls(clie
     assert 'type="radio" name="head_role" value="head"' in role_template
 
 
-def test_household_analytics_chart_keeps_only_compact_chart_controls():
+def test_household_analytics_restores_previous_filters_and_year_suggestions():
     source=(Path(__file__).resolve().parents[1]/'templates'/'analytics.html').read_text(encoding='utf-8')
     household=source.split('id="householdChartTitle"',1)[1].split('Household Details Table',1)[0]
-    assert 'Households shown' in household and 'householdLimit' in household
-    assert 'Household size</label>' not in household
-    assert 'Household head <select' not in household
-    assert 'Resident composition' not in household
-    assert 'Household registration year' not in household
-    assert 'id="householdChartScope" hidden' in household
+    assert 'Household size' in household and 'filterHouseholdSize' in household
+    assert 'Household head' in household and 'filterHeadStatus' in household
+    assert 'Resident composition' in household and 'filterComposition' in household
+    assert 'Household registration year' in household and 'filterHouseholdYear' in household
+    assert '<datalist id="householdYearSuggestions">' in household
+    assert '<datalist id="residentYearSuggestions">' in source
+    assert 'id="householdChartScope" hidden' not in household
+    assert "document.getElementById('householdOrientation')" not in source
+    assert 'i.parsed.x' in source
 
 
 def test_resident_role_and_edit_form_styles_support_dark_mode():
