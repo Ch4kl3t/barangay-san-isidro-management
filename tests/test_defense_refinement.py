@@ -270,9 +270,11 @@ def test_workflow_navigation_links_keep_signed_context_and_reject_external_retur
 
 def test_analytics_household_layout_and_tooltip_reference_are_valid():
     source=(ROOT/'templates/analytics.html').read_text(encoding='utf-8')
-    assert 'id="householdYearSuggestions"' in source
-    assert "list.replaceChildren(...values.map(value=>new Option(value,value)))" in source
-    assert "document.getElementById('householdOrientation')" not in source
+    for control in ['filterHouseholdSize','filterHouseholdOccupancy','filterHouseholdYear','filterHouseholdBasis']:
+        assert f'id="{control}"' in source
+    for removed in ['filterHouseholdSearch','filterHouseholdMonth','filterHeadStatus','filterComposition','householdLimit','householdYearSuggestions']:
+        assert removed not in source
+    assert "householdYearField.replaceChildren(new Option('All Years','')" in source
     assert 'i.parsed.x' in source
 
 
