@@ -31,7 +31,9 @@ def api_dashboard():
         daily_series={key:[0]*31 for key in ['total','male','female','deceased']}
         if args.get('household'):
             args['household_id']=str(positive_id(args['household']))
-        query,params,_,basis=report_query('residents',args)
+        resident_keys={'scope','report_type','date_basis','month','year','date_from','date_to','gender','status','search','search_extra','civil_status','age_min','age_max','household_id'}
+        resident_args={key:value for key,value in args.items() if key in resident_keys}
+        query,params,_,basis=report_query('residents',resident_args)
         with transaction() as cursor:
             if activity=='deleted':
                 # New mutations emit exactly one Resident DELETE per removed resident.
@@ -98,7 +100,7 @@ def api_dashboard():
                 cursor.execute("SELECT COUNT(*) AS total,COUNT(*) FILTER(WHERE gender='Male') AS male,COUNT(*) FILTER(WHERE gender='Female') AS female,COUNT(*) FILTER(WHERE status='Deceased') AS deceased FROM "+query,params)
                 stats=cursor.fetchone()
                 event_column='death_date' if args.get('date_basis')=='death' or args.get('report_type')=='deceased' else 'registration_date'
-                death_query,death_params,_,_=report_query('residents',{**args,'date_basis':'death'})
+                death_query,death_params,_,_=report_query('residents',{**resident_args,'date_basis':'death'})
                 for unit,target,length in [('MONTH',month_series,12),('DAY',daily_series,31)]:
                     cursor.execute('SELECT EXTRACT('+unit+' FROM '+event_column+")::int AS month,COUNT(*) AS total,COUNT(*) FILTER(WHERE gender='Male') AS male,COUNT(*) FILTER(WHERE gender='Female') AS female FROM "+query+' GROUP BY month',params)
                     for row in cursor.fetchall():
@@ -160,8 +162,8 @@ def api_dashboard():
             resident_years=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
             cursor.execute("SELECT DISTINCT EXTRACT(YEAR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila'))::int AS year FROM households WHERE created_at IS NOT NULL ORDER BY year")
             household_years=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
-            if args.get('year') and args['year'] not in resident_years:raise ValueError('Choose a year present in the selected resident date field')
-            if args.get('household_year') and args['household_year'] not in household_years:raise ValueError('Choose a household registration year present in the data')
+            # Date filters are independently validated as four-digit years by report_query.
+            # A valid year with no matching rows is an empty result, not a dashboard error.
             legacy_metric=args.get('household_metric')
             if legacy_metric is not None and legacy_metric not in {'members','active','deceased'}:raise ValueError('Invalid household comparison')
             metric=count_column
