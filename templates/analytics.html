@@ -494,20 +494,6 @@ body > #main {
         </span>
     </div>
 
-    <div class="filter-bar-card household-filter-bar">
-        <div class="filter-bar-inner">
-            <div class="filter-bar-group">
-                <span class="filter-bar-label"><i data-lucide="filter"></i>Filters</span>
-                <div class="filter-inline"><label for="filterHouseholdSize">Household size</label><div class="select-wrapper"><select id="filterHouseholdSize" aria-describedby="householdFilterHelp"><option value="">All Sizes</option><option value="0">Empty Households (0 members)</option><option value="1">1 Member</option><option value="2-4">2?4 Members</option><option value="5-6">5?6 Members</option><option value="7+">7+ Members</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
-                <div class="filter-inline"><label for="filterHouseholdOccupancy">Occupancy</label><div class="select-wrapper"><select id="filterHouseholdOccupancy" aria-describedby="householdFilterHelp"><option value="">All Households</option><option value="occupied">Occupied</option><option value="empty">Empty</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
-                <div class="filter-inline"><label for="filterHouseholdYear">Registration year</label><div class="select-wrapper"><select id="filterHouseholdYear" aria-describedby="householdFilterHelp"><option value="">All Years</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
-                <div class="filter-inline"><label for="filterHouseholdBasis">Resident count</label><div class="select-wrapper"><select id="filterHouseholdBasis"><option value="members">All Recorded Members</option><option value="active">Active Residents</option><option value="deceased">Deceased Residents</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
-            </div>
-            <div class="filter-bar-actions"><button id="resetHouseholdFilters" class="btn-reset" type="button"><i data-lucide="x" style="width:13px;height:13px;"></i>Reset Filters</button></div>
-        </div>
-        <p id="householdFilterHelp" class="visually-hidden">Size and occupancy use the selected resident count basis. Registration years come from household registration dates.</p>
-    </div>
-
     <!-- Household Stat Cards -->
     <div class="metrics-row">
         <div class="metric-card metric-dark household-card" data-household-card="total" role="button" tabindex="0" aria-pressed="false">
@@ -537,6 +523,20 @@ body > #main {
     </div>
 
     <!-- Household Bar Chart (full width) -->
+    <div class="filter-bar-card household-filter-bar">
+        <div class="filter-bar-inner">
+            <div class="filter-bar-group">
+                <span class="filter-bar-label"><i data-lucide="filter"></i>Filters</span>
+                <div class="filter-inline"><label for="filterHouseholdSize">Household size</label><div class="select-wrapper"><select id="filterHouseholdSize" aria-describedby="householdFilterHelp"><option value="">All Sizes</option><option value="0">Empty Households (0 members)</option><option value="1">1 Member</option><option value="2-4">2?4 Members</option><option value="5-6">5?6 Members</option><option value="7+">7+ Members</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdOccupancy">Occupancy</label><div class="select-wrapper"><select id="filterHouseholdOccupancy" aria-describedby="householdFilterHelp"><option value="">All Households</option><option value="occupied">Occupied</option><option value="empty">Empty</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdYear">Registration year</label><div class="select-wrapper"><select id="filterHouseholdYear" aria-describedby="householdFilterHelp"><option value="">All Years</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+                <div class="filter-inline"><label for="filterHouseholdBasis">Resident count</label><div class="select-wrapper"><select id="filterHouseholdBasis"><option value="members">All Recorded Members</option><option value="active">Active Residents</option><option value="deceased">Deceased Residents</option></select><i data-lucide="chevron-down" style="width:13px;height:13px;"></i></div></div>
+            </div>
+            <div class="filter-bar-actions"><button id="resetHouseholdFilters" class="btn-reset" type="button"><i data-lucide="x" style="width:13px;height:13px;"></i>Reset Filters</button></div>
+        </div>
+        <p id="householdFilterHelp" class="visually-hidden">Size and occupancy use the selected resident count basis. Registration years come from household registration dates.</p>
+    </div>
+
     <div class="chart-card">
         <div class="chart-card-header">
             <div class="chart-title-group">
