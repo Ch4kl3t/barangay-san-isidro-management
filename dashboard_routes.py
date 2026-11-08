@@ -181,7 +181,8 @@ def api_dashboard():
             selected_households=qualifying[start:start+10]
             selected_ids=[row['id'] for row in selected_households]
             if selected_ids:
-                cursor.execute('SELECT * FROM '+hquery+' WHERE id=ANY(%s) ORDER BY lower(surname),id LIMIT %s OFFSET %s',
+                selected_query = hquery + (' AND ' if ' WHERE ' in hquery.upper() else ' WHERE ') + 'id=ANY(%s)'
+                cursor.execute('SELECT * FROM '+selected_query+' ORDER BY lower(surname),id LIMIT %s OFFSET %s',
                                [*hparams,selected_ids,10,0])
                 fetched_households=cursor.fetchall()
                 fetched_by_id={str(row['id']):row for row in fetched_households}
