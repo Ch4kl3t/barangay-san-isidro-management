@@ -265,7 +265,7 @@ def forgot_password():
         recipient = None
         with transaction() as cursor:
             allowed = throttle(cursor, 'reset-ip', request.remote_addr or '', 10)
-            allowed = throttle(cursor, 'reset-email', email, 3, 60) and allowed
+            allowed = throttle(cursor, 'reset-email', email, 10, 5) and allowed
             if allowed and email:
                 cursor.execute("SELECT id,username,email FROM users WHERE LOWER(TRIM(email))=%s AND status='approved' AND role='admin'", (email,))
                 recipient = cursor.fetchone()
