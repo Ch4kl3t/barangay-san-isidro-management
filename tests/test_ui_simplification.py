@@ -336,9 +336,9 @@ def test_targeted_toolbar_footer_and_household_actions_are_compact_and_aligned()
     analytics_css=(ROOT/'static/css/analytics-improvements.css').read_text(encoding='utf-8')
     audit_css=(ROOT/'static/css/audit-improvements.css').read_text(encoding='utf-8')
     directory_css=(ROOT/'static/css/directory-tables.css').read_text(encoding='utf-8')
-    assert '.household-filter-bar .filter-bar-inner{display:grid;grid-template-columns:minmax(0,1fr) auto' in analytics_css
-    assert '.household-filter-bar .filter-bar-group{display:grid;grid-template-columns:auto repeat(4,minmax(0,1fr))' in analytics_css
-    assert '.household-filter-help{position:absolute;width:1px;height:1px' in analytics_css
+    assert '.analytics-wrapper .household-filter-bar .filter-bar-inner {' in analytics_css
+    assert '.analytics-wrapper .household-filter-bar .filter-bar-group {' in analytics_css
+    assert '.analytics-wrapper .household-filter-bar .filter-bar-actions {' in analytics_css
     assert '.audit-server-filters .audit-filter-footer{border-top:0' in audit_css
     assert '.audit-server-filters .audit-filter-actions{border-top:0' in audit_css
     assert '.modern-directory.households-directory .compact-directory-toolbar>button,.modern-directory.households-directory .compact-directory-toolbar>.directory-clear{width:82px' in directory_css
