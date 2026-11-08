@@ -31,7 +31,9 @@ def api_dashboard():
         daily_series={key:[0]*31 for key in ['total','male','female','deceased']}
         if args.get('household'):
             args['household_id']=str(positive_id(args['household']))
-        query,params,_,basis=report_query('residents',args)
+        resident_keys={'scope','report_type','date_basis','month','year','date_from','date_to','gender','status','search','search_extra','civil_status','age_min','age_max','household_id'}
+        resident_args={key:value for key,value in args.items() if key in resident_keys}
+        query,params,_,basis=report_query('residents',resident_args)
         with transaction() as cursor:
             if activity=='deleted':
                 # New mutations emit exactly one Resident DELETE per removed resident.
@@ -98,7 +100,7 @@ def api_dashboard():
                 cursor.execute("SELECT COUNT(*) AS total,COUNT(*) FILTER(WHERE gender='Male') AS male,COUNT(*) FILTER(WHERE gender='Female') AS female,COUNT(*) FILTER(WHERE status='Deceased') AS deceased FROM "+query,params)
                 stats=cursor.fetchone()
                 event_column='death_date' if args.get('date_basis')=='death' or args.get('report_type')=='deceased' else 'registration_date'
-                death_query,death_params,_,_=report_query('residents',{**args,'date_basis':'death'})
+                death_query,death_params,_,_=report_query('residents',{**resident_args,'date_basis':'death'})
                 for unit,target,length in [('MONTH',month_series,12),('DAY',daily_series,31)]:
                     cursor.execute('SELECT EXTRACT('+unit+' FROM '+event_column+")::int AS month,COUNT(*) AS total,COUNT(*) FILTER(WHERE gender='Male') AS male,COUNT(*) FILTER(WHERE gender='Female') AS female FROM "+query+' GROUP BY month',params)
                     for row in cursor.fetchall():
@@ -147,8 +149,8 @@ def api_dashboard():
             resident_years=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
             cursor.execute("SELECT DISTINCT EXTRACT(YEAR FROM (created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Manila'))::int AS year FROM households WHERE created_at IS NOT NULL ORDER BY year")
             household_years=[str(row['year']) for row in cursor.fetchall() if row.get('year') is not None]
-            if args.get('year') and args['year'] not in resident_years:raise ValueError('Choose a year present in the selected resident date field')
-            if args.get('household_year') and args['household_year'] not in household_years:raise ValueError('Choose a household registration year present in the data')
+            # report_query validates four-digit years. A valid year without matches is a
+            # normal empty result and must not fail the resident dashboard request.
             metric={'members':'member_count','active':'active_count','deceased':'deceased_count'}.get(args.get('household_metric','members'))
             group=args.get('household_group','total')
             if metric is None or group not in {'total','average','largest','single'}:
@@ -164,7 +166,8 @@ def api_dashboard():
             selected_households=qualifying[start:start+10]
             selected_ids=[row['id'] for row in selected_households]
             if selected_ids:
-                cursor.execute('SELECT * FROM '+hquery+' WHERE id=ANY(%s) ORDER BY '+metric+' DESC,id LIMIT %s OFFSET %s',
+                selected_query=hquery+(' AND ' if ' WHERE ' in hquery else ' WHERE ')+'id=ANY(%s)'
+                cursor.execute('SELECT * FROM '+selected_query+' ORDER BY '+metric+' DESC,id LIMIT %s OFFSET %s',
                                [*hparams,selected_ids,10,0])
                 households=cursor.fetchall()
             else:households=[]
@@ -174,16 +177,20 @@ def api_dashboard():
             if activity!='deleted' and g.identity['role']=='admin':
                 from urllib.parse import urlencode
                 from record_navigation import resident_url
-                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
-                if args.get('date_basis')=='death':navigation['filterEvent']='death'
+                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('household_search','filterHouseholdSearch'),('household_size','filterHouseholdSize'),('head_status','filterHeadStatus'),('composition','filterComposition'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
+                if args.get('activity')=='deleted':navigation['filterEvent']='deleted'
+                elif args.get('date_basis')=='death':navigation['filterEvent']='death'
                 row['detail_url']=resident_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
             row['household']=row.get('household_name',row.get('household'))
             row['date_of_death']=row.get('death_date')
             for field in ['registration_date','birthdate','death_date','date_of_death','status_recorded_at']:
                 if hasattr(row.get(field),'isoformat'):row[field]=row[field].isoformat()
         for row in households+household_summary:
-            from flask import url_for
-            row['detail_url']=url_for('view_household',household_id=row['id'])
+            from urllib.parse import urlencode
+            from record_navigation import household_url
+            navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household','filterHousehold'),('household_month','filterHouseholdMonth'),('household_year','filterHouseholdYear'),('household_search','filterHouseholdSearch'),('household_size','filterHouseholdSize'),('head_status','filterHeadStatus'),('composition','filterComposition'),('residents_page','residents_page'),('households_page','households_page'),('household_metric','household_metric'),('household_group','household_group')] if args.get(key)}
+            if args.get('activity')=='deleted':navigation['filterEvent']='deleted'
+            row['detail_url']=household_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
             row.update(household_name=row.get('surname'),members=row.get('member_count',0),active=row.get('active_count',0),
                        deceased=row.get('deceased_count',0),male=row.get('male_members',0),female=row.get('female_members',0))
             if hasattr(row.get('registration_date'),'isoformat'):row['registration_date']=row['registration_date'].isoformat()

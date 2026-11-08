@@ -183,7 +183,7 @@ def report_query(kind, args, health_columns=()):
             if args['empty'] not in {'empty','nonempty'}:raise ValueError('Invalid household membership selection')
             clauses.append('member_count=0' if args['empty']=='empty' else 'member_count>0')
         if args.get('household_size'):
-            bounds={'1-2':(1,2),'3-4':(3,4),'5-6':(5,6),'7+':(7,None)}
+            bounds={'0':(0,0),'1':(1,1),'2-4':(2,4),'5-6':(5,6),'7+':(7,None)}
             if args['household_size'] not in bounds:raise ValueError('Invalid household size')
             low,high=bounds[args['household_size']]
             clauses.append('member_count>=%s');params.append(low)
