@@ -16,6 +16,7 @@
    document.getElementById('errorModal').style.display='flex';
   }
   form.addEventListener('submit',async event=>{
+    if(event.defaultPrevented)return;
    if(new FormData(form).get('action')==='new_household')return;
    event.preventDefault();if(busy)return;
    const body=new FormData(form);busy=true;form.setAttribute('aria-busy','true');buttons.forEach(button=>{button.disabled=true;button.setAttribute('aria-disabled','true');});notice.textContent=`Saving ${kind} record...`;
