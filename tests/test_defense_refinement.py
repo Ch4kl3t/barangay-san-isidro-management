@@ -85,6 +85,7 @@ class RoleStore:
             names=query.split(' SET ')[1].split(',status_recorded_at')[0].split(',')
             self.members[params[-1]].update(dict(zip([c.split('=')[0] for c in names],params)))
         elif query.startswith('DELETE FROM household WHERE id='):self.members.pop(params[0],None)
+        elif query.startswith('DELETE FROM households WHERE id='):self.homes.pop(params[0],None)
         elif query.startswith('INSERT INTO audit_logs'):self.audits.append(params)
 
     def fetchone(self):return self.rows[0] if self.rows else None
@@ -224,6 +225,31 @@ def test_ordinary_member_deletion_returns_to_origin_household(client,csrf,role_s
     assert 2 not in role_store.members and 1 in role_store.members
     with client.session_transaction() as state:
         assert any(category=='success' and message=='Resident deleted.' for category,message in state.get('_flashes',[]))
+
+
+def test_household_deletion_never_removes_assigned_residents(client,csrf,role_store):
+    before=copy.deepcopy(role_store.members)
+    response=client.post('/delete_household/1',headers=csrf)
+    assert response.status_code==302 and response.location.endswith('/view_households')
+    assert role_store.members==before and 1 in role_store.homes
+    with client.session_transaction() as state:
+        assert any(category=='warning' and 'resident records are preserved' in message.lower() for category,message in state.get('_flashes',[]))
+
+
+def test_empty_household_deletion_preserves_unrelated_residents(client,csrf,role_store):
+    role_store.members.pop(4)
+    before=copy.deepcopy(role_store.members)
+    response=client.post('/delete_household/2',headers=csrf)
+    assert response.status_code==302 and response.location.endswith('/view_households')
+    assert role_store.members==before and 2 not in role_store.homes and 1 in role_store.homes
+    with client.session_transaction() as state:
+        assert any(category=='success' and message=='Empty household deleted.' for category,message in state.get('_flashes',[]))
+
+
+def test_household_delete_dialog_does_not_claim_residents_are_deleted():
+    source=(ROOT/'templates'/'view_households.html').read_text(encoding='utf-8')
+    assert 'Residents are preserved and must be moved' in source
+    assert 'resident records? This action is permanent' not in source
 
 
 def test_directory_delete_confirmation_posts_csrf_and_blocks_double_submit():

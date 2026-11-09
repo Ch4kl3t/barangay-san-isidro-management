@@ -38,3 +38,18 @@ def test_login_presentation_script_does_not_own_submission():
     assert 'window.officeAppearance.set' in script and 'aria-pressed' in script
     result=subprocess.run(['node','--check',str(path)],capture_output=True,text=True)
     assert result.returncode==0,result.stderr
+
+
+def test_recovery_pages_share_theme_aware_recovery_presentation(client):
+    root=Path(__file__).resolve().parents[1]
+    css=(root/'static/css/auth-recovery.css').read_text(encoding='utf-8')
+    dark_icon=(root/'static/icons/favicon-dark.svg').read_text(encoding='utf-8')
+    assert 'html[data-theme=dark] body.auth-recovery' in css
+    assert 'favicon-dark.svg' in css and 'fill="#d9efff"' in dark_icon
+    for path in ['/forgot-password','/reset-password/fictional-token']:
+        response=client.get(path)
+        if response.status_code==200:
+            html=response.get_data(as_text=True)
+            assert 'class="auth-recovery"' in html
+            assert 'css/auth-recovery.css' in html
+            assert 'Household Information Management System' in html

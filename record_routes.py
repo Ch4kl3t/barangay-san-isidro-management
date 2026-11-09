@@ -324,16 +324,18 @@ def delete_household(id):
             abort(404)
         cursor.execute('SELECT ' + RESIDENT_SQL + ' FROM household h WHERE household_id=%s FOR UPDATE', (id,))
         members = cursor.fetchall()
+        if members:
+            audit(cursor, 'DELETE', 'Household', id, 'Household deletion blocked: residents remain assigned',
+                  old=old, new={'resident_count':len(members)}, context=id, outcome='DENIED')
+            return committed_feedback(url_for('view_households'),
+                f'Household was not deleted because {len(members)} resident(s) are still assigned. Move residents first; resident records are preserved.',
+                'warning')
         if household_roles.available(cursor):
             cursor.execute('UPDATE household_head_assignments SET ended_at=CURRENT_TIMESTAMP WHERE household_id=%s AND ended_at IS NULL',(id,))
-        for member in members:
-            audit(cursor, 'DELETE', 'Resident', member['id'], 'Resident removed with household',
-                  old=dict(member,household_identity=old), context=id)
-        cursor.execute('DELETE FROM household WHERE household_id=%s', (id,))
         cursor.execute('DELETE FROM households WHERE id=%s', (id,))
         audit(cursor, 'DELETE', 'Household', id, 'Household deleted', old=old,
-              new={'removed_residents':len(members)},context=id)
-        return committed_feedback(url_for('view_households'),f'Household and {len(members)} resident(s) deleted.')
+              new={'resident_count':0},context=id)
+        return committed_feedback(url_for('view_households'),'Empty household deleted.')
 
 
 def set_household_head(household_id):
