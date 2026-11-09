@@ -154,7 +154,7 @@
     <div class="modal-content">
         <div class="modal-icon danger-icon"><i data-lucide="alert-circle"></i></div>
         <h3>Confirm Removal</h3>
-        <p>Are you sure you want to delete the <strong><span id="targetName"></span></strong> household and its <span id="targetMembers"></span> resident records? This action is permanent.</p>
+        <p id="deleteHouseholdMessage">Are you sure you want to permanently delete the <strong><span id="targetName"></span></strong> household?</p>
         <div class="modal-footer">
             <button class="modal-btn secondary" onclick="closeDeleteModal()">Cancel</button>
             <a id="confirmDeleteBtn" href="#" class="modal-btn danger-btn">Delete Permanently</a>
@@ -171,6 +171,9 @@ function showDeleteModal(url, name, members) {
     document.getElementById('targetMembers').textContent = members;
     document.getElementById('targetName').innerText = name;
     document.getElementById('confirmDeleteBtn').href = url;
+    document.getElementById('deleteHouseholdMessage').textContent = Number(members)
+        ? `This household has ${Number(members)} resident record(s). Residents are preserved and must be moved before this household can be deleted.`
+        : `Are you sure you want to permanently delete the ${name} household? It has no resident records.`;
     document.getElementById('deleteModal').style.display = 'flex';
 }
 
