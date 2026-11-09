@@ -231,10 +231,10 @@
         <button id="burger-btn" aria-label="Toggle Navigation">
             <i data-lucide="menu"></i>
         </button>
-        <div class="brand-group">
-            <img class="brand-badge" src="{{ url_for('static',filename='icons/favicon.svg') }}" alt="Barangay San Isidro" width="38" height="38">
+        <a class="brand-group brand-home" href="{{ url_for('home') }}" aria-label="Barangay Information System home">
+            <img class="brand-badge" src="{{ url_for('static',filename='icons/favicon.svg') }}" alt="" width="38" height="38">
             <div class="system-brand-text"><h1 class="header-title">Barangay Information System</h1><span class="system-brand-subtitle">Barangay San Isidro</span></div>
-        </div>
+        </a>
     </div>
 
     <div class="header-right">

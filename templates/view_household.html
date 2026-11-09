@@ -20,7 +20,7 @@
             </a>
             <a class="btn-action btn-print" href="{{ report_url('households',mode='profile',household_id=household.id) }}"><i data-lucide="printer"></i>Print / Download</a>
             <a href="{{ url_for('edit_household', id=household.id) }}" class="btn-action btn-back">Edit Household</a>
-            <a href="{{ url_for('view_households') }}" class="btn-action btn-back">← Back</a>
+            <a href="{{ return_to }}" class="btn-action btn-back">← Back</a>
         </div>
     </div>
 
@@ -73,8 +73,8 @@
                             {% endif %}
                         </td>
                         <td class="actions">
-                            <a class="btn-table edit" href="{{ resident_url(member.id) }}">View Details</a><a class="btn-table edit" href="{{ url_for('edit_member', id=member.get('id'), household_id=household.id) }}" title="Edit">Edit</a>
-                            <a class="btn-table delete" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member.get('id'), household_id=household.id) }}', this)" title="Delete">Delete</a>
+                            <a class="btn-table edit" href="{{ resident_url(member.id) }}">View Details</a><a class="btn-table edit" href="{{ resident_edit_url(member.id) }}" title="Edit">Edit</a>
+                            <a class="btn-table delete" href="javascript:void(0)" onclick="openDeleteModal('{{ url_for('delete_member', id=member.get('id'), household_id=household.id, page=page, page_size=page_size, nav=request.args.get('nav')) }}', this)" title="Delete">Delete</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -101,8 +101,8 @@
         <h3>Confirm Removal</h3>
         <p>Permanently remove <strong id="deleteTarget">this resident</strong>? This action is permanent.</p>
         <div class="modal-footer">
-            <button class="modal-btn secondary" onclick="closeDeleteModal()">Cancel</button>
-            <a id="confirmDeleteBtn" href="#" class="modal-btn danger-btn">Delete Resident</a>
+            <button class="modal-btn secondary" type="button" onclick="closeDeleteModal()">Cancel</button>
+            <form id="deleteForm" method="post" action="" onsubmit="return submitDeleteOnce(this)"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button id="confirmDeleteBtn" type="submit" class="modal-btn danger-btn">Delete Resident</button></form>
         </div>
     </div>
 </div>
@@ -213,9 +213,10 @@
     const identifier = new URL(deleteUrl, location.href).pathname.split('/').pop();
     const target = document.getElementById('deleteTarget');
     if(target)target.textContent = 'Resident #' + identifier + ' / ' + record;
-        document.getElementById('confirmDeleteBtn').href = deleteUrl;
+        document.getElementById('deleteForm').action = deleteUrl;
         document.getElementById('deleteModal').style.display = 'flex';
     }
+    function submitDeleteOnce(form) { const button=form.querySelector('button[type="submit"]'); if(form.dataset.submitting==='true')return false; form.dataset.submitting='true'; button.disabled=true; button.textContent='Deleting…'; return true; }
     function closeDeleteModal() {
         document.getElementById('deleteModal').style.display = 'none';
     }

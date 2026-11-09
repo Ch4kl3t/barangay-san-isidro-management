@@ -19,11 +19,12 @@
   const form=event.target;
   if(form.matches('[data-head-form]'))return;
   if(confirmedForms.has(form)){confirmedForms.delete(form);return;}
+  if(form.dataset.headRoleApproved==='yes'){return;}
   const designate=form.elements.namedItem('designate_head');
   if(!form.dataset.confirmMessage&&!designate?.checked)return;
   if(!form.checkValidity())return;
   event.preventDefault();event.stopImmediatePropagation();const submitter=event.submitter;
-  let title='Confirm household-head decision',message=form.dataset.confirmMessage||'Previous decisions and relationships remain in history. Record relationships to the new head explicitly.';
+  let title=form.matches('.resident-editor form')?'Save Resident Profile Changes?':'Confirm household-head decision',message=form.dataset.confirmMessage||'Previous decisions and relationships remain in history. Record relationships to the new head explicitly.';
   if(designate?.checked){
    const field=name=>form.elements.namedItem(name),home=field('household_id');
    const name=['firstname','middlename','surname'].map(key=>field(key)?.value||'').filter(Boolean).join(' ');

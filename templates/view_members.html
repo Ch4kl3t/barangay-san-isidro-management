@@ -244,8 +244,8 @@
         <h3>Confirm Deletion</h3>
         <p>Permanently delete <strong id="deleteTarget">this resident record</strong>? This action cannot be undone.</p>
         <div class="modal-footer">
-            <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
-            <a id="confirmDeleteBtn" href="#" class="modal-btn confirm">Delete Record</a>
+            <button class="modal-btn cancel" type="button" onclick="closeDeleteModal()">Cancel</button>
+            <form id="deleteForm" method="post" action="" onsubmit="return submitDeleteOnce(this)"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button id="confirmDeleteBtn" type="submit" class="modal-btn confirm">Delete Record</button></form>
         </div>
     </div>
 </div>
@@ -260,9 +260,10 @@ function openDeleteModal(deleteUrl, source) {
     const identifier = new URL(deleteUrl, location.href).pathname.split('/').pop();
     const target = document.getElementById('deleteTarget');
     if(target)target.textContent = 'Resident #' + identifier + ' / ' + record;
-    document.getElementById('confirmDeleteBtn').href = deleteUrl;
+    document.getElementById('deleteForm').action = deleteUrl;
     document.getElementById('deleteModal').style.display = 'flex';
 }
+function submitDeleteOnce(form) { const button=form.querySelector('button[type="submit"]'); if(form.dataset.submitting==='true')return false; form.dataset.submitting='true'; button.disabled=true; button.textContent='Deleting…'; return true; }
 function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
 function closePrintModal() {}
 function closeNoMembersModal() {}

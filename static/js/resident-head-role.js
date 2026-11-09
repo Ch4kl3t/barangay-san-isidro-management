@@ -23,10 +23,13 @@
   const hint=document.getElementById('householdHeadHint');
   if(hint)hint.textContent='Current head: '+(head.name||'Not designated')+(head.resident_id?' (Resident #'+head.resident_id+')':'')+'.';
  });
- form.addEventListener('submit',event=>{
+ form.addEventListener('input',()=>{delete form.dataset.headRoleApproved;});
+form.addEventListener('change',()=>{delete form.dataset.headRoleApproved;});
+form.addEventListener('submit',event=>{
   const choice=role(),head=homes[household?.value||'']||{},residentId=location.pathname.match(/^\/edit_member\/(\d+)$/)?.[1];
   const changing=choice==='head'?String(head.resident_id||'')!==String(residentId||''):String(head.resident_id||'')===String(residentId||'');
-  if(!changing||form.dataset.headRoleApproved==='yes')return;
+  if(!changing)return;
+  if(form.dataset.headRoleApproved==='yes'){delete form.dataset.headRoleApproved;return;}
   event.preventDefault();
   const name=['firstname','middlename','surname'].map(key=>form.elements.namedItem(key)?.value.trim()).filter(Boolean).join(' ');
   const existing=!!head.resident_id,current=head.name||'No current household head';

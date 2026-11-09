@@ -71,7 +71,7 @@ class RoleStore:
         elif query.startswith('SELECT * FROM household WHERE id='):
             self.rows=[copy.deepcopy(self.members[params[0]])] if params[0] in self.members else []
         elif query.startswith('SELECT h.id'):
-            self.rows=[copy.deepcopy(m) for m in self.members.values() if (m['id']==params[0] if 'WHERE h.id=' in query else m['household_id']==params[0])]
+            self.rows=[copy.deepcopy(m) for m in self.members.values() if (m['id']==params[0] if re.search(r'WHERE\s+(?:h\.)?id=%s',query) else m['household_id']==params[0])]
         elif query.startswith('SELECT id,firstname,middlename,surname FROM household'):
             self.rows=[copy.deepcopy(m) for m in self.members.values() if m['household_id']==params[0] and m['status']=='Active']
         elif query.startswith('SELECT COUNT(*) AS total FROM household WHERE'):
@@ -203,11 +203,138 @@ def test_new_head_route_requires_post_csrf_and_live_administrator(client,csrf,id
 
 def test_head_transfer_and_deletion_require_controlled_reassignment(client,csrf,role_store):
     designate(client,csrf,role_store)
-    assert client.post('/delete_member/1',headers=csrf).status_code==409
+    before=copy.deepcopy(role_store.members)
+    response=client.post('/delete_member/1?household_id=1',headers=csrf)
+    assert response.status_code==302 and response.location.endswith('/view_household/1')
+    assert role_store.members==before
+    with client.session_transaction() as state:
+        assert any(category=='warning' and 'designated household head' in message for category,message in state.get('_flashes',[]))
     data=dict(firstname='Fictional',surname='Member',household_id='2',status='Active',gender='Female',civil_status='Single')
     response=client.post('/edit_member/1',data=data,headers=csrf)
     assert response.status_code==200 and 'before transferring' in response.text
     assert role_store.members[1]['household_id']==1
+
+
+def test_ordinary_member_deletion_returns_to_origin_household(client,csrf,role_store):
+    response=client.post('/delete_member/2?household_id=1&page=2&page_size=25',headers=csrf)
+    assert response.status_code==302 and response.location.startswith('/view_household/1?')
+    assert 'page=2' in response.location and 'page_size=25' in response.location
+    assert 2 not in role_store.members and 1 in role_store.members
+    with client.session_transaction() as state:
+        assert any(category=='success' and message=='Resident deleted.' for category,message in state.get('_flashes',[]))
+
+
+def test_directory_delete_confirmation_posts_csrf_and_blocks_double_submit():
+    from pathlib import Path
+    root=Path(__file__).resolve().parents[1]
+    for filename in ['view_members.html','view_household.html']:
+        html=(root/'templates'/filename).read_text(encoding='utf-8')
+        assert 'id="deleteForm" method="post"' in html
+        assert 'name="csrf_token"' in html
+        assert 'submitDeleteOnce(this)' in html and "dataset.submitting==='true'" in html
+        assert 'id="confirmDeleteBtn" href=' not in html
+
+
+def test_workflow_navigation_links_keep_signed_context_and_reject_external_returns(client,csrf,role_store,identity):
+    from urllib.parse import parse_qs,urlsplit
+    from record_navigation import household_url
+    from flask import g
+    with client.application.test_request_context('/api/dashboard'):
+        g.identity=identity
+        analytics_household=household_url(1,return_to='/analytics?filterHouseholdSize=3-4&households_page=2')
+    analytics_detail=client.get(analytics_household)
+    assert analytics_detail.status_code==200 and 'href="/analytics?filterHouseholdSize=3-4&amp;households_page=2"' in analytics_detail.text
+    with client.application.test_request_context('/view_households?page=2&page_size=25'):
+        g.identity=identity
+        directory_household=household_url(1)
+    directory_detail=client.get(directory_household)
+    assert directory_detail.status_code==200 and 'href="/view_households?page=2&amp;page_size=25"' in directory_detail.text
+    household=client.get('/view_household/1')
+    assert household.status_code==200 and 'href="/view_households"' in household.text
+    detail_href=re.search(r'href="([^"]*/resident/1\?nav=[^"]+)"',household.text).group(1)
+    detail=client.get(detail_href)
+    assert detail.status_code==200 and 'Back to Household' in detail.text
+    edit_href=re.search(r'href="([^"]*/edit_member/1\?nav=[^"]+)"',detail.text).group(1)
+    edit=client.get(edit_href)
+    assert edit.status_code==200 and 'Back to Household Details' in edit.text
+    action=re.search(r'<form method="POST" action="([^"]*/edit_member/1\?nav=[^"]+)"',edit.text).group(1)
+    saved=client.post(action,data=dict(firstname='Fictional 1',surname='Different surname 1',household_id='1',gender='Female',civil_status='Single',status='Active'),headers=csrf)
+    assert saved.status_code==302 and '/resident/1?nav=' in saved.location
+    assert parse_qs(urlsplit(saved.location).query).get('nav')
+    with client.session_transaction() as state: assert any(category=='success' and message=='Resident saved.' for category,message in state.get('_flashes',[]))
+    external=client.get('/resident/1?return_to=https://outside.invalid')
+    assert external.status_code==200 and 'href="/view_members"' in external.text and 'Back to residents' in external.text
+
+
+def test_analytics_household_layout_and_tooltip_reference_are_valid():
+    source=(ROOT/'templates/analytics.html').read_text(encoding='utf-8')
+    assert 'id="householdYearSuggestions"' in source
+    assert "list.replaceChildren(...values.map(value=>new Option(value,value)))" in source
+    assert "document.getElementById('householdOrientation')" not in source
+    assert 'i.parsed.x' in source
+
+
+def test_shared_brand_and_audit_footer_have_accessible_aligned_controls():
+    base=(ROOT/'templates/base.html').read_text(encoding='utf-8')
+    shared_css=(ROOT/'static/css/defense-refinement.css').read_text(encoding='utf-8')
+    audit=(ROOT/'templates/audit_log.html').read_text(encoding='utf-8')
+    audit_css=(ROOT/'static/css/audit-improvements.css').read_text(encoding='utf-8')
+    directory_css=(ROOT/'static/css/directory-tables.css').read_text(encoding='utf-8')
+    assert 'class="brand-group brand-home" href="{{ url_for(\'home\') }}"' in base
+    assert 'aria-label="Barangay Information System home"' in base and 'alt=""' in base
+    assert '.brand-home:hover' in shared_css and '.brand-home:focus-visible' in shared_css
+    assert 'audit-filter-footer' in audit and 'audit-filter-actions' in audit
+    assert 'auditPeriodHelp' in audit and 'align-items:center;justify-content:space-between' in audit_css
+    assert ':has(.compact-directory-toolbar)' in directory_css
+
+
+def test_password_reset_hashes_new_password_and_rejects_previous_value(client,csrf,monkeypatch):
+    from contextlib import contextmanager
+    from security import verify_password
+    calls=[];results=[dict(user_id=1),dict(id=1)]
+    class Cursor:
+        def execute(self,query,params=()):calls.append((query,params))
+        def fetchone(self):return results.pop(0)
+    @contextmanager
+    def transaction():yield Cursor()
+    monkeypatch.setattr('account_routes.transaction',transaction)
+    previous='Synthetic previous password'
+    updated='Synthetic replacement password'
+    response=client.post('/reset-password/synthetic-reset-token',data={'new_password':updated,'confirm_password':updated},headers=csrf)
+    assert response.status_code==302
+    update=next(params for query,params in calls if query.startswith('UPDATE users SET password='))
+    assert verify_password(update[0],updated) and not verify_password(update[0],previous)
+    assert update[0]!=updated
+
+
+@pytest.mark.parametrize('recipient',[None,dict(id=8,username='Synthetic admin',email='admin@example.invalid')])
+def test_password_reset_requests_keep_generic_feedback_and_build_valid_link(client,csrf,monkeypatch,recipient):
+    from contextlib import contextmanager
+    from urllib.parse import urlsplit
+    import re
+    calls=[];last=['']
+    class Cursor:
+        def execute(self,query,params=()):calls.append((query,params));last[0]=query
+        def fetchone(self):
+            if 'SELECT COUNT(*) AS total FROM auth_attempts' in last[0]:return dict(total=0)
+            if 'SELECT id,username,email FROM users' in last[0]:return recipient
+            return None
+    @contextmanager
+    def transaction():yield Cursor()
+    monkeypatch.setattr('account_routes.transaction',transaction)
+    monkeypatch.setattr('account_routes.reset_origin',lambda:'https://barangay.example.invalid')
+    monkeypatch.setattr('auth_utils.send_password_reset_email',lambda email,username,link:sent.append((email,username,link)) or (True,'Accepted'))
+    sent=[];client.application.config['SEND_EMAIL']=True
+    response=client.post('/forgot-password',data={'email':'admin@example.invalid'},headers=csrf)
+    assert response.status_code==302 and response.location.endswith('/login')
+    with client.session_transaction() as state:
+        assert any(category=='info' and 'If the address is registered' in message for category,message in state.get('_flashes',[]))
+    if recipient:
+        assert len(sent)==1
+        parts=urlsplit(sent[0][2])
+        assert parts.scheme=='https' and parts.netloc=='barangay.example.invalid'
+        assert re.fullmatch(r'/reset-password/[A-Za-z0-9_-]+',parts.path)
+    else:assert sent==[]
 
 
 def test_explicit_member_relationship_uses_current_assignment(app,identity,role_store):
@@ -342,14 +469,17 @@ def test_directory_filter_controls_are_server_rendered_and_preserve_active_value
     role_store.execute=execute
     html=client.get('/view_members?status=Active&gender=Female&age_min=20&age_max=40&household_id=1&civil_status=Single&search=Fictional').text
     assert 'Resident directory search and filters' in html and '1 matching' in html
+    assert 'PRIVATE HEALTH SENTINEL' not in html and 'data-label' not in html  # Added progressively by JS.
+    assert not any('mental_health_status' in q for q,p in role_store.executed)
+    detail_href=re.search(r'href="([^"]*/resident/2\?nav=[^"]+)"',html).group(1)
+    detail=client.get(detail_href)
+    assert detail.status_code==200 and 'Back to residents' in detail.text and 'href="/view_members?status=Active&amp;gender=Female' in detail.text
     for name in ['status','gender']:
         assert 'name="'+name+'"' in html
     for name in ['age_min','age_max','household_id','civil_status']:
         toolbar=html.split('aria-label="Resident directory search and filters"',1)[1].split('</form>',1)[0]
         assert 'name="'+name+'"' not in toolbar
     assert '>Clear</a>' in html
-    assert 'PRIVATE HEALTH SENTINEL' not in html and 'data-label' not in html  # Added progressively by JS.
-    assert not any('mental_health_status' in q for q,p in role_store.executed)
 
 
 def test_out_of_range_page_redirects_without_losing_combined_filters(client,monkeypatch):

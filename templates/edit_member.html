@@ -13,7 +13,7 @@
         </div>
 
         {% if error %}<p role="alert">{{ error }}</p>{% endif %}
-        <form method="POST" action="{{ url_for('edit_member', id=member.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <form method="POST" action="{{ url_for('edit_member', id=member.id, nav=navigation_token) }}" data-confirm-message="Are you sure you want to save the changes to this resident profile? Please review the information before confirming."><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="household_id_fixed" value="{{ request.args.get('household_id', '') }}">
 
             <fieldset class="form-section"><legend>Personal Information</legend>
@@ -82,7 +82,7 @@
                     <select name="household_id" id="editHousehold" data-searchable required>
                         {% for h in households %}
                             <option value="{{ h['id'] }}"
-                                {% if member['household_id'] == h['id'] %}selected{% endif %}>
+                                {% if member['household_id']|string == h['id']|string %}selected{% endif %}>
                                 {{ h['surname'] }} — House {{ h.get('house_number') or 'Not recorded' }} — {{ h.get('address') or 'Not recorded' }}
                             </option>
                         {% endfor %}
@@ -120,8 +120,8 @@
                     Save Profile Changes
                 </button>
 
-                {% if request.args.get('household_id') %}
-                    <a href="{{ url_for('view_household', household_id=request.args.get('household_id')) }}" class="btn-back">
+                {% if navigation_return_to.startswith('/view_household/') %}
+                    <a href="{{ navigation_return_to }}" class="btn-back">
                         Back to Household Details
                     </a>
                 {% else %}

@@ -34,9 +34,9 @@ def test_report_year_rejects_non_four_digit_or_out_of_range_values(args):
 
 def test_household_analytics_filters_share_query_scope():
     query,params,_,_=reporting.report_query('households',{
-        'search':'Santos 12','household_size':'3-4','composition':'active','year':'2026'})
+        'search':'Santos 12','household_size':'2-4','composition':'active','year':'2026'})
     assert 'member_count>=%s' in query and 'member_count<=%s' in query and 'active_count>0' in query
-    assert params==['%Santos%','%12%',3,4,2026]
+    assert params==['%Santos%','%12%',2,4,2026]
 
 
 def _cursor(enabled=False,household=None):
