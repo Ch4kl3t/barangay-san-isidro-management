@@ -2,6 +2,8 @@
 .admin-ui-consistency{--admin-navy:#1b3a57;--admin-surface:var(--office-surface,#fff);--admin-raised:var(--office-raised,#f4f7fa);--admin-ink:var(--office-text,#1e293b);--admin-muted:var(--office-muted,#52677c);--admin-line:var(--office-border,#d8e2ed);--admin-content-width:1440px;--admin-gutter:32px;--admin-radius:12px;--admin-font:'Inter','Segoe UI',system-ui,sans-serif}
 .admin-ui-consistency.admin-page-shell:is(.page-container,.analytics-wrapper,.audit-page,.profile-wrapper){width:100%;max-width:var(--admin-content-width);box-sizing:border-box;margin:24px auto 32px;padding:0 var(--admin-gutter) 48px;min-height:0;background:transparent;font-family:var(--admin-font)}
 .admin-ui-consistency.admin-page-shell .admin-page-header{padding:0;margin:0 0 24px;background:none;border:0;border-radius:0;box-shadow:none;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.profile-wrapper.admin-ui-consistency.admin-page-shell .profile-page-header{justify-content:flex-start;text-align:left;gap:16px}
+.profile-wrapper.admin-ui-consistency.admin-page-shell .profile-page-header>div:last-child{min-width:0}
 .admin-ui-consistency.admin-page-shell .admin-page-header h1{color:var(--admin-ink);font-size:28px;font-weight:700;line-height:1.25;letter-spacing:-.5px;margin:4px 0 0}
 .admin-ui-consistency .admin-page-header :is(.breadcrumb,.breadcrumb-label,.admin-page-eyebrow){display:block;margin:0 0 7px;font-size:11px;line-height:1.4;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--admin-muted)}
 .admin-ui-consistency .admin-page-eyebrow{display:block;margin:0 0 8px;color:var(--admin-muted);font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
