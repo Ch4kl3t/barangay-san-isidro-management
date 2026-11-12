@@ -10,7 +10,7 @@
             <p>{{ 'Update this household in the community registry.' if editing else 'Establish a new residential unit in the community registry.' }}</p>
         </div>
 
-        <form {% if not editing and from_member != 'true' %}data-record-registration="household"{% endif %} method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% if not editing %}<input type="hidden" name="_submission_token" value="{{ submission_token('household_create') }}">{% endif %}
+        <form {% if editing %}data-confirm-message="Review the household information before saving these changes."{% elif from_member != 'true' %}data-record-registration="household"{% endif %} method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% if not editing %}<input type="hidden" name="_submission_token" value="{{ submission_token('household_create') }}">{% endif %}
             <input type="hidden" name="from_member" value="{{ from_member }}">
             <input type="hidden" name="fname" value="{{ fname }}">
             <input type="hidden" name="mname" value="{{ mname }}">

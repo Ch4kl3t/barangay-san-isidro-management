@@ -53,3 +53,12 @@ def test_recovery_pages_share_theme_aware_recovery_presentation(client):
             assert 'class="auth-recovery"' in html
             assert 'css/auth-recovery.css' in html
             assert 'Household Information Management System' in html
+
+
+def test_light_is_the_default_appearance_without_saved_browser_preference():
+    root=Path(__file__).resolve().parents[1]
+    script=(root/'static/js'/'appearance.js').read_text(encoding='utf-8')
+    early=(root/'templates'/'early_paint.html').read_text(encoding='utf-8')
+    assert "let preference='light'" in script
+    assert 'html{background:#f8fafc;color:#1e293b;color-scheme:light}' in early
+    assert 'html[data-theme=light] body.admin-workspace' in (root/'static/css'/'appearance.css').read_text(encoding='utf-8')

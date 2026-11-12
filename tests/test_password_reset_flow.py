@@ -121,6 +121,7 @@ def test_valid_reset_hashes_password_revokes_sessions_and_rejects_replay(reset_e
     assert store.user['session_version'] == 5
     assert store.user['password'] != 'synthetic-new-password'
     assert verify_password(store.user['password'], 'synthetic-new-password')
+    assert not verify_password(store.user['password'], 'synthetic-old-password')
     assert store.tokens[0]['used'] is True
     assert store.audits == ['PASSWORD_RESET_SUCCESS']
     with client.session_transaction() as session:

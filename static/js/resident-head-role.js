@@ -2,6 +2,7 @@
 (() => {
  const form=document.querySelector('.resident-editor form'),data=document.getElementById('householdHeadOptions');
  if(!form||!data)return;
+ form.dataset.headRoleManaged='yes';
  const homes=JSON.parse(data.textContent),headField=form.elements.namedItem('head_assignment');
  const household=form.elements.namedItem('household_id');
  const role=()=>form.querySelector('input[name="head_role"]:checked')?.value||'member';
@@ -23,24 +24,24 @@
   const hint=document.getElementById('householdHeadHint');
   if(hint)hint.textContent='Current head: '+(head.name||'Not designated')+(head.resident_id?' (Resident #'+head.resident_id+')':'')+'.';
  });
- let approvalPending=false;
  form.addEventListener('submit',event=>{
+  if(form.dataset.residentEditApproved==='yes'){delete form.dataset.residentEditApproved;return;}
+  if(!form.checkValidity())return;
   const choice=role(),head=homes[household?.value||'']||{},residentId=location.pathname.match(/^\/edit_member\/(\d+)$/)?.[1];
   const changing=choice==='head'?(!head.resident_id || String(head.resident_id)!==String(residentId||'')):Boolean(head.resident_id)&&String(head.resident_id)===String(residentId||'');
-  if(approvalPending){approvalPending=false;return;}if(!changing)return;
   event.preventDefault();
   const name=['firstname','middlename','surname'].map(key=>form.elements.namedItem(key)?.value.trim()).filter(Boolean).join(' ');
   const existing=!!head.resident_id,current=head.name||'No current household head';
-  const message=choice==='head'?`You are about to designate ${name||'this resident'} as the household head.${existing?` The current household head, ${current} (Resident #${head.resident_id}), will become a household member.`:''} Do you want to continue?`:`${current} (Resident #${head.resident_id}) will no longer be designated as the household head. The household will have no designated head. Do you want to continue?`;
+  const message=changing?(choice==='head'?`You are about to designate ${name||'this resident'} as the household head.${existing?` The current household head, ${current} (Resident #${head.resident_id}), will become a household member.`:''} Do you want to continue?`:`${current} (Resident #${head.resident_id}) will no longer be designated as the household head. The household will have no designated head. Do you want to continue?`):`Save changes to ${name||'this resident'}? Review the information before confirming.`;
   const box=document.createElement('dialog');box.className='office-feedback-dialog';
-  const title=document.createElement('h2');title.textContent=choice==='head'?(existing?'Change household head?':'Designate household head?'):'Clear household head?';
+  const title=document.createElement('h2');title.textContent=changing?(choice==='head'?(existing?'Change household head?':'Designate household head?'):'Clear household head?'):'Save resident changes?';
   const body=document.createElement('p');body.textContent=message;
   const actions=document.createElement('div');actions.className='dialog-actions';
   const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';
-  const confirm=document.createElement('button');confirm.type='button';confirm.className='dialog-primary';confirm.textContent=choice==='head'&&existing?'Confirm Change':choice==='head'?'Confirm Designation':'Confirm Change';
+  const confirm=document.createElement('button');confirm.type='button';confirm.className='dialog-primary';confirm.textContent=changing?(choice==='head'&&existing?'Confirm Change':choice==='head'?'Confirm Designation':'Confirm Change'):'Confirm Changes';
   actions.append(cancel,confirm);box.append(title,body,actions);document.body.append(box);
   const opener=document.activeElement,close=()=>{box.remove();opener?.focus({preventScroll:true});};
-  cancel.onclick=()=>box.close();confirm.onclick=()=>{box.close();approvalPending=true;try{form.requestSubmit();}finally{approvalPending=false;}};
+  cancel.onclick=()=>box.close();confirm.onclick=()=>{box.close();form.dataset.residentEditApproved='yes';form.requestSubmit();};
   box.addEventListener('close',close,{once:true});box.showModal();cancel.focus();
  });
 })();
