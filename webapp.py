@@ -114,10 +114,16 @@ def create_app(overrides=None):
             row=cursor.fetchone()
             cursor.execute("SELECT MAX(created_at) AS last_login FROM audit_logs WHERE user_id=%s AND action_type='LOGIN' AND status='SUCCESS'",(str(g.identity['id']),))
             last_login=(cursor.fetchone() or {}).get('last_login')
+            cursor.execute("""SELECT created_at,action_type,details,status FROM audit_logs
+                WHERE user_id=%s AND target_type='User' AND target_id=%s
+                  AND action_type IN ('LOGIN','LOGOUT','UPDATE','PASSWORD_CHANGE','PASSWORD_RESET_SUCCESS')
+                ORDER BY created_at DESC,id DESC LIMIT 5""",(str(g.identity['id']),str(g.identity['id'])))
+            account_activity=cursor.fetchall()
         from office_time import local_timestamp
         return render_template('profile.html',
             user_data=row,user_email=row.get('email'),join_date=row.get('signup_date') or 'Not recorded',
-            joined_display=local_timestamp(row.get('signup_date')),last_login_display=local_timestamp(last_login))
+            joined_display=local_timestamp(row.get('signup_date')),last_login_display=local_timestamp(last_login),
+            account_activity=[dict(event,time_display=local_timestamp(event.get('created_at'))) for event in account_activity])
     route('/profile','profile',profile,('admin',))
 
     import notifications,report_context

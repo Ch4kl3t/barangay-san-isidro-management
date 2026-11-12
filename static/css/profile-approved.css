@@ -1,0 +1,67 @@
+/* Approved account layout only. Shared navigation, workflows and themes retain their owners. */
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell{width:100%;max-width:1500px;padding:0 28px 36px;margin:20px auto;color:var(--office-text);font-family:'Inter',system-ui,sans-serif}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-breadcrumb{font-size:12px;font-weight:600;margin-bottom:12px;color:var(--office-muted)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-page-header{display:flex;align-items:center;justify-content:flex-start;gap:18px;margin:0 0 26px;padding:0;background:transparent;box-shadow:none}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-page-header-icon{width:52px;height:52px;border-radius:3px;background:var(--office-action);color:#fff;border:0}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-page-header h1{font-size:28px;line-height:1.2;margin:0 0 5px;color:var(--office-text)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-page-header p{font-size:14px;line-height:1.5;margin:0;color:var(--office-muted)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-container{display:grid;grid-template-columns:minmax(0,30fr) minmax(0,70fr);gap:28px;align-items:start}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell :is(.profile-left,.profile-side){display:flex;flex-direction:column;gap:16px;min-width:0}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell :is(.profile-main-card,.info-card){padding:0;border:1px solid var(--office-border);border-radius:3px;box-shadow:none;overflow:hidden;background:var(--office-surface)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-cover{height:100px;background:#0d2d49!important}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .avatar-block{display:flex;flex-direction:column;align-items:center;gap:6px;margin:-72px 20px 16px;text-align:center;position:relative}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .avatar-circle{width:100px;height:100px;border-radius:9px;background:#e9eef3!important;color:#123451!important;border:1px solid #e2e9ef;font-size:38px;font-weight:700;display:grid;place-items:center;margin:0 0 2px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .avatar-meta{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;width:100%}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .avatar-name{font-size:21px;line-height:1.4;margin:0;overflow-wrap:anywhere}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .avatar-role{font-size:12px;text-transform:uppercase;color:var(--office-muted)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .status-pill{background:#d9f7dd;color:#175d25;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;margin-top:4px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .details-list{margin:0;padding:0 20px 14px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .detail-row{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);align-items:start;gap:12px;border-top:1px solid var(--office-border);border-bottom:0;padding:11px 0}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .detail-label{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--office-text);font-weight:500}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .detail-value{margin:0;font-size:12px;line-height:1.5;text-align:right;overflow-wrap:anywhere;color:var(--office-text)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell svg{flex-shrink:0;width:22px;height:22px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .detail-label svg{width:18px;height:18px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .info-card-header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--office-border);background:var(--office-surface);min-height:64px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .info-card-header>div{min-width:0}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .info-card-header :is(h2,h3){margin:0;font-size:18px;line-height:1.3;font-weight:700;color:var(--office-text)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .info-card-header p{margin:3px 0 0;font-size:13px;line-height:1.4;color:var(--office-muted)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell :is(button,.profile-audit-link){font:inherit;font-size:12px;font-weight:650;min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;white-space:normal}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell button{padding:8px 14px;border:1px solid var(--office-border);border-radius:3px;cursor:pointer}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .btn-primary{background:var(--office-action);color:#fff}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .btn-secondary{background:var(--office-surface);color:var(--office-link)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .info-card-header>:is(button,a){margin-left:auto;flex-shrink:0}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .personal-info-grid{display:grid;grid-template-columns:.8fr 1.5fr 1fr .9fr;gap:16px;margin:0;padding:18px 20px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .personal-info-grid>div{min-width:0;border-right:1px solid var(--office-border);padding-right:12px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .personal-info-grid>div:last-child{border:0;padding:0}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .personal-info-grid dt{font-size:12px;font-weight:700;margin-bottom:6px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .personal-info-grid dd{font-size:13px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .quick-links{display:flex;flex-direction:column;padding:0 20px 12px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .quick-link-item{display:flex;align-items:center;gap:16px;margin:0;padding:14px 8px;border-bottom:1px solid var(--office-border);border-radius:0;color:var(--office-text);font-size:13px;font-weight:650;line-height:1.5}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .quick-link-item>svg:last-child{margin-left:auto;width:16px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-card .info-card-header{border-bottom:0}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-card .info-card-body{padding:8px 18px 14px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-options legend{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-options label{display:grid;grid-template-columns:18px 24px minmax(0,1fr);align-items:center;gap:10px;padding:12px;min-height:64px;border:1px solid var(--office-border);border-radius:5px;background:var(--office-surface);color:var(--office-text);font-size:14px;text-align:left}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-options input{position:static;margin:0;width:16px;height:16px;accent-color:var(--office-focus)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-options label:has(input:checked){background:#103b61!important;color:#fff!important;border:1px solid #103b61;padding:12px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-options label:has(input:checked) :is(span,small){color:#fff!important}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-options label small{grid-column:3;font-size:10px;line-height:1.5;color:var(--office-muted)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-help{font-size:11px;margin:10px 0 0;line-height:1.5}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .security-summary{display:flex;align-items:center;gap:16px;padding:12px 20px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .security-summary strong{font-size:13px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .security-summary p{font-size:12px;margin:4px 0 0;color:var(--office-muted)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .security-summary button{margin-left:auto}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-audit-link{color:var(--office-link)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-activity-scroll{overflow-x:auto;margin:0 18px 14px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-activity-table{width:100%;border-collapse:collapse;min-width:540px;font-size:12px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-activity-table :is(th,td){padding:10px;text-align:left;border-bottom:1px solid var(--office-border);line-height:1.5;vertical-align:top}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-activity-table th{background:var(--office-raised);font-weight:700}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-activity-table td{overflow-wrap:anywhere;max-width:320px}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .account-outcome{font-size:11px;border-radius:18px;padding:3px 10px;display:inline-block;background:var(--office-raised);color:var(--office-text)}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .account-outcome[data-outcome=SUCCESS]{background:#d9f7dd;color:#175d25}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .account-outcome:is([data-outcome=FAILED],[data-outcome=DENIED]){background:#fce5e8;color:#8c2636}
+.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-empty{padding:20px;color:var(--office-muted)}
+@media(max-width:1100px){.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-container{grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:18px}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .personal-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .appearance-options{grid-template-columns:1fr}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .info-card-header{flex-wrap:wrap}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .detail-row{grid-template-columns:1fr}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .detail-value{text-align:left}}
+@media(max-width:760px){.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell{padding:0 16px 28px}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-container{grid-template-columns:1fr}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-page-header h1{font-size:25px}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .info-card-header{padding:14px}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .security-summary{flex-wrap:wrap}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .security-summary button{margin-left:0;width:100%}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .info-card-header>:is(button,a){margin-left:0}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .personal-info-grid{padding:16px;gap:16px}}
+@media print{.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell .profile-container{display:block}.profile-wrapper.profile-approved.admin-ui-consistency.admin-page-shell :is(button,.profile-audit-link){display:none}}
