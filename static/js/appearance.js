@@ -1,10 +1,11 @@
 /* Runs before page paint. Appearance is a browser preference, never account data. */
 (() => {
  if(window.officeAppearance)return; // Keep one theme owner if a shared fragment loads twice.
- const key='barangay-appearance',allowed=['light','dark','system'],media=matchMedia('(prefers-color-scheme: dark)');
+ const key='barangay-appearance',allowed=['light','dark','system'];
  let chartRegistered=false;
  let preference='light';try{const saved=localStorage.getItem(key);if(allowed.includes(saved))preference=saved;}catch(error){}
- const effective=()=>preference==='system'?(media.matches?'dark':'light'):preference;
+ // System means the website default, never a device or browser color scheme.
+ const effective=()=>preference==='dark'?'dark':'light';
  function apply(){
   document.documentElement.dataset.theme=effective();document.documentElement.style.colorScheme=effective();
   document.querySelectorAll('input[name=appearance]').forEach(input=>{input.checked=input.value===preference;});
@@ -12,7 +13,7 @@
   document.dispatchEvent(new CustomEvent('appearancechange',{detail:{preference,theme:effective()}}));
  }
  window.officeAppearance={get preference(){return preference;},set(value){if(!allowed.includes(value))return;preference=value;let stored=true;try{localStorage.setItem(key,value);}catch(error){stored=false;}apply();const status=document.getElementById('appearanceStatus');if(status)status.textContent=stored?'Appearance saved.':'Appearance applied for this page; browser storage is unavailable.';}};
- apply();media.addEventListener('change',()=>{if(preference==='system')apply();});
+ apply();
  window.addEventListener('storage',event=>{if(event.key===key){preference=allowed.includes(event.newValue)?event.newValue:'light';apply();}});
  document.addEventListener('DOMContentLoaded',()=>{apply();document.querySelectorAll('input[name=appearance]').forEach(input=>input.addEventListener('change',()=>officeAppearance.set(input.value)));installChartTheme();});
  // Chart.js keeps its data, types and animation. Dark surfaces receive readable
