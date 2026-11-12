@@ -1,5 +1,6 @@
 /* Runs before page paint. Appearance is a browser preference, never account data. */
 (() => {
+ if(window.officeAppearance)return; // Keep one theme owner if a shared fragment loads twice.
  const key='barangay-appearance',allowed=['light','dark','system'],media=matchMedia('(prefers-color-scheme: dark)');
  let chartRegistered=false;
  let preference='light';try{const saved=localStorage.getItem(key);if(allowed.includes(saved))preference=saved;}catch(error){}
