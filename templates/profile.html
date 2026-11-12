@@ -1,182 +1,61 @@
 {% extends "base.html" %}
-
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/admin-ui-consistency.css') }}">
-<div class="profile-wrapper admin-ui-consistency admin-page-shell">
-
-    <!-- ══════════════════════════
-         PAGE HEADER
-    ══════════════════════════ -->
-    <div class="profile-page-header admin-page-header">
-        <div class="profile-page-header-icon">
-            <i data-lucide="user-circle" style="width:24px;height:24px;"></i>
-        </div>
-        <div>
-            <span class="breadcrumb-label">Account / My Profile</span>
-            <h1 class="page-title">My Profile</h1>
-        </div>
+{% set account_name = user_data.get('username') or session.get('username') or 'Administrator' %}
+<div class="profile-wrapper profile-approved admin-ui-consistency admin-page-shell">
+ <div class="profile-breadcrumb">ACCOUNT / MY PROFILE</div>
+ <header class="profile-page-header admin-page-header">
+  <div class="profile-page-header-icon"><i data-lucide="user" aria-hidden="true"></i></div>
+  <div><h1 class="page-title">My Profile</h1><p>Manage your account information, appearance, security, and activity.</p></div>
+ </header>
+ <div class="profile-container">
+  <div class="profile-left">
+   <section class="profile-main-card" aria-labelledby="accountName">
+    <div class="profile-cover" aria-hidden="true"></div>
+    <div class="avatar-block"><div class="avatar-circle" aria-hidden="true">{{ account_name[:2]|upper }}</div>
+     <div class="avatar-meta"><h2 id="accountName" class="avatar-name">{{ account_name }}</h2><span class="avatar-role">Administrator</span><span class="status-pill">Active</span></div>
     </div>
-
-    <!-- ══════════════════════════
-         MAIN LAYOUT
-    ══════════════════════════ -->
-    <div class="profile-container">
-
-        <!-- ── LEFT: Identity card ── -->
-        <div class="profile-main-card">
-
-            <!-- Avatar + name -->
-            <div class="avatar-block">
-                <div class="avatar-circle">
-                    <i data-lucide="user" style="width:38px;height:38px;"></i>
-                </div>
-                <div class="avatar-meta">
-                    <h2 class="avatar-name">{{ session.get('username', 'Administrator') }}</h2>
-                    <span class="avatar-role">Administrator</span>
-                    <span class="status-pill">
-                        <span class="status-dot"></span>
-                        Active
-                    </span>
-                </div>
-            </div>
-
-            <div class="card-divider"></div>
-
-            <!-- Account details -->
-            <div class="details-list">
-                <div class="detail-row">
-                    <div class="detail-label">
-                        <span class="detail-icon">
-                            <i data-lucide="mail" style="width:14px;height:14px;"></i>
-                        </span>
-                        Email
-                    </div>
-                    <div class="detail-value">{{ user_email or 'Not recorded' }}</div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-label">
-                        <span class="detail-icon">
-                            <i data-lucide="shield" style="width:14px;height:14px;"></i>
-                        </span>
-                        System Role
-                    </div>
-                    <div class="detail-value">Administrator</div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-label">
-                        <span class="detail-icon">
-                            <i data-lucide="key-round" style="width:14px;height:14px;"></i>
-                        </span>
-                        Permissions
-                    </div>
-                    <div class="detail-value">Full Access</div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-label">
-                        <span class="detail-icon">
-                            <i data-lucide="calendar" style="width:14px;height:14px;"></i>
-                        </span>
-                        Member Since
-                    </div>
-                    <div class="detail-value">{{ joined_display }}</div>
-                </div>
-                <div class="detail-row">
-                    <div class="detail-label">
-                        <span class="detail-icon">
-                            <i data-lucide="clock" style="width:14px;height:14px;"></i>
-                        </span>
-                        Last Login
-                    </div>
-                    <div class="detail-value">{{ last_login_display }}</div>
-                </div>
-            </div>
-
-            <div class="card-divider"></div>
-
-            <!-- Actions -->
-            <div class="profile-actions">
-                <button class="btn-primary" onclick="openModal('editModal')">
-                    <i data-lucide="pencil" style="width:14px;height:14px;"></i>
-                    Edit Profile
-                </button>
-                <button class="btn-secondary" onclick="openModal('passwordModal')">
-                    <i data-lucide="lock-keyhole" style="width:14px;height:14px;"></i>
-                    Change Password
-                </button>
-            </div>
-        </div>
-
-        <!-- ── RIGHT: Info cards ── -->
-        <div class="profile-side">
-
-            {% include 'appearance_controls.html' %}
-
-            <!-- Access control -->
-            <div class="info-card">
-                <div class="info-card-header">
-                    <span class="info-card-icon" style="background:#f0fdf4; color:#16a34a;">
-                        <i data-lucide="shield-check" style="width:15px;height:15px;"></i>
-                    </span>
-                    <h3>Access Control</h3>
-                </div>
-                <div class="info-card-body">
-                    <div class="info-row">
-                        <span class="info-label">Audit Trail</span>
-                        <span class="info-value">
-                            <a class="link-btn" href="{{ url_for('audit_log') }}">
-                                <i data-lucide="external-link" style="width:12px;height:12px;"></i>
-                                Open Audit Log
-                            </a>
-                        </span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Account Status</span>
-                        <span class="info-value">
-                            <span class="badge badge-green">Active</span>
-                        </span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Security</span>
-                        <span class="info-value">Password-protected access</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick links -->
-            <div class="info-card">
-                <div class="info-card-header">
-                    <span class="info-card-icon" style="background:#fff7ed; color:#d97706;">
-                        <i data-lucide="zap" style="width:15px;height:15px;"></i>
-                    </span>
-                    <h3>Quick Links</h3>
-                </div>
-                <div class="quick-links">
-                    <a class="quick-link-item" href="{{ url_for('view_members') }}">
-                        <span class="ql-icon"><i data-lucide="users" style="width:15px;height:15px;"></i></span>
-                        <span>View Residents</span>
-                        <i data-lucide="chevron-right" style="width:13px;height:13px; margin-left:auto; color:#94a3b8;"></i>
-                    </a>
-                    <a class="quick-link-item" href="{{ url_for('view_households') }}">
-                        <span class="ql-icon"><i data-lucide="home" style="width:15px;height:15px;"></i></span>
-                        <span>View Households</span>
-                        <i data-lucide="chevron-right" style="width:13px;height:13px; margin-left:auto; color:#94a3b8;"></i>
-                    </a>
-                    <a class="quick-link-item" href="{{ url_for('analytics', **{'as': 'admin'}) }}">
-                        <span class="ql-icon"><i data-lucide="bar-chart-2" style="width:15px;height:15px;"></i></span>
-                        <span>Analytics Dashboard</span>
-                        <i data-lucide="chevron-right" style="width:13px;height:13px; margin-left:auto; color:#94a3b8;"></i>
-                    </a>
-                    <a class="quick-link-item" href="{{ url_for('print_reports') }}">
-                        <span class="ql-icon"><i data-lucide="printer" style="width:15px;height:15px;"></i></span>
-                        <span>Print Reports</span>
-                        <i data-lucide="chevron-right" style="width:13px;height:13px; margin-left:auto; color:#94a3b8;"></i>
-                    </a>
-                </div>
-            </div>
-
-        </div><!-- .profile-side -->
-    </div><!-- .profile-container -->
-</div><!-- .profile-wrapper -->
+    <dl class="details-list">
+     {% for icon,label,value in [('mail','Email',user_email or 'Not recorded'),('layers','System Role','Administrator'),('shield-check','Permissions','Full Access'),('calendar','Member Since',joined_display),('clock','Last Login',last_login_display)] %}
+     <div class="detail-row"><dt class="detail-label"><i data-lucide="{{ icon }}" aria-hidden="true"></i>{{ label }}</dt><dd class="detail-value">{{ value }}</dd></div>
+     {% endfor %}
+    </dl>
+   </section>
+   <section class="info-card profile-quick-links" aria-labelledby="quickLinksTitle">
+    <div class="info-card-header"><i data-lucide="link" aria-hidden="true"></i><h2 id="quickLinksTitle">Quick Links</h2></div>
+    <nav class="quick-links" aria-label="Profile quick links">
+     {% for endpoint,label,icon in [('view_members','View Residents','users'),('view_households','View Households','house'),('analytics','Analytics Dashboard','chart-column'),('print_reports','Print Reports','printer')] %}
+     <a class="quick-link-item" href="{{ url_for(endpoint) }}"><i data-lucide="{{ icon }}" aria-hidden="true"></i><span>{{ label }}</span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
+     {% endfor %}
+    </nav>
+   </section>
+  </div>
+  <div class="profile-side">
+   <section class="info-card" aria-labelledby="personalTitle">
+    <div class="info-card-header"><i data-lucide="user" aria-hidden="true"></i><div><h2 id="personalTitle">Personal Information</h2><p>Update your basic account details.</p></div><button type="button" class="btn-primary" onclick="openModal('editModal')"><i data-lucide="pencil" aria-hidden="true"></i>Edit Information</button></div>
+    <dl class="personal-info-grid">
+     <div><dt>Full Name</dt><dd>{{ account_name }}</dd></div><div><dt>Email Address</dt><dd>{{ user_email or 'Not recorded' }}</dd></div><div><dt>Role</dt><dd>Administrator</dd></div><div><dt>Account Status</dt><dd>Active</dd></div>
+    </dl>
+   </section>
+   {% include 'appearance_controls.html' %}
+   <section class="info-card" aria-labelledby="securityTitle">
+    <div class="info-card-header"><i data-lucide="lock-keyhole" aria-hidden="true"></i><div><h2 id="securityTitle">Account Security</h2><p>Keep your account secure with a strong password.</p></div></div>
+    <div class="security-summary"><i data-lucide="key-round" aria-hidden="true"></i><div><strong>Password</strong><p>Password-protected access</p></div><button type="button" class="btn-secondary" onclick="openModal('passwordModal')"><i data-lucide="lock-keyhole" aria-hidden="true"></i>Change Password</button></div>
+   </section>
+   <section class="info-card" aria-labelledby="activityTitle">
+    <div class="info-card-header"><i data-lucide="clock" aria-hidden="true"></i><div><h2 id="activityTitle">Recent Account Activity</h2><p>A record of your latest account actions.</p></div><a class="profile-audit-link" href="{{ url_for('audit_log') }}">View Full Audit Log</a></div>
+    <div class="profile-activity-scroll" role="region" aria-label="Recent account activity" tabindex="0">
+     <table class="profile-activity-table"><thead><tr><th scope="col">Date &amp; Time</th><th scope="col">Action</th><th scope="col">Details</th><th scope="col">Status</th></tr></thead><tbody>
+     {% set action_labels = {'LOGIN':'Log In','LOGOUT':'Log Out','UPDATE':'Update Profile','PASSWORD_CHANGE':'Change Password','PASSWORD_RESET_SUCCESS':'Password Reset'} %}
+     {% for event in account_activity %}
+      <tr><td>{{ event.time_display }}</td><td>{{ action_labels.get(event.action_type,event.action_type) }}</td><td>{{ event.details or 'Not recorded' }}</td><td><span class="account-outcome" data-outcome="{{ event.status }}">{{ event.status or 'Not recorded' }}</span></td></tr>
+     {% else %}<tr><td colspan="4" class="profile-empty">No account activity recorded yet.</td></tr>{% endfor %}
+     </tbody></table>
+    </div>
+   </section>
+  </div>
+ </div>
+</div>
 
 <!-- ══════════════════════════
      EDIT PROFILE MODAL
@@ -701,6 +580,7 @@
 }
 </style>
 
+<link rel="stylesheet" href="{{ url_for('static',filename='css/profile-approved.css',v=1) }}">
 <script>
 function openModal(id) {
     document.getElementById(id).classList.add('open');
