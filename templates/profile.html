@@ -16,15 +16,15 @@
      <div class="avatar-meta"><h2 id="accountName" class="avatar-name">{{ account_name }}</h2><span class="avatar-role">Administrator</span><span class="status-pill">Active</span></div>
     </div>
     <dl class="details-list">
-     {% for icon,label,value in [('mail','Email',user_email or 'Not recorded'),('layers','System Role','Administrator'),('shield-check','Permissions','Full Access'),('calendar','Member Since',joined_display),('clock','Last Login',last_login_display)] %}
+     {% for icon,label,value in [('mail','Email',user_email or 'Not recorded'),('shield','System Role','Administrator'),('shield-check','Permissions','Full Access'),('calendar','Member Since',joined_display),('clock','Last Login',last_login_display)] %}
      <div class="detail-row"><dt class="detail-label"><i data-lucide="{{ icon }}" aria-hidden="true"></i>{{ label }}</dt><dd class="detail-value">{{ value }}</dd></div>
      {% endfor %}
     </dl>
    </section>
    <section class="info-card profile-quick-links" aria-labelledby="quickLinksTitle">
-    <div class="info-card-header"><i data-lucide="link" aria-hidden="true"></i><h2 id="quickLinksTitle">Quick Links</h2></div>
+    <div class="info-card-header"><i data-lucide="external-link" aria-hidden="true"></i><h2 id="quickLinksTitle">Quick Links</h2></div>
     <nav class="quick-links" aria-label="Profile quick links">
-     {% for endpoint,label,icon in [('view_members','View Residents','users'),('view_households','View Households','house'),('analytics','Analytics Dashboard','chart-column'),('print_reports','Print Reports','printer')] %}
+     {% for endpoint,label,icon in [('view_members','View Residents','users'),('view_households','View Households','home'),('analytics','Analytics Dashboard','bar-chart-2'),('print_reports','Print Reports','printer')] %}
      <a class="quick-link-item" href="{{ url_for(endpoint) }}"><i data-lucide="{{ icon }}" aria-hidden="true"></i><span>{{ label }}</span><i data-lucide="chevron-right" aria-hidden="true"></i></a>
      {% endfor %}
     </nav>
@@ -327,7 +327,7 @@
     padding: 11px 18px; border-radius: 9px;
     font-family: inherit; font-size: 12px; font-weight: 700;
     cursor: pointer; transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
-    width: 100%; border: none;
+    width: auto; border: none;
 }
 
 .btn-primary {
@@ -580,7 +580,7 @@
 }
 </style>
 
-<link rel="stylesheet" href="{{ url_for('static',filename='css/profile-approved.css',v=1) }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/profile-approved.css',v=2) }}">
 <script>
 function openModal(id) {
     document.getElementById(id).classList.add('open');
