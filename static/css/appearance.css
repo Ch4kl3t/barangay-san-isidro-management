@@ -1,5 +1,18 @@
 /* One shared appearance palette. Light preserves the existing interface. */
 :root{--office-page:#f8fafc;--office-surface:#fff;--office-raised:#f1f5f9;--office-text:#1e293b;--office-muted:#52677c;--office-border:#d8e2ed;--office-link:#1b5c8b;--office-focus:#2e86c1;--office-action:#1b3a57}
+/* Light is the default administrative workspace: calm surfaces, clear boundaries, and restrained depth. */
+html[data-theme=light] body.admin-workspace{background:#f3f7fb;color:var(--office-text)}
+html[data-theme=light] body.admin-workspace>#main-content{min-height:calc(100vh - 64px);background:linear-gradient(180deg,#f8fbfe 0,#f3f7fb 260px)}
+html[data-theme=light] :is(.registry-card,.form-card,.chart-card,.report-panel,.audit-controls-card,.audit-table-wrap,.profile-main-card,.info-card,.table-card){border:1px solid #dbe5ee;box-shadow:0 4px 16px #173b5a0a}
+html[data-theme=light] :is(.registry-toolbar,.registry-footer,.chart-card-header,.audit-table-topbar,.report-heading,.info-card-header){background:#f8fbfe;border-color:#dbe5ee}
+html[data-theme=light] :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:#cbd9e5;background:#fff;color:#1e293b}
+html[data-theme=light] :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus{border-color:#2e86c1;box-shadow:0 0 0 3px #2e86c126}
+html[data-theme=light] :is(.registry-table th,.audit-page #auditTable th){background:#eef4f9;color:#415a73}
+html[data-theme=light] :is(.registry-table tbody tr:hover>td,.audit-page #auditTable tbody tr:hover>td){background:#f5f9fc}
+html[data-theme=light] .form-container:not(.resident-editor){align-items:flex-start;padding-top:52px;padding-bottom:56px;background:#f3f7fb}
+html[data-theme=light] .form-container:not(.resident-editor) .form-card{max-width:720px;width:min(100%,720px);padding:36px 40px}
+html[data-theme=light] :is(.analytics-wrapper,.audit-page,.report-center,.profile-wrapper){filter:none}
+@media(max-width:640px){html[data-theme=light] .form-container:not(.resident-editor){padding:28px 16px 36px}html[data-theme=light] .form-container:not(.resident-editor) .form-card{padding:26px 20px}}
 html[data-theme=dark]{--office-page:#0c1522;--office-surface:#152438;--office-raised:#1d3047;--office-text:#e0e9f5;--office-muted:#b7c8dc;--office-border:#3a506b;--office-link:#a8d5ff;--office-focus:#87c9ff;--office-action:#285d8a;color-scheme:dark;--bg:#0c1522;--bg-light:#0c1522;--card:#152438;--white:#152438;--border:#3a506b;--border-color:#3a506b;--text-dark:#e0e9f5;--text-mid:#c6d5e6;--text-muted:#b7c8dc;--secondary:#b7c8dc;--accent:#87c9ff;--blue:#a8d5ff}
 html[data-theme=dark] body.admin-workspace{background:var(--office-page)!important;color:var(--office-text)}
 html[data-theme=dark] body.admin-workspace::before{background:none}

@@ -17,7 +17,7 @@
  const confirmedForms=new WeakSet();
  document.addEventListener('submit',event=>{
   const form=event.target;
-  if(form.matches('[data-head-form]'))return;
+  if(form.matches('[data-head-form]')||form.dataset.headRoleManaged==='yes')return;
   if(confirmedForms.has(form)){confirmedForms.delete(form);return;}
   const designate=form.elements.namedItem('designate_head');
   if(!form.dataset.confirmMessage&&!designate?.checked)return;

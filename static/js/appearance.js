@@ -2,7 +2,7 @@
 (() => {
  const key='barangay-appearance',allowed=['light','dark','system'],media=matchMedia('(prefers-color-scheme: dark)');
  let chartRegistered=false;
- let preference='system';try{const saved=localStorage.getItem(key);if(allowed.includes(saved))preference=saved;}catch(error){}
+ let preference='light';try{const saved=localStorage.getItem(key);if(allowed.includes(saved))preference=saved;}catch(error){}
  const effective=()=>preference==='system'?(media.matches?'dark':'light'):preference;
  function apply(){
   document.documentElement.dataset.theme=effective();document.documentElement.style.colorScheme=effective();
@@ -12,7 +12,7 @@
  }
  window.officeAppearance={get preference(){return preference;},set(value){if(!allowed.includes(value))return;preference=value;let stored=true;try{localStorage.setItem(key,value);}catch(error){stored=false;}apply();const status=document.getElementById('appearanceStatus');if(status)status.textContent=stored?'Appearance saved.':'Appearance applied for this page; browser storage is unavailable.';}};
  apply();media.addEventListener('change',()=>{if(preference==='system')apply();});
- window.addEventListener('storage',event=>{if(event.key===key){preference=allowed.includes(event.newValue)?event.newValue:'system';apply();}});
+ window.addEventListener('storage',event=>{if(event.key===key){preference=allowed.includes(event.newValue)?event.newValue:'light';apply();}});
  document.addEventListener('DOMContentLoaded',()=>{apply();document.querySelectorAll('input[name=appearance]').forEach(input=>input.addEventListener('change',()=>officeAppearance.set(input.value)));installChartTheme();});
  // Chart.js keeps its data, types and animation. Dark surfaces receive readable
  // labels and equivalent brighter series colors; light restores original colors.

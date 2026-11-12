@@ -250,6 +250,24 @@ def test_household_delete_dialog_does_not_claim_residents_are_deleted():
     source=(ROOT/'templates'/'view_households.html').read_text(encoding='utf-8')
     assert 'Residents are preserved and must be moved' in source
     assert 'resident records? This action is permanent' not in source
+    assert 'javascript:void(0)' not in source
+    assert 'data-delete-household' in source
+    assert 'id="deleteHouseholdForm" method="POST"' in source
+    assert 'name="csrf_token"' in source
+    assert "targetMembers" not in source
+    assert "form.dataset.submitting==='yes'" in source
+
+
+def test_edit_forms_require_one_accessible_confirmation_path():
+    resident=(ROOT/'templates'/'edit_member.html').read_text(encoding='utf-8')
+    household=(ROOT/'templates'/'add_household.html').read_text(encoding='utf-8')
+    roles=(ROOT/'static/js'/'resident-head-role.js').read_text(encoding='utf-8')
+    shared=(ROOT/'static/js'/'defense-refinement.js').read_text(encoding='utf-8')
+    assert 'data-confirm-message="Review the resident information' in resident
+    assert 'data-confirm-message="Review the household information' in household
+    assert "form.dataset.headRoleManaged='yes'" in roles
+    assert "form.dataset.residentEditApproved='yes'" in roles
+    assert "form.dataset.headRoleManaged==='yes'" in shared
 
 
 def test_directory_delete_confirmation_posts_csrf_and_blocks_double_submit():
