@@ -560,6 +560,7 @@ body > #main {
                 <h2>Household Breakdown</h2>
                 <p>All households · member counts · registration date · demographics</p>
             </div>
+            <label class="household-sort-control" for="filterHouseholdSort">Sort <select id="filterHouseholdSort"><option value="asc">Name A–Z</option><option value="desc">Name Z–A</option></select></label>
         </div>
         <div class="table-scroll">
             <table id="hhTable">
@@ -652,6 +653,7 @@ function getFilters() {
         householdSize: document.getElementById('filterHouseholdSize').value,
         householdOccupancy: document.getElementById('filterHouseholdOccupancy').value,
         householdBasis: document.getElementById('filterHouseholdBasis').value,
+        householdSort: document.getElementById('filterHouseholdSort').value,
         dateBasis:document.getElementById('filterDateBasis').value,
         householdYear:document.getElementById('filterHouseholdYear').value,
         dateFrom:  '',
@@ -937,7 +939,10 @@ const officeValues={id:'officeValues',afterDatasetsDraw(chart,args,settings){
  ctx.restore();}};
 function renderHouseholdTable() {
     const tbody = document.getElementById('hhTableBody');
-    const rows=Object.entries(buildHouseholdMap(dashData?.households||[],[]));
+    const ordered= dashData?.households||[];
+    const map=buildHouseholdMap(ordered,[]);
+    // Object.entries reorders numeric household IDs; retain the API's sorted page.
+    const rows=ordered.map(h=>[String(h.id),map[String(h.id)]]);
     if (!rows.length) { tbody.innerHTML = `<tr><td colspan="10" class="table-empty">No households qualify for this comparison.</td></tr>`; return; }
     tbody.innerHTML = rows.map(([name, v], i) => {
         const registered = v.registered ? fmtDate(v.registered) : '<span class="td-na">—</span>';
@@ -1035,7 +1040,7 @@ async function loadDashboard() {
     document.querySelectorAll('#chartStatTabs button').forEach(c=>c.classList.toggle('active',c.dataset.stat===activeStat));
     activeHHTab=document.getElementById('filterHouseholdBasis').value;
     const f=getFilters();
-    const url = `/api/dashboard?activity=${encodeURIComponent(f.activity)}&gender=${encodeURIComponent(f.gender)}&status=${encodeURIComponent(f.status)}&month=${encodeURIComponent(f.month)}&date_from=${encodeURIComponent(f.dateFrom)}&date_to=${encodeURIComponent(f.dateTo)}&household_from=${encodeURIComponent(f.householdFrom)}&household_to=${encodeURIComponent(f.householdTo)}&year=${encodeURIComponent(f.year)}&date_basis=${encodeURIComponent(f.dateBasis)}&household_year=${encodeURIComponent(f.householdYear)}&household_size=${encodeURIComponent(f.householdSize)}&household_occupancy=${encodeURIComponent(f.householdOccupancy)}&household_basis=${encodeURIComponent(f.householdBasis)}&residents_page=${analyticsPages.residents}&households_page=${analyticsPages.households}&household_group=${householdCard}`;
+    const url = `/api/dashboard?activity=${encodeURIComponent(f.activity)}&gender=${encodeURIComponent(f.gender)}&status=${encodeURIComponent(f.status)}&month=${encodeURIComponent(f.month)}&date_from=${encodeURIComponent(f.dateFrom)}&date_to=${encodeURIComponent(f.dateTo)}&household_from=${encodeURIComponent(f.householdFrom)}&household_to=${encodeURIComponent(f.householdTo)}&year=${encodeURIComponent(f.year)}&date_basis=${encodeURIComponent(f.dateBasis)}&household_year=${encodeURIComponent(f.householdYear)}&household_size=${encodeURIComponent(f.householdSize)}&household_occupancy=${encodeURIComponent(f.householdOccupancy)}&household_basis=${encodeURIComponent(f.householdBasis)}&residents_page=${analyticsPages.residents}&households_page=${analyticsPages.households}&household_group=${householdCard}&household_sort=${encodeURIComponent(f.householdSort)}`;
     try {
         dashboardDebug('[DEBUG-FRONTEND] loadDashboard: Fetching from', url);
         const res = await fetch(url,{signal:dashboardAbort.signal});
@@ -1101,8 +1106,8 @@ function updateClock() {
 
 /* ═══════════════════════════════ EVENTS ════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    const filterIds=['filterEvent','filterGender','filterStatus','filterMonth','filterYear','filterHouseholdSize','filterHouseholdOccupancy','filterHouseholdYear','filterHouseholdBasis'];
-    const restoreFilters=()=>{const params=new URLSearchParams(location.search);for(const id of filterIds){const field=document.getElementById(id),value=params.get(id)|| (id==='filterEvent'?'registered':id==='filterHouseholdBasis'?'members':'');if(id==='filterHouseholdYear'&&value&&!Array.from(field.options).some(o=>o.value===value)){pendingHouseholdYear=value;continue;}field.value=value;}};
+    const filterIds=['filterEvent','filterGender','filterStatus','filterMonth','filterYear','filterHouseholdSize','filterHouseholdOccupancy','filterHouseholdYear','filterHouseholdBasis','filterHouseholdSort'];
+    const restoreFilters=()=>{const params=new URLSearchParams(location.search);for(const id of filterIds){const field=document.getElementById(id),value=params.get(id)|| (id==='filterEvent'?'registered':id==='filterHouseholdBasis'?'members':id==='filterHouseholdSort'?'asc':'');if(id==='filterHouseholdYear'&&value&&!Array.from(field.options).some(o=>o.value===value)){pendingHouseholdYear=value;continue;}field.value=value;}};
     restoreFilters();restoreAnalyticsPages();window.addEventListener('popstate',()=>{restoreFilters();restoreAnalyticsPages();loadDashboard();});
     let filterTimer;
     const residentFilters=new Set(['filterEvent','filterGender','filterStatus','filterMonth','filterYear']);
@@ -1126,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('filterHouseholdOccupancy').value='';
         document.getElementById('filterHouseholdYear').value='';
         document.getElementById('filterHouseholdBasis').value='members';
-        pendingHouseholdYear='';activeHHTab='members';householdCard='total';analyticsPages.households=1;
+        document.getElementById('filterHouseholdSort').value='asc';pendingHouseholdYear='';activeHHTab='members';householdCard='total';analyticsPages.households=1;
         saveAnalyticsPages();loadDashboard();
     });
     document.querySelectorAll('[data-household-card]').forEach(card=>card.addEventListener('click',()=>{householdCard=card.dataset.householdCard;analyticsPages.households=1;saveAnalyticsPages();loadDashboard();}));

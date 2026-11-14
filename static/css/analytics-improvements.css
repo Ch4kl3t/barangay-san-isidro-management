@@ -1,4 +1,8 @@
 .analytics-wrapper{min-width:0;max-width:100%}
+.analytics-wrapper .table-card-header:has(.household-sort-control){flex-wrap:wrap;gap:14px}
+.analytics-wrapper .household-sort-control{display:inline-flex;align-items:center;gap:8px;margin-left:auto;font-size:12px;color:var(--office-text);min-width:0}
+.analytics-wrapper .household-sort-control select{width:auto;max-width:100%;min-height:40px;padding:8px 36px 8px 12px;border:1px solid var(--office-border);border-radius:6px;background-color:var(--office-surface);color:var(--office-text);font:inherit}
+@media(max-width:600px){.analytics-wrapper .household-sort-control{margin-left:0;flex-wrap:wrap}}
 .analytics-wrapper .filter-bar-inner,.analytics-wrapper .filter-bar-group{flex-wrap:wrap;gap:16px}
 .analytics-wrapper .filter-inline{min-width:0;max-width:100%}
 .analytics-wrapper .filter-inline label{white-space:normal}
