@@ -27,6 +27,8 @@ def api_dashboard():
     if activity=='deleted' and g.identity['role']!='admin':
         abort(403)
     try:
+        household_sort=args.get('household_sort','asc')
+        if household_sort not in {'asc','desc'}:raise ValueError('Choose a valid household name order')
         month_series={key:[0]*12 for key in ['total','male','female','deceased']}
         daily_series={key:[0]*31 for key in ['total','male','female','deceased']}
         if args.get('household'):
@@ -176,7 +178,9 @@ def api_dashboard():
             household_paging=table_page(args.get('households_page'),total)
             where=(' WHERE '+metric+'=%s') if selection is not None else ''
             qualifying=[row for row in household_summary if selection is None or row.get(metric)==selection]
-            qualifying.sort(key=lambda row:(str(row.get('surname') or '').casefold(),int(row.get('id') or 0)))
+            # Stable ID ascending tie-break in either name direction, before pagination.
+            qualifying.sort(key=lambda row:int(row.get('id') or 0))
+            qualifying.sort(key=lambda row:str(row.get('surname') or '').casefold(),reverse=household_sort=='desc')
             start=(household_paging['page']-1)*10
             selected_households=qualifying[start:start+10]
             selected_ids=[row['id'] for row in selected_households]
@@ -194,7 +198,7 @@ def api_dashboard():
             if activity!='deleted' and g.identity['role']=='admin':
                 from urllib.parse import urlencode
                 from record_navigation import resident_url
-                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household_year','filterHouseholdYear'),('household_size','filterHouseholdSize'),('household_occupancy','filterHouseholdOccupancy'),('household_basis','filterHouseholdBasis'),('residents_page','residents_page'),('households_page','households_page'),('household_group','household_group')] if args.get(key)}
+                navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household_year','filterHouseholdYear'),('household_size','filterHouseholdSize'),('household_occupancy','filterHouseholdOccupancy'),('household_basis','filterHouseholdBasis'),('residents_page','residents_page'),('households_page','households_page'),('household_group','household_group'),('household_sort','filterHouseholdSort')] if args.get(key)}
                 if args.get('activity')=='deleted':navigation['filterEvent']='deleted'
                 elif args.get('date_basis')=='death':navigation['filterEvent']='death'
                 row['detail_url']=resident_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
@@ -205,7 +209,7 @@ def api_dashboard():
         for row in households+household_summary:
             from urllib.parse import urlencode
             from record_navigation import household_url
-            navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household_year','filterHouseholdYear'),('household_size','filterHouseholdSize'),('household_occupancy','filterHouseholdOccupancy'),('household_basis','filterHouseholdBasis'),('residents_page','residents_page'),('households_page','households_page'),('household_group','household_group')] if args.get(key)}
+            navigation={field:args[key] for key,field in [('gender','filterGender'),('status','filterStatus'),('month','filterMonth'),('year','filterYear'),('household_year','filterHouseholdYear'),('household_size','filterHouseholdSize'),('household_occupancy','filterHouseholdOccupancy'),('household_basis','filterHouseholdBasis'),('residents_page','residents_page'),('households_page','households_page'),('household_group','household_group'),('household_sort','filterHouseholdSort')] if args.get(key)}
             if args.get('activity')=='deleted':navigation['filterEvent']='deleted'
             row['detail_url']=household_url(row['id'],return_to='/analytics'+('?' + urlencode(navigation) if navigation else ''))
             row.update(household_name=row.get('surname'),members=row.get('member_count',0),active=row.get('active_count',0),

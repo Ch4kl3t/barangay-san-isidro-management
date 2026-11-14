@@ -1,4 +1,11 @@
 /* Shared administrative control dimensions and select affordance. */
+/* The focusable wrapper exposes the reason while its actual delete button stays disabled. */
+.household-delete-blocked{position:relative;display:inline-flex;flex-direction:column;align-items:flex-start;max-width:100%;vertical-align:middle}
+.household-delete-blocked>button:disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+.household-delete-tooltip{display:none;width:240px;max-width:70vw;margin-top:4px;padding:10px 12px;border:1px solid var(--office-border);border-radius:6px;background:var(--office-surface,#fff);color:var(--office-text,#1e293b);font-size:12px;line-height:1.5;white-space:normal;box-shadow:0 4px 12px #10283f20}
+.household-delete-blocked:is(:hover,:focus,:focus-within) .household-delete-tooltip{display:block}
+.household-delete-blocked:focus-visible{outline:3px solid var(--office-focus);outline-offset:3px}
+.household-detail-directory .header-actions .delete-btn{width:auto;min-height:40px;padding:10px 14px;border:1px solid var(--office-border);border-radius:7px;background:#fff2f3;color:#a12e43;font:inherit;font-size:13px;cursor:pointer}
 body.admin-workspace :is(.form-card,.report-center,.audit-page,.analytics-wrapper,.builder-workspace) :is(input,select,textarea){font:inherit;}
 body.admin-workspace :is(.form-card,.report-center,.audit-page,.analytics-wrapper,.builder-workspace) select:not([data-native-arrow]){appearance:none;-webkit-appearance:none;min-height:44px;padding:10px 44px 10px 13px;border:1px solid var(--office-border,#d8e2ed);border-radius:8px;background-color:var(--office-surface,#fff);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2352677c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;color:var(--office-text,#1e293b);line-height:1.4;}
 body.admin-workspace :is(.form-card,.report-center,.audit-page,.analytics-wrapper,.builder-workspace) select:not([data-native-arrow]):focus{outline:0;border-color:var(--office-focus,#2e86c1);box-shadow:0 0 0 3px color-mix(in srgb,var(--office-focus,#2e86c1) 18%,transparent);}

@@ -247,15 +247,17 @@ def test_empty_household_deletion_preserves_unrelated_residents(client,csrf,role
 
 
 def test_household_delete_dialog_does_not_claim_residents_are_deleted():
-    source=(ROOT/'templates'/'view_households.html').read_text(encoding='utf-8')
-    assert 'Residents are preserved and must be moved' in source
+    source=(ROOT/'templates'/'household_delete_control.html').read_text(encoding='utf-8')
+    dialog=(ROOT/'templates'/'household_delete_dialog.html').read_text(encoding='utf-8')
+    script=(ROOT/'static/js'/'household-delete.js').read_text(encoding='utf-8')
+    assert 'Move or remove all residents before deleting this household.' in source
     assert 'resident records? This action is permanent' not in source
     assert 'javascript:void(0)' not in source
     assert 'data-delete-household' in source
-    assert 'id="deleteHouseholdForm" method="POST"' in source
-    assert 'name="csrf_token"' in source
+    assert 'id="deleteHouseholdForm" method="POST"' in dialog
+    assert 'name="csrf_token"' in dialog
     assert "targetMembers" not in source
-    assert "form.dataset.submitting==='yes'" in source
+    assert "form.dataset.submitting==='yes'" in script
 
 
 def test_edit_forms_require_one_accessible_confirmation_path():

@@ -1,0 +1,8 @@
+{% if delete_member_count|int > 0 %}
+<span class="household-delete-blocked" tabindex="0" role="group" aria-label="Delete Household unavailable" aria-describedby="deleteHouseholdHelp{{ delete_home.id }}">
+ <button class="btn delete-btn" type="button" disabled>Delete Household</button>
+ <span class="household-delete-tooltip" role="tooltip" id="deleteHouseholdHelp{{ delete_home.id }}">Move or remove all residents before deleting this household.</span>
+</span>
+{% else %}
+<button class="btn delete-btn" type="button" data-delete-household data-delete-url="{{ url_for('delete_household',id=delete_home.id) }}" data-household-name="{{ delete_home.surname }}" data-member-count="0">Delete Household</button>
+{% endif %}

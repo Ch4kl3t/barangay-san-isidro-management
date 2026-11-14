@@ -1,0 +1,9 @@
+<dialog id="householdDeleteDialog" class="office-feedback-dialog" aria-labelledby="householdDeleteTitle" aria-describedby="householdDeleteMessage">
+ <h2 id="householdDeleteTitle">Delete Household?</h2>
+ <p id="householdDeleteMessage"></p>
+ <form id="deleteHouseholdForm" method="POST">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="dialog-actions"><button type="button" data-cancel-household-delete>Cancel</button><button type="submit" class="dialog-primary danger-btn">Delete Household</button></div>
+ </form>
+</dialog>
+<script src="{{ url_for('static',filename='js/household-delete.js',v=1) }}" defer></script>
