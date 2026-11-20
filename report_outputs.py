@@ -29,7 +29,7 @@ def effective_kind(kind,args):
 
 def selected_columns(kind,args):
     wanted=args.get('columns')
-    wanted=set(wanted.split(',')) if wanted else set(DEFAULTS[kind])
+    wanted=set(wanted.split(',')) if wanted else ({key for key,label in COLUMNS[kind] if key not in {'mental_health_status','current_health_status'}} if kind=='residents' and args.get('scope')=='resident' else set(DEFAULTS[kind]))
     allowed=dict(COLUMNS[kind])
     if wanted-set(allowed):raise ValueError('Unsupported report column')
     wanted|=REQUIRED[kind]
@@ -95,8 +95,7 @@ def prepare(kind,args,limit=None):
                     cursor.execute('SELECT relationship FROM household_member_relationships WHERE assignment_id=%s AND resident_id=%s',(head['id'],profile['id']))
                     relationship=cursor.fetchone()
                     profile['relationship_to_head']='Head' if head['resident_id']==profile['id'] else (relationship or {}).get('relationship')
-        profile_fields=[(label,profile.get(key)) for key,label in [('full_name','Full name'),('id','Resident ID'),('birthdate','Birthdate'),('age','Age'),('gender','Gender'),('civil_status','Civil status'),('occupation','Occupation'),('status','Resident status'),('household_name','Household'),('household_number','House number'),('household_address','Address'),('relationship_to_head','Relationship to household head'),('registration_date','Registration date'),('death_date','Reported death date')]]
-        profile_fields.extend((label,profile.get(key)) for key,label in columns if key in HEALTH_FIELDS)
+        profile_fields=[(label,profile.get(key)) for key,label in columns]
     if kind=='households' and args.get('mode')=='profile' and scope:
         profile=dict(scope)
         if profile.get('created_at'):profile['created_at']=local_timestamp(profile['created_at'])

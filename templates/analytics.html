@@ -878,7 +878,8 @@ function renderLineChart(stat) {
 function householdComparison(tab){
  const entries=Object.entries(hhMap).sort((a,b)=>b[1][tab]-a[1][tab]||Number(a[0])-Number(b[0]));
  const maximum=entries.length?entries[0][1][tab]:0;
- return entries.filter(([,v])=>householdCard==='largest'?v[tab]===maximum:householdCard==='single'?v[tab]===1:true);
+ const average=entries.length?entries.reduce((sum,[,v])=>sum+v[tab],0)/entries.length:0;
+ return entries.filter(([,v])=>householdCard==='average'?v[tab]>=average:householdCard==='largest'?v[tab]===maximum:householdCard==='single'?v[tab]===1:true);
 }
 function renderHouseholdChart(tab) {
     if (!dashboardLoaded || !dashData) return;
@@ -894,7 +895,7 @@ function renderHouseholdChart(tab) {
     const note=document.getElementById('householdChartScope');
     const size=document.getElementById('filterHouseholdSize').selectedOptions[0].textContent;
     const occupancy=document.getElementById('filterHouseholdOccupancy').value;
-    note.textContent=`${full.length} matching households. Size: ${size}; occupancy: ${occupancy||'all'} by ${label.toLowerCase()}. Chart shows up to 10 households ranked by ${label.toLowerCase()}; ties use household ID. Average ${average.toFixed(1)} per matching household. ${!comparison.length?'No households qualify for this comparison.':sorted.every(([,v])=>v[tab]===0)?'All shown counts are zero.':''}`;
+    note.textContent=`${full.length} matching households. ${householdCard==='average'?'At or above average: '+comparison.length+' households. Select Total Households or Reset Filters to return to all. ':''}Size: ${size}; occupancy: ${occupancy||'all'} by ${label.toLowerCase()}. Chart shows up to 10 households ranked by ${label.toLowerCase()}; ties use household ID. Average ${average.toFixed(1)} per matching household. ${!comparison.length?'No households qualify for this comparison.':sorted.every(([,v])=>v[tab]===0)?'All shown counts are zero.':''}`;
     canvas.parentElement.style.height=Math.max(220,sorted.length*48+75)+'px';
     const data   = sorted.map(([, v]) => v[tab]);
     const colorMap = { members: '#2e86c1', active: '#27ae60', deceased: '#e74c3c' };

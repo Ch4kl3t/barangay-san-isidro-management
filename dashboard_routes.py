@@ -174,10 +174,12 @@ def api_dashboard():
                 raise ValueError('Invalid household comparison')
             maximum=max((row.get(metric,0) for row in household_summary),default=0)
             selection=maximum if group=='largest' else 1 if group=='single' else None
-            total=sum(row.get(metric,0)==selection for row in household_summary) if selection is not None else len(household_summary)
+            average=sum(row.get(metric,0) for row in household_summary)/len(household_summary) if household_summary else 0
+            qualifying=[row for row in household_summary if
+                        (row.get(metric,0)>=average if group=='average' else selection is None or row.get(metric)==selection)]
+            total=len(qualifying)
             household_paging=table_page(args.get('households_page'),total)
             where=(' WHERE '+metric+'=%s') if selection is not None else ''
-            qualifying=[row for row in household_summary if selection is None or row.get(metric)==selection]
             # Stable ID ascending tie-break in either name direction, before pagination.
             qualifying.sort(key=lambda row:int(row.get('id') or 0))
             qualifying.sort(key=lambda row:str(row.get('surname') or '').casefold(),reverse=household_sort=='desc')

@@ -9,11 +9,13 @@ window.ReportWorkspace={mount(root=document){
   let previewTimer,directoryInvalidated=false,lastEditedState='';
   const configurationState=()=>JSON.stringify([...form.querySelectorAll('input,select')].map(field=>[field.id||field.value,field.value,field.type==='checkbox'?field.checked:null]));
   function validateHouseholdChoice(){const input=byId('reportHouseholdSearch'),select=byId('reportHousehold');if(input&&!input.disabled)input.setCustomValidity(input.value.trim()&&!select.value?'Choose a household from the suggestions, or clear the field.':'');}
-  function automaticPreview(){clearTimeout(previewTimer);if(!byId('contextDocument'))previewTimer=setTimeout(()=>{validateHouseholdChoice();validateResidentChoice();const from=byId('dateFrom'),to=byId('dateTo');if(byId('periodMode').value==='custom'&&(!from.value||!to.value||from.value>to.value)){byId('reportMessage').textContent='Enter a complete valid date range to preview.';return;}if(form.checkValidity())form.requestSubmit();},450);}
+  function automaticPreview(){clearTimeout(previewTimer);if(!byId('contextDocument'))previewTimer=setTimeout(()=>{validateHouseholdChoice();validateResidentChoice();const from=byId('dateFrom'),to=byId('dateTo');if(category()!=='individual'&&byId('periodMode').value==='custom'&&(!from.value||!to.value||from.value>to.value)){byId('reportMessage').textContent='Enter a complete valid date range to preview.';return;}if(form.checkValidity())form.requestSubmit();},450);}
   const locked=config.locked||{};
   function disableOutputs(){for(const a of [print,word]){a.removeAttribute('href');a.setAttribute('aria-disabled','true');}}
   function category(){return kind.value==='households' && mode.value==='members'?'members':kind.value==='residents'&&byId('reportScope').value==='resident'?'individual':kind.value;}
   const effectiveCategory=()=>['members','individual'].includes(category())?'residents':category();
+  const outputKind=()=>kind.value==='individual'?'residents':kind.value;
+  const defaultColumns=()=>category()==='individual'?config.columns.residents.map(([key])=>key).filter(key=>!['mental_health_status','current_health_status'].includes(key)):config.defaults[effectiveCategory()];
   function validateResidentChoice(){const input=byId('residentSearch');input.setCustomValidity(category()==='individual'&&!locked.resident_id&&!byId('residentId').value?'Choose an exact resident from the suggestions.':'');}
   function columns(){
     const effective=effectiveCategory(), box=byId('reportColumns');box.replaceChildren();
@@ -21,15 +23,15 @@ window.ReportWorkspace={mount(root=document){
     const wanted=(effective===initialEffective?config.initial.columns||'':'').split(',');
     for(const [key,label] of config.columns[effective]){
       const l=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.value=key;
-      input.checked=(wanted[0]?wanted:config.defaults[effective]).includes(key)||config.required[effective].includes(key);
+      input.checked=(wanted[0]?wanted:defaultColumns()).includes(key)||config.required[effective].includes(key);
       input.dataset.sensitive=['mental_health_status','current_health_status'].includes(key)?'true':'false';
       input.disabled=config.required[effective].includes(key);l.append(input,document.createTextNode(' '+label));box.append(l);
     }
     const selected=[...box.querySelectorAll('input:checked')].map(input=>input.value),same=keys=>keys.length===selected.length&&keys.every(key=>selected.includes(key));
-    byId('columnPreset').value=same(config.defaults[effective])?'default':same(config.required[effective])?'essential':effective==='residents'&&same(['full_name','id','age','occupation'])?'work':'custom';byId('columnPreset').querySelector('[data-resident-preset]').disabled=effective!=='residents';columnCount();
+    byId('columnPreset').value=same(defaultColumns())?'default':same(config.required[effective])?'essential':effective==='residents'&&same(['full_name','id','age','occupation'])?'work':'custom';byId('columnPreset').querySelector('[data-resident-preset]').disabled=effective!=='residents';columnCount();
   }
   function columnCount(){const box=byId('reportColumns');byId('columnSelectionCount').textContent='· '+box.querySelectorAll('input:checked').length+' columns';}
-  function setColumns(preset){const effective=effectiveCategory();for(const input of byId('reportColumns').querySelectorAll('input')){if(input.disabled)continue;input.checked=preset==='all'&&input.dataset.sensitive!=='true'||preset==='default'&&config.defaults[effective].includes(input.value)||preset==='work'&&['full_name','id','age','occupation'].includes(input.value);}byId('columnPreset').value=['default','essential','work'].includes(preset)?preset:'custom';columnCount();stale();}
+  function setColumns(preset){const effective=effectiveCategory();for(const input of byId('reportColumns').querySelectorAll('input')){if(input.disabled)continue;input.checked=preset==='all'&&input.dataset.sensitive!=='true'||preset==='default'&&defaultColumns().includes(input.value)||preset==='work'&&['full_name','id','age','occupation'].includes(input.value);}byId('columnPreset').value=['default','essential','work'].includes(preset)?preset:'custom';columnCount();stale();}
   byId('columnPreset').addEventListener('change',()=>setColumns(byId('columnPreset').value));
   byId('allOptionalColumns').onclick=()=>setColumns('all');byId('clearOptionalColumns').onclick=()=>setColumns('essential');byId('defaultColumns').onclick=()=>{byId('columnPreset').value='default';setColumns('default');};
   function visibility(rebuild=false){
@@ -46,6 +48,7 @@ window.ReportWorkspace={mount(root=document){
     if(byId('auditMonth')){byId('auditMonth').disabled=cat!=='audit'||auditPeriod!=='specific_month';byId('auditMonth').closest('div').hidden=byId('auditMonth').disabled;}
     if(byId('auditYear')){byId('auditYear').disabled=cat!=='audit'||auditPeriod!=='specific_year';byId('auditYear').closest('div').hidden=byId('auditYear').disabled;}
     const individual=cat==='individual';
+    if(kind.value==='individual'){byId('reportScope').value='resident';byId('reportScope').disabled=true;byId('reportScope').parentElement.hidden=true;}
     byId('individualScope').hidden=!individual||!!locked.resident_id;byId('residentId').disabled=!individual;byId('residentSearch').disabled=!individual||!!locked.resident_id;byId('residentSearch').required=individual&&!locked.resident_id;
     const chosen=config.selected_resident,summary=byId('selectedResidentSummary');summary.hidden=!individual;summary.textContent=individual?(locked.resident_id&&chosen?'Selected: '+chosen.full_name+' / Resident #'+chosen.id+' / House '+(chosen.house_number||'Not recorded'):byId('residentId').value?'Selected: '+byId('residentSearch').value:'Choose one exact resident. Typed text alone cannot generate an individual report.') :'';
     byId('reportSearchLabel').textContent=cat==='audit'?'Audit search':cat==='households'?'Household search':'Search residents';byId('reportSearch').placeholder=cat==='audit'?'Actor, event or record':cat==='households'?'Name, house no. or address':'Name or ID';
@@ -100,24 +103,25 @@ window.ReportWorkspace={mount(root=document){
     event.preventDefault();clearTimeout(previewTimer);if(directoryInvalidated){byId('reportMessage').textContent='Directory search changed. Reopen Print Options after the results update.';return;}visibility();validateHouseholdChoice();validateResidentChoice();if(category()!=='individual'&&byId('periodMode').value==='custom'&&(!byId('dateFrom').value||!byId('dateTo').value||byId('dateFrom').value>byId('dateTo').value)){stale();byId('reportMessage').textContent='Enter a complete valid date range to preview.';return;}if(!form.reportValidity())return;lastEditedState=configurationState();
     controller?.abort();controller=new AbortController();const current=++sequence;
     const params=new URLSearchParams(new FormData(form));params.delete('kind');
+    if(category()==='individual')params.set('scope','resident');
     for(const [key,value] of Object.entries(locked))if(!['kind','search'].includes(key))params.set(key,value);
     if(config.initial.context)params.set('context',config.initial.context);
     if(selection){params.delete('search');if(kind.value==='audit')params.set('search',selection.id);else if(selection.type==='residents'){params.set('resident_id',selection.id);if(kind.value==='residents'&&!locked.scope)params.set('scope','resident');}else params.set('household_id',selection.id);}
     params.set('columns',[...byId('reportColumns').querySelectorAll('input:checked')].map(i=>i.value).join(','));
     disableOutputs();byId('matchingRecordCount').textContent='Checking records?';byId('reportMessage').textContent='Loading matching records…';
     try{
-      const response=await fetch('/api/preview/'+kind.value+'?'+params,{signal:controller.signal});
+      const response=await fetch('/api/preview/'+outputKind()+'?'+params,{signal:controller.signal});
       const data=await response.json();if(current!==sequence)return;
       if(!response.ok)throw Error(data.error||'Unable to load report. Review filters and try again.');
       const head=byId('reportPreview').tHead,body=byId('reportPreview').tBodies[0];head.replaceChildren();body.replaceChildren();
       const cell=(tag,text)=>{const node=document.createElement(tag);node.textContent=text??'Not recorded';return node;};
-      if(category()==='individual'&&data.total===1){const tr=document.createElement('tr');tr.append(cell('th','Information'),cell('th','Details'));head.append(tr);for(const item of data.profile_fields){const row=document.createElement('tr');row.append(cell('th',item.label),cell('td',item.value||'Not recorded'));body.append(row);}}
+      if(category()==='individual'&&data.total===1){const tr=document.createElement('tr');tr.append(cell('th','Information'),cell('th','Details'));head.append(tr);for(const item of data.profile_fields){const row=document.createElement('tr');row.append(cell('th',item.label),cell('td',item.value==null||item.value===''?'Not recorded':item.value));body.append(row);}}
       else if(kind.value==='households'&&mode.value==='profile'&&data.total===1){const tr=document.createElement('tr');tr.append(cell('th','Household information'),cell('th','Details'));head.append(tr);for(const item of data.profile_fields){const row=document.createElement('tr');row.append(cell('th',item.label),cell('td',item.value||'Not recorded'));body.append(row);}const section=document.createElement('tr'),sectionCell=cell('th','Household members');sectionCell.colSpan=4;section.append(sectionCell);body.append(section);const membersHead=document.createElement('tr');for(const label of ['Resident ID','Full name','Status','Relationship to head'])membersHead.append(cell('th',label));body.append(membersHead);for(const member of data.profile_members||[]){const row=document.createElement('tr');for(const key of ['id','full_name','status','relationship_to_head'])row.append(cell('td',member[key]||'Not recorded'));body.append(row);}if(!(data.profile_members||[]).length){const row=document.createElement('tr'),empty=cell('td','No household members are recorded.');empty.colSpan=4;row.append(empty);body.append(row);}}
       else{const tr=document.createElement('tr');for(const c of data.columns){const th=document.createElement('th');th.scope='col';th.textContent=c.label;tr.append(th);}head.append(tr);for(const row of data.items){const tr=document.createElement('tr');for(const c of data.columns){const td=document.createElement('td');td.textContent=row[c.key]??'Not recorded';tr.append(td);}body.append(tr);}}
       if(category()==='individual'&&data.total===1){const resident=data.items[0];byId('selectedResidentSummary').textContent='Selected: '+resident.full_name+' / Resident #'+resident.id+(resident.household_number?' / House '+resident.household_number:'');}
       filterChips();byId('reportSummary').textContent=data.summary.replace(/Household ID: \d+/g,()=>"Household: "+(byId('reportHousehold').value?byId('reportHousehold').selectedOptions[0]?.textContent:'Selected household'));byId('matchingRecordCount').textContent=data.total+' matching records';byId('reportPreview').classList.remove('preview-stale');
       byId('reportMessage').textContent=data.total===0?'No matching records. Change the filters to generate an output.':data.sample?`Showing ${data.shown} of ${data.total}. Print and Word include all ${data.total} matches.`:`Showing all ${data.total} matching records.`;
-      if(data.total){print.href='/reports/print/'+kind.value+'?'+params+'&autoprint=1';word.href=({residents:'/print_all_members',households:'/print_households_report',audit:'/print_audit_logs_report'})[kind.value]+'?'+params;for(const a of [print,word])a.setAttribute('aria-disabled','false');}
+      if(data.total){print.href='/reports/print/'+outputKind()+'?'+params+'&autoprint=1';word.href=({residents:'/print_all_members',households:'/print_households_report',audit:'/print_audit_logs_report'})[outputKind()]+'?'+params;for(const a of [print,word])a.setAttribute('aria-disabled','false');}
     }catch(error){if(error.name==='AbortError'||current!==sequence)return;byId('matchingRecordCount').textContent='Preview unavailable';byId('reportSummary').textContent='Report unavailable';byId('reportMessage').textContent=error.message;byId('reportPreview').tHead.replaceChildren();byId('reportPreview').tBodies[0].replaceChildren();}
   });
   const search=byId('reportSearch'),list=byId('reportSuggestions');
